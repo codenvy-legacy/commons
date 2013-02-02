@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.codenvy</groupId>
+        <artifactId>maven-parent-pom</artifactId>
+        <version>1-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.codenvy.commons</groupId>
+    <artifactId>codenvy-commons-parent</artifactId>
+    <name>Codenvy Commons :: Parent</name>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <scm>
+        <connection>scm:git:git@github.com:codenvy/commons.git</connection>
+        <url>https://fisheye.codenvycorp.com/browse/commons</url>
+        <developerConnection>scm:git:git@github.com:codenvy/commons.git</developerConnection>
+    </scm>
+    <properties>
+       <javax.ws.rs.version>1.0</javax.ws.rs.version>
+       <servlet-api.version>2.5</servlet-api.version>
+       <junit.version>4.10</junit.version>
+       <everrest.version>1.0.10</everrest.version>
+       <slf4j.version>1.6.1</slf4j.version>
+       <commons-codec.version>1.6</commons-codec.version>
+    </properties>
+    <modules>
+        <module>commons-lang</module>
+        <module>commons-security</module>
+  </modules>
+</project>
