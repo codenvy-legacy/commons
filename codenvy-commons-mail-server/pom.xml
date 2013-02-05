@@ -32,8 +32,8 @@
     <dependencies>
 
        <dependency>
-         <groupId>org.codenvy</groupId>
-         <artifactId>mail-client</artifactId>
+         <groupId>com.codenvy.commons</groupId>
+         <artifactId>codenvy-commons-mail-client</artifactId>
          <version>${project.version}</version>
        </dependency>
 
