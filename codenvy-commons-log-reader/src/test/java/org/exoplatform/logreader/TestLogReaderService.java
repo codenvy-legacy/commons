@@ -31,7 +31,7 @@ public class TestLogReaderService
    @Test
    public void testLastLog() throws Exception
    {
-      final String logDir = "src/test/resources/log/tenant";
+      final String logDir = "target/test-classes/log/tenant";
       LogPathProvider logPath = new SimpleLogPathProvider(logDir);
       LogReaderService service = new LogReaderService(logPath);
 
@@ -64,7 +64,7 @@ public class TestLogReaderService
    @Test
    public void testPrevLog() throws Exception
    {
-      final String logDir = "src/test/resources/log/tenant";
+      final String logDir = "target/test-classes/log/tenant";
       LogPathProvider logPath = new SimpleLogPathProvider(logDir);
       LogReaderService service = new LogReaderService(logPath);
 
@@ -103,7 +103,7 @@ public class TestLogReaderService
    @Test
    public void testNextLog() throws Exception
    {
-      final String logDir = "src/test/resources/log/tenant";
+      final String logDir = "target/test-classes/log/tenant";
       LogPathProvider logPath = new SimpleLogPathProvider(logDir);
       LogReaderService service = new LogReaderService(logPath);
 
@@ -143,7 +143,7 @@ public class TestLogReaderService
    @Test
    public void testMultifolder() throws Exception
    {
-      final String logDir = "src/test/resources/log/tenant";
+      final String logDir = "target/test-classes/log/tenant";
       LogPathProvider logPath = new SimpleLogPathProvider(logDir);
       LogReaderService service = new LogReaderService(logPath);
 
@@ -186,7 +186,7 @@ public class TestLogReaderService
    @Test(expected = LogReaderException.class)
    public void checkNextAfterLast() throws LogReaderException
    {
-      final String logDir = "src/test/resources/log/tenant";
+      final String logDir = "target/test-classes/log/tenant";
       SimpleLogPathProvider pathGenerator = new SimpleLogPathProvider(logDir);
 
       // try to get next token from last token
@@ -199,7 +199,7 @@ public class TestLogReaderService
    @Test(expected = LogReaderException.class)
    public void checkPrevAfterFirst() throws LogReaderException
    {
-      final String logDir = "src/test/resources/log/tenant";
+      final String logDir = "target/test-classes/log/tenant";
       SimpleLogPathProvider pathGenerator = new SimpleLogPathProvider(logDir);
 
       // try to get previous token from first token
@@ -219,7 +219,7 @@ public class TestLogReaderService
    @Test(expected = LogReaderException.class)
    public void checkDangerTokens() throws LogReaderException
    {
-      final String logDir = "src/test/resources/log/tenant";
+      final String logDir = "target/test-classes/log/tenant";
       SimpleLogPathProvider pathGenerator = new SimpleLogPathProvider(logDir);
 
       LogReaderService logReaderService = new LogReaderService(pathGenerator);
