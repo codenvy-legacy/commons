@@ -16,7 +16,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.ide.commons;
+package com.codenvy.commons.env;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,25 +28,32 @@ import java.util.Map;
  * to ensure that the task will be executed in the same conditions as if it would be
  * executed synchronously we need to transfer the thread context from the original
  * thread to the executor thread.</p>
- *
- * @author <a href="mailto:vparfonov@exoplatform.com">Vitaly Parfonov</a>
- * @version $Id: EnvironmentContext.java Feb 26, 2013 vetal $
  */
 public class EnvironmentContext
 {
+   /**
+    * Host name of current environment.
+    */
+   public final static String MASTERHOST = "com.codenvy.masterhost";
+
    public final static String WORKSPACE_ID = "com.codenvy.workspace.id";
+
    public final static String WORKSPACE_NAME = "com.codenvy.workspace.name";
+
    public final static String VFS_ROOT_DIR = "com.codenvy.vfs.rootdir";
+
    public final static String VFS_INDEX_DIR = "com.codenvy.vfs.indexdir";
+
    public final static String TMP_DIR = "com.codenvy.tmpdir";
+
    /**
     * Name of web application that gives access to source files over Git.
-    *
-    * @see org.exoplatform.ide.vfs.server.GitUrlResolver
     */
    public final static String GIT_SERVER = "com.codenvy.git.server.application";
 
-   /** ThreadLocal keeper for EnvironmentContext. */
+   /**
+    * ThreadLocal keeper for EnvironmentContext.
+    */
    private static ThreadLocal<EnvironmentContext> current = new ThreadLocal<EnvironmentContext>()
    {
       @Override

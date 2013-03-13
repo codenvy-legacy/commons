@@ -42,6 +42,7 @@
     </properties>
     <modules>
         <module>codenvy-commons-lang</module>
+        <module>codenvy-commons-env</module>
         <module>codenvy-commons-security</module>
         <module>codenvy-commons-log-reader</module>
         <module>codenvy-commons-mail-client</module>
