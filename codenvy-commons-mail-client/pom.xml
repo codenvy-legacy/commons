@@ -30,6 +30,12 @@
          <version>${everrest.version}</version>
       </dependency>
 
+       <dependency>
+         <groupId>com.codenvy.commons</groupId>
+         <artifactId>codenvy-commons-lang</artifactId>
+         <version>${project.version}</version>
+       </dependency>
+
        <!-- Logger -->
       <dependency>
          <groupId>org.slf4j</groupId>

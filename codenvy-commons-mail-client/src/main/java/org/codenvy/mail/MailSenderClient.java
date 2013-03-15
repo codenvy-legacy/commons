@@ -18,6 +18,8 @@
  */
 package org.codenvy.mail;
 
+import com.codenvy.commons.lang.Deserializer;
+
 import org.everrest.core.impl.provider.json.JsonException;
 import org.everrest.core.impl.provider.json.JsonGenerator;
 import org.slf4j.Logger;
@@ -28,7 +30,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
-
 import javax.mail.MessagingException;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;

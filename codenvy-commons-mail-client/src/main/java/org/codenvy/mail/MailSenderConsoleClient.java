@@ -18,8 +18,9 @@
  */
 package org.codenvy.mail;
 
-import static org.codenvy.mail.Deserializer.resolveVariables;
-import static org.codenvy.mail.StreamUtil.readStream;
+import static com.codenvy.commons.lang.Deserializer.resolveVariables;
+
+import com.codenvy.commons.lang.IoOUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +37,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 import javax.mail.MessagingException;
 
-public class MainClass
+public class MailSenderConsoleClient
 {
-   private static final Logger LOG = LoggerFactory.getLogger(MainClass.class);
+   private static final Logger LOG = LoggerFactory.getLogger(MailSenderConsoleClient.class);
 
    /**
     * Entry point for the application
@@ -178,7 +178,7 @@ public class MainClass
             throw new IOException("Not found template file: " + templateName);
          }
 
-         return readStream(templateInputStream);
+         return IoOUtil.readStream(templateInputStream);
       }
       finally
       {
