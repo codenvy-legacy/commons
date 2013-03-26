@@ -118,4 +118,48 @@ public class IoOUtil
       }
       return is;
    }
+
+   /**
+    * Remove directory and all its sub-resources with specified path
+    */
+   public static boolean removeDirectory(String pathToDir)
+   {
+      File directory = new File(pathToDir);
+
+      if (!directory.exists())
+      {
+         return true;
+      }
+      if (!directory.isDirectory())
+      {
+         return false;
+      }
+
+      String[] list = directory.list();
+
+      if (list != null)
+      {
+         for (String element : list)
+         {
+            File entry = new File(directory, element);
+
+            if (entry.isDirectory())
+            {
+               if (!removeDirectory(entry.getPath()))
+               {
+                  return false;
+               }
+            }
+            else
+            {
+               if (!entry.delete())
+               {
+                  return false;
+               }
+            }
+         }
+      }
+
+      return directory.delete();
+   }
 }
