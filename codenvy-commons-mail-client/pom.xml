@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.codenvy.commons</groupId>
     <artifactId>codenvy-commons-parent</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
   </parent>
   <artifactId>codenvy-commons-mail-client</artifactId>
   <name>Codenvy Commons :: Mail client</name>
