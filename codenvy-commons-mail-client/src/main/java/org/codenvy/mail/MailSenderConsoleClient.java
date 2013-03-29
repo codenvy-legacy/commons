@@ -18,174 +18,133 @@
  */
 package org.codenvy.mail;
 
-import static com.codenvy.commons.lang.Deserializer.resolveVariables;
-
 import com.codenvy.commons.lang.IoOUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javax.mail.MessagingException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import javax.mail.MessagingException;
 
-public class MailSenderConsoleClient
-{
-   private static final Logger LOG = LoggerFactory.getLogger(MailSenderConsoleClient.class);
+import static com.codenvy.commons.lang.Deserializer.resolveVariables;
 
-   /**
-    * Entry point for the application
-    */
-   public static void main(String[] args)
-   {
-      if (args.length != 1)
-      {
-         throw new RuntimeException("Usage: [path to conf file]");
-      }
+public class MailSenderConsoleClient {
+    private static final Logger LOG = LoggerFactory.getLogger(MailSenderConsoleClient.class);
 
-      File configuration = new File(args[0]);
-      if (configuration.isDirectory() || !configuration.exists())
-      {
-         throw new RuntimeException("Configuration file" + configuration.getAbsolutePath()
-            + " is a directory or doesn't exist");
-      }
+    /** Entry point for the application */
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            throw new RuntimeException("Usage: [path to conf file]");
+        }
 
-      InputStream is = null;
+        File configuration = new File(args[0]);
+        if (configuration.isDirectory() || !configuration.exists()) {
+            throw new RuntimeException("Configuration file" + configuration.getAbsolutePath() + " is a directory or " +
+                                       "doesn't exist");
+        }
 
-      try
-      {
-         is = new FileInputStream(configuration);
+        InputStream is = null;
 
-         Properties props = new Properties();
-         props.load(is);
+        try {
+            is = new FileInputStream(configuration);
 
-         String server = props.getProperty("sendemails.server");
-         String from = props.getProperty("sendemails.from");
-         String subject = props.getProperty("sendemails.subject");
-         String mimeType = props.getProperty("sendemails.mimetype");
-         String replyTo = props.getProperty("sendemails.replyto");
-         String templateName = props.getProperty("sendemails.file.template");
-         String recipientsFileName = props.getProperty("sendemails.file.to");
+            Properties props = new Properties();
+            props.load(is);
 
-         String template = getTemplate(templateName);
+            String server = props.getProperty("sendemails.server");
+            String from = props.getProperty("sendemails.from");
+            String subject = props.getProperty("sendemails.subject");
+            String mimeType = props.getProperty("sendemails.mimetype");
+            String replyTo = props.getProperty("sendemails.replyto");
+            String templateName = props.getProperty("sendemails.file.template");
+            String recipientsFileName = props.getProperty("sendemails.file.to");
 
-         sendMails(server, from, recipientsFileName, replyTo, subject, mimeType, template);
+            String template = getTemplate(templateName);
 
-      }
-      catch (FileNotFoundException e)
-      {
-         LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
-         throw new RuntimeException(e.getLocalizedMessage(), e);
-      }
-      catch (IOException e)
-      {
-         LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
-         throw new RuntimeException(e.getLocalizedMessage(), e);
-      }
-      catch (MessagingException e)
-      {
-         LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
-         throw new RuntimeException(e.getLocalizedMessage(), e);
-      }
-      catch (InterruptedException e)
-      {
-         LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
-         throw new RuntimeException(e.getLocalizedMessage(), e);
-      }
-      finally
-      {
-         if (is != null)
-         {
-            try
-            {
-               is.close();
+            sendMails(server, from, recipientsFileName, replyTo, subject, mimeType, template);
+
+        } catch (FileNotFoundException e) {
+            LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
+            throw new RuntimeException(e.getLocalizedMessage(), e);
+        } catch (IOException e) {
+            LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
+            throw new RuntimeException(e.getLocalizedMessage(), e);
+        } catch (MessagingException e) {
+            LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
+            throw new RuntimeException(e.getLocalizedMessage(), e);
+        } catch (InterruptedException e) {
+            LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
+            throw new RuntimeException(e.getLocalizedMessage(), e);
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
+                    throw new RuntimeException(e.getLocalizedMessage(), e);
+                }
             }
-            catch (IOException e)
-            {
-               LOG.error("Mails sending failed - {}", e.getLocalizedMessage(), e);
-               throw new RuntimeException(e.getLocalizedMessage(), e);
+        }
+    }
+
+    private static void sendMails(String server, String from, String recipientsFileName, String replyTo, String subject,
+                                  String mimeType,
+                                  String template) throws MessagingException, IOException, InterruptedException {
+        MailSenderClient mailService = new MailSenderClient(server);
+
+        Map<String, String> templateVariables = new HashMap<String, String>();
+
+        FileInputStream fis = null;
+        DataInputStream in = null;
+        try {
+            fis = new FileInputStream(recipientsFileName);
+            in = new DataInputStream(fis);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+            String strLine;
+
+            while ((strLine = br.readLine()) != null) {
+                templateVariables.put("user.email", strLine);
+
+                mailService.sendMail(from, strLine, null, subject, mimeType, resolveVariables(template, templateVariables));
+
+                LOG.info("Mail to {} was sent.", strLine);
+
+                TimeUnit.SECONDS.sleep(1);
             }
-         }
-      }
-   }
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+        }
+    }
 
-   private static void sendMails(String server, String from, String recipientsFileName, String replyTo, String subject,
-      String mimeType, String template) throws MessagingException, IOException, InterruptedException
-   {
-      MailSenderClient mailService = new MailSenderClient(server);
+    private static String getTemplate(String templateName) throws IOException {
+        if (templateName == null) {
+            throw new IOException("Template name is null.");
+        }
 
-      Map<String, String> templateVariables = new HashMap<String, String>();
+        InputStream templateInputStream = null;
+        try {
+            File templateFile = new File(templateName);
 
-      FileInputStream fis = null;
-      DataInputStream in = null;
-      try
-      {
-         fis = new FileInputStream(recipientsFileName);
-         in = new DataInputStream(fis);
-         BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            if (templateFile.exists() && templateFile.isFile()) {
+                templateInputStream = new FileInputStream(templateName);
+            }
 
-         String strLine;
+            if (templateInputStream == null) {
+                throw new IOException("Not found template file: " + templateName);
+            }
 
-         while ((strLine = br.readLine()) != null)
-         {
-            templateVariables.put("user.email", strLine);
-
-            mailService.sendMail(from, strLine, null, subject, mimeType, resolveVariables(template, templateVariables));
-
-            LOG.info("Mail to {} was sent.", strLine);
-
-            TimeUnit.SECONDS.sleep(1);
-         }
-      }
-      finally
-      {
-         if (in != null)
-         {
-            in.close();
-         }
-      }
-   }
-
-   private static String getTemplate(String templateName) throws IOException
-   {
-      if (templateName == null)
-      {
-         throw new IOException("Template name is null.");
-      }
-
-      InputStream templateInputStream = null;
-      try
-      {
-         File templateFile = new File(templateName);
-
-         if (templateFile.exists() && templateFile.isFile())
-         {
-            templateInputStream = new FileInputStream(templateName);
-         }
-
-         if (templateInputStream == null)
-         {
-            throw new IOException("Not found template file: " + templateName);
-         }
-
-         return IoOUtil.readStream(templateInputStream);
-      }
-      finally
-      {
-         if (templateInputStream != null)
-         {
-            templateInputStream.close();
-         }
-      }
-   }
+            return IoOUtil.readStream(templateInputStream);
+        } finally {
+            if (templateInputStream != null) {
+                templateInputStream.close();
+            }
+        }
+    }
 }

@@ -18,14 +18,6 @@
  */
 package org.exoplatform.logreader;
 
-/**
- * @author <a href="mailto:kregent@exoplatform.com">Kostya Regent</a>
- * @version $Id: Jul 14, 2011 11:52:18 AM $
- *
- */
-public interface LogPathProvider
-{
-
-   public String getLogDirectory();
-
+public interface LogPathProvider {
+    public String getLogDirectory();
 }

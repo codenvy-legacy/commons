@@ -18,102 +18,78 @@
  */
 package org.exoplatform.logreader;
 
-/**
- * Been for log entry (represent one log file on file system)
- * 
- * @author <a href="mailto:evidolob@exoplatform.com">Evgen Vidolob</a>
- * @version $Id: $
- *
- */
-public class LogEntry
-{
-   
-   private String token;
+/** Been for log entry (represent one log file on file system) */
+public class LogEntry {
 
-   private String content;
+    private String token;
 
-   private boolean hasNext;
+    private String content;
 
-   private boolean hasPrevious;
-   
+    private boolean hasNext;
 
-   
-   public LogEntry()
-   {
-   }
-   
-   public LogEntry(String token, String content, boolean hasNext, boolean hasPrevious)
-   {
-      super();
-      this.token = token;
-      this.content = content;
-      this.hasNext = hasNext;
-      this.hasPrevious = hasPrevious;
-   }
+    private boolean hasPrevious;
 
-   /**
-    * @return the token
-    */
-   public String getToken()
-   {
-      return token;
-   }
+    public LogEntry() {
+    }
 
-   /**
-    * @param token the token to set
-    */
-   public void setToken(String token)
-   {
-      this.token = token;
-   }
+    public LogEntry(String token, String content, boolean hasNext, boolean hasPrevious) {
+        super();
+        this.token = token;
+        this.content = content;
+        this.hasNext = hasNext;
+        this.hasPrevious = hasPrevious;
+    }
 
-   /**
-    * @return the content
-    */
-   public String getContent()
-   {
-      return content;
-   }
+    /** @return the token */
+    public String getToken() {
+        return token;
+    }
 
-   /**
-    * @param content the content to set
-    */
-   public void setContent(String content)
-   {
-      this.content = content;
-   }
+    /**
+     * @param token
+     *         the token to set
+     */
+    public void setToken(String token) {
+        this.token = token;
+    }
 
-   /**
-    * @return the hasNext
-    */
-   public boolean isHasNext()
-   {
-      return hasNext;
-   }
+    /** @return the content */
+    public String getContent() {
+        return content;
+    }
 
-   /**
-    * @param hasNext the hasNext to set
-    */
-   public void setHasNext(boolean hasNext)
-   {
-      this.hasNext = hasNext;
-   }
+    /**
+     * @param content
+     *         the content to set
+     */
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-   /**
-    * @return the hasPrevious
-    */
-   public boolean isHasPrevious()
-   {
-      return hasPrevious;
-   }
+    /** @return the hasNext */
+    public boolean isHasNext() {
+        return hasNext;
+    }
 
-   /**
-    * @param hasPrevious the hasPrevious to set
-    */
-   public void setHasPrevious(boolean hasPrevious)
-   {
-      this.hasPrevious = hasPrevious;
-   }
-   
-   
+    /**
+     * @param hasNext
+     *         the hasNext to set
+     */
+    public void setHasNext(boolean hasNext) {
+        this.hasNext = hasNext;
+    }
+
+    /** @return the hasPrevious */
+    public boolean isHasPrevious() {
+        return hasPrevious;
+    }
+
+    /**
+     * @param hasPrevious
+     *         the hasPrevious to set
+     */
+    public void setHasPrevious(boolean hasPrevious) {
+        this.hasPrevious = hasPrevious;
+    }
+
 }

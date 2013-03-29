@@ -18,33 +18,26 @@
  */
 package org.codenvy.mail;
 
+import javax.ws.rs.core.Application;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+/** Set of email services. */
+public class MailApplication extends Application {
+    private final Set<Object> objects = new LinkedHashSet<Object>();
 
-/**
- * Set of email services.
- */
-public class MailApplication extends Application
-{
-   private final Set<Object> objects = new LinkedHashSet<Object>();
+    public MailApplication() {
+        objects.add(new MailSender());
+    }
 
-   public MailApplication()
-   {
-      objects.add(new MailSender());
-   }
+    @Override
+    public Set<Object> getSingletons() {
+        return objects;
+    }
 
-   @Override
-   public Set<Object> getSingletons()
-   {
-      return objects;
-   }
-
-   @Override
-   public Set<Class<?>> getClasses()
-   {
-      return Collections.emptySet();
-   }
+    @Override
+    public Set<Class<?>> getClasses() {
+        return Collections.emptySet();
+    }
 }

@@ -21,145 +21,112 @@ package com.codenvy.commons.lang;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
-public class IoOUtil
-{
+public class IoOUtil {
 
-   private static final Logger LOG = LoggerFactory.getLogger(IoOUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(IoOUtil.class);
 
-   private IoOUtil()
-   {
-   }
+    private IoOUtil() {
+    }
 
-   /**
-    * Reads bytes from input stream and builds a string from them.
-    *
-    * @param inputStream
-    *    source stream
-    * @return string
-    * @throws java.io.IOException
-    *    if any i/o error occur
-    */
-   public static String readStream(InputStream inputStream) throws IOException
-   {
-      ByteArrayOutputStream bout = new ByteArrayOutputStream();
-      byte[] buf = new byte[8192];
-      int r;
-      while ((r = inputStream.read(buf)) != -1)
-      {
-         bout.write(buf, 0, r);
-      }
-      return bout.toString();
-   }
+    /**
+     * Reads bytes from input stream and builds a string from them.
+     *
+     * @param inputStream
+     *         source stream
+     * @return string
+     * @throws java.io.IOException
+     *         if any i/o error occur
+     */
+    public static String readStream(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        byte[] buf = new byte[8192];
+        int r;
+        while ((r = inputStream.read(buf)) != -1) {
+            bout.write(buf, 0, r);
+        }
+        return bout.toString();
+    }
 
-   /**
-    * Reads bytes from input stream and builds a string from them.
-    * InputStream closed after consumption.
-    *
-    * @param inputStream
-    *    source stream
-    * @return string
-    * @throws java.io.IOException
-    *    if any i/o error occur
-    */
-   public static String readAndCloseQuietly(InputStream inputStream) throws IOException
-   {
-      try
-      {
-         return readStream(inputStream);
-      }
-      catch (IOException e)
-      {
-         LOG.error(e.getLocalizedMessage(), e);
-         throw e;
-      }
-      finally
-      {
-         if (inputStream != null)
-         {
-            try
-            {
-               inputStream.close();
+    /**
+     * Reads bytes from input stream and builds a string from them.
+     * InputStream closed after consumption.
+     *
+     * @param inputStream
+     *         source stream
+     * @return string
+     * @throws java.io.IOException
+     *         if any i/o error occur
+     */
+    public static String readAndCloseQuietly(InputStream inputStream) throws IOException {
+        try {
+            return readStream(inputStream);
+        } catch (IOException e) {
+            LOG.error(e.getLocalizedMessage(), e);
+            throw e;
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    LOG.error(e.getLocalizedMessage(), e);
+                }
             }
-            catch (IOException e)
-            {
-               LOG.error(e.getLocalizedMessage(), e);
+        }
+    }
+
+    /**
+     * Looking for resource by given path. If no file exist by this path, method will try to find it in context.
+     *
+     * @param resource
+     *         - path to resource
+     * @return -   InputStream of resource
+     * @throws IOException
+     */
+    public static InputStream getResource(String resource) throws IOException {
+        InputStream is = null;
+
+        File resourceFile = new File(resource);
+        if (resourceFile.exists() && !resourceFile.isFile()) {
+            throw new IOException(resourceFile.getAbsolutePath() + " is not a file. ");
+        }
+        is = resourceFile.exists() ? new FileInputStream(resourceFile) : IoOUtil.class.getResourceAsStream(resource);
+        if (is == null) {
+            throw new IOException("Not found resource: " + resource);
+        }
+        return is;
+    }
+
+    /** Remove directory and all its sub-resources with specified path */
+    public static boolean removeDirectory(String pathToDir) {
+        File directory = new File(pathToDir);
+
+        if (!directory.exists()) {
+            return true;
+        }
+        if (!directory.isDirectory()) {
+            return false;
+        }
+
+        String[] list = directory.list();
+
+        if (list != null) {
+            for (String element : list) {
+                File entry = new File(directory, element);
+
+                if (entry.isDirectory()) {
+                    if (!removeDirectory(entry.getPath())) {
+                        return false;
+                    }
+                } else {
+                    if (!entry.delete()) {
+                        return false;
+                    }
+                }
             }
-         }
-      }
-   }
+        }
 
-   /**
-    * Looking for resource by given path. If no file exist by this path, method will try to find it in context.
-    *
-    * @param resource
-    *    - path to resource
-    * @return -   InputStream of resource
-    * @throws IOException
-    */
-   public static InputStream getResource(String resource) throws IOException
-   {
-      InputStream is = null;
-
-      File resourceFile = new File(resource);
-      if (resourceFile.exists() && !resourceFile.isFile())
-      {
-         throw new IOException(resourceFile.getAbsolutePath() + " is not a file. ");
-      }
-      is = resourceFile.exists() ? new FileInputStream(resourceFile) : IoOUtil.class.getResourceAsStream(resource);
-      if (is == null)
-      {
-         throw new IOException("Not found resource: " + resource);
-      }
-      return is;
-   }
-
-   /**
-    * Remove directory and all its sub-resources with specified path
-    */
-   public static boolean removeDirectory(String pathToDir)
-   {
-      File directory = new File(pathToDir);
-
-      if (!directory.exists())
-      {
-         return true;
-      }
-      if (!directory.isDirectory())
-      {
-         return false;
-      }
-
-      String[] list = directory.list();
-
-      if (list != null)
-      {
-         for (String element : list)
-         {
-            File entry = new File(directory, element);
-
-            if (entry.isDirectory())
-            {
-               if (!removeDirectory(entry.getPath()))
-               {
-                  return false;
-               }
-            }
-            else
-            {
-               if (!entry.delete())
-               {
-                  return false;
-               }
-            }
-         }
-      }
-
-      return directory.delete();
-   }
+        return directory.delete();
+    }
 }

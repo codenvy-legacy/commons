@@ -28,7 +28,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 
 import java.io.IOException;
-
 import javax.mail.Session;
 
 @Listeners(value = {EverrestJetty.class, MockitoTestNGListener.class})

@@ -20,91 +20,77 @@ package org.codenvy.mail;
 
 import java.io.Serializable;
 
-public class EmailBean implements Serializable
-{
-   private static final long serialVersionUID = 1L;
+public class EmailBean implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-   private String from;
+    private String from;
 
-   private String to;
+    private String to;
 
-   private String mimeType;
+    private String mimeType;
 
-   private String body;
+    private String body;
 
-   private String replyTo;
+    private String replyTo;
 
-   private String subject;
+    private String subject;
 
-   public EmailBean()
-   {
-   }
+    public EmailBean() {
+    }
 
-   public String getFrom()
-   {
-      return from;
-   }
+    public String getFrom() {
+        return from;
+    }
 
-   public void setFrom(String from)
-   {
-      this.from = from;
-   }
+    public void setFrom(String from) {
+        this.from = from;
+    }
 
-   public String getTo()
-   {
-      return to;
-   }
+    public String getTo() {
+        return to;
+    }
 
-   /**
-    * Set receivers addresses
-    * If you need to send more than one copy of email, 
-    * then put needed receivers separated by comma.
-    * 
-    * @param to
-    *    - email receivers
-    */
-   public void setTo(String to)
-   {
-      this.to = to;
-   }
+    /**
+     * Set receivers addresses
+     * If you need to send more than one copy of email,
+     * then put needed receivers separated by comma.
+     *
+     * @param to
+     *         - email receivers
+     */
+    public void setTo(String to) {
+        this.to = to;
+    }
 
-   public String getMimeType()
-   {
-      return mimeType;
-   }
+    public String getMimeType() {
+        return mimeType;
+    }
 
-   public void setMimeType(String mimeType)
-   {
-      this.mimeType = mimeType;
-   }
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
 
-   public String getBody()
-   {
-      return body;
-   }
+    public String getBody() {
+        return body;
+    }
 
-   public void setBody(String body)
-   {
-      this.body = body;
-   }
+    public void setBody(String body) {
+        this.body = body;
+    }
 
-   public String getReplyTo()
-   {
-      return replyTo;
-   }
+    public String getReplyTo() {
+        return replyTo;
+    }
 
-   public void setReplyTo(String replyTo)
-   {
-      this.replyTo = replyTo;
-   }
+    public void setReplyTo(String replyTo) {
+        this.replyTo = replyTo;
+    }
 
-   public String getSubject()
-   {
-      return subject;
-   }
+    public String getSubject() {
+        return subject;
+    }
 
-   public void setSubject(String subject)
-   {
-      this.subject = subject;
-   }
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
 }

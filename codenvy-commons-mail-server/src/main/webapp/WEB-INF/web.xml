@@ -27,21 +27,21 @@
          metadata-complete="true">
     <display-name>eXo Cloud + IDE</display-name>
 
-   <context-param>
-      <param-name>javax.ws.rs.Application</param-name>
-      <param-value>org.codenvy.mail.MailApplication</param-value>
-   </context-param>
+    <context-param>
+        <param-name>javax.ws.rs.Application</param-name>
+        <param-value>org.codenvy.mail.MailApplication</param-value>
+    </context-param>
 
-   <listener>
-      <listener-class>org.everrest.core.servlet.EverrestInitializedListener</listener-class>
-   </listener>
-   <servlet>
-      <servlet-name>EverrestServlet</servlet-name>
-      <servlet-class>org.everrest.core.servlet.EverrestServlet</servlet-class>
-   </servlet>
-   <servlet-mapping>
-      <servlet-name>EverrestServlet</servlet-name>
-      <url-pattern>/*</url-pattern>
-   </servlet-mapping>
+    <listener>
+        <listener-class>org.everrest.core.servlet.EverrestInitializedListener</listener-class>
+    </listener>
+    <servlet>
+        <servlet-name>EverrestServlet</servlet-name>
+        <servlet-class>org.everrest.core.servlet.EverrestServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EverrestServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
 
 </web-app>

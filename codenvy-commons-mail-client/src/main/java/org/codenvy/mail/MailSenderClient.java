@@ -55,7 +55,7 @@ public class MailSenderClient
    public static final String UTF_8 = "UTF-8";
 
    /**
-    * String representation of MailSender Service application address 
+    * String representation of MailSender Service application address
     */
    private String server;
 
@@ -66,7 +66,7 @@ public class MailSenderClient
 
    /**
     * Simple constructor to pass application server address
-    * 
+    *
     * @param server
     */
    public MailSenderClient(String server)
@@ -74,14 +74,14 @@ public class MailSenderClient
       this.server = server;
    }
 
-   public void sendMail(String from, String to, String replyTo, String subject, String mimeType, String template)
-      throws IOException, MessagingException
+   public void sendMail(String from, String to, String replyTo, String subject, String mimeType,
+                        String template) throws IOException, MessagingException
    {
       sendMail(from, to, replyTo, subject, mimeType, template, null);
    }
 
    public void sendMail(String from, String to, String replyTo, String subject, String mimeType, String template,
-      Map<String, String> templateProperties) throws MessagingException, IOException
+                        Map<String, String> templateProperties) throws MessagingException, IOException
    {
       HttpURLConnection conn = null;
       OutputStream os = null;

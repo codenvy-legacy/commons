@@ -18,28 +18,18 @@
  */
 package org.exoplatform.logreader;
 
-/**
- * @author <a href="mailto:kregent@exoplatform.com">Kostya Regent</a>
- * @version $Id: Jul 14, 2011 11:57:03 AM $
- *
- */
-public class SimpleLogPathProvider implements LogPathProvider
-{
+public class SimpleLogPathProvider implements LogPathProvider {
 
-   private final String logDir;
+    private final String logDir;
 
-   public SimpleLogPathProvider(String logDir)
-   {
-      this.logDir = logDir;
-   }
+    public SimpleLogPathProvider(String logDir) {
+        this.logDir = logDir;
+    }
 
-   /**
-    * @see org.exoplatform.logreader.LogPathProvider#getLogDirectory()
-    */
-   @Override
-   public String getLogDirectory()
-   {
-      return logDir;
-   }
+    /** @see org.exoplatform.logreader.LogPathProvider#getLogDirectory() */
+    @Override
+    public String getLogDirectory() {
+        return logDir;
+    }
 
 }

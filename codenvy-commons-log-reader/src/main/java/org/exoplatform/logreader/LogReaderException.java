@@ -18,43 +18,32 @@
  */
 package org.exoplatform.logreader;
 
-/**
- * @author <a href="mailto:kregent@exoplatform.com">Kostya Regent</a>
- * @version $Id: Jul 14, 2011 11:59:48 AM $
- *
- */
-public class LogReaderException extends Exception
-{
+public class LogReaderException extends Exception {
 
-   private final String message;
+    private final String message;
 
-   private final Throwable cause;
+    private final Throwable cause;
 
-   public LogReaderException(String message)
-   {
-      this.message = message;
-      this.cause = null;
-   }
+    public LogReaderException(String message) {
+        this.message = message;
+        this.cause = null;
+    }
 
-   public LogReaderException(String message, Throwable cause)
-   {
-      this.message = message;
-      this.cause = cause;
-   }
+    public LogReaderException(String message, Throwable cause) {
+        this.message = message;
+        this.cause = cause;
+    }
 
-   public String getMessage()
-   {
-      return message;
-   }
+    public String getMessage() {
+        return message;
+    }
 
-   public String getLocalizedMessage()
-   {
-      return message;
-   }
+    public String getLocalizedMessage() {
+        return message;
+    }
 
-   public Throwable getCause()
-   {
-      return cause;
-   }
+    public Throwable getCause() {
+        return cause;
+    }
 
 }

@@ -24,7 +24,7 @@
    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
       <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
         <!-- daily rollover -->
-        <fileNamePattern>logs/%d{yyyy/MM/dd}/extractor-%i.log</fileNamePattern>
+         <fileNamePattern>logs/%d{yyyy/MM/dd}/extractor-%i.log</fileNamePattern>
         <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
            <!-- or whenever the file size reaches 2MB -->
            <maxFileSize>2MB</maxFileSize>
@@ -42,8 +42,8 @@
   </appender>
 
   <root level="info">
-    <appender-ref ref="FILE" />
-    <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE"/>
+    <appender-ref ref="STDOUT"/>
   </root>
   
 </configuration>

@@ -22,23 +22,15 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-/**
- * @author <a href="mailto:kregent@exoplatform.com">Kostya Regent</a>
- * @version $Id: Jul 14, 2011 4:15:21 PM $
- * 
- */
-@Provider
-public class LogReaderExceptionMapper implements ExceptionMapper<LogReaderException>
-{
 
-   /**
-    * @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable)
-    */
-   @Override
-   public Response toResponse(LogReaderException exception)
-   {
-      return Response.status(204).header("JAXRS-Body-Provided", "Error-Message")
-         .entity(exception.getLocalizedMessage()).type("text/plain").build();
-   }
+@Provider
+public class LogReaderExceptionMapper implements ExceptionMapper<LogReaderException> {
+
+    /** @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable) */
+    @Override
+    public Response toResponse(LogReaderException exception) {
+        return Response.status(204).header("JAXRS-Body-Provided", "Error-Message").entity(exception.getLocalizedMessage
+                ()).type("text/plain").build();
+    }
 
 }

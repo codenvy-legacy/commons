@@ -18,23 +18,14 @@
  */
 package org.exoplatform.logreader;
 
-/**
- * @author <a href="mailto:kregent@exoplatform.com">Kostya Regent</a>
- * @version $Id: Jul 15, 2011 9:56:01 AM $
- *
- */
-public class SystemLogPathProvider implements LogPathProvider
-{
+public class SystemLogPathProvider implements LogPathProvider {
 
-   public static final String LOG_DIR_PROPERTY = "org.exoplatform.logreader.logpath";
+    public static final String LOG_DIR_PROPERTY = "org.exoplatform.logreader.logpath";
 
-   /**
-    * @see org.exoplatform.logreader.LogPathProvider#getLogDirectory()
-    */
-   @Override
-   public String getLogDirectory()
-   {
-      return System.getProperty(LOG_DIR_PROPERTY);
-   }
+    /** @see org.exoplatform.logreader.LogPathProvider#getLogDirectory() */
+    @Override
+    public String getLogDirectory() {
+        return System.getProperty(LOG_DIR_PROPERTY);
+    }
 
 }

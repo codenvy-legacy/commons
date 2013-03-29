@@ -18,33 +18,24 @@
  */
 package org.exoplatform.logreader;
 
+import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+public class LogReaderServiceApplication extends Application {
 
-/**
- * @author <a href="mailto:kregent@exoplatform.com">Kostya Regent</a>
- * @version $Id: Jul 14, 2011 1:05:44 PM $
- *
- */
-public class LogReaderServiceApplication extends Application
-{
+    @Override
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> cls = new HashSet<Class<?>>(1);
+        cls.add(LogReaderService.class);
+        return cls;
+    }
 
-   @Override
-   public Set<Class<?>> getClasses()
-   {
-      Set<Class<?>> cls = new HashSet<Class<?>>(1);
-      cls.add(LogReaderService.class);
-      return cls;
-   }
-
-   @Override
-   public Set<Object> getSingletons()
-   {
-      Set<Object> objs = new HashSet<Object>();
-      objs.add(new LogReaderExceptionMapper());
-      return objs;
-   }
+    @Override
+    public Set<Object> getSingletons() {
+        Set<Object> objs = new HashSet<Object>();
+        objs.add(new LogReaderExceptionMapper());
+        return objs;
+    }
 
 }

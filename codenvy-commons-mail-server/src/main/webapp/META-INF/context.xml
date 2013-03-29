@@ -18,6 +18,5 @@
     02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 -->
-<Context path="/mail" docBase="mail" reloadable="true" crossContext="false">
-  <Manager className='org.apache.catalina.session.PersistentManager' saveOnRestart='false'/>
-</Context>
+<Context path="/mail" docBase="mail" reloadable="true" crossContext="false"/>
+

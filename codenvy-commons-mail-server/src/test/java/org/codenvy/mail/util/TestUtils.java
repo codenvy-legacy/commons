@@ -18,7 +18,7 @@
  */
 package org.codenvy.mail.util;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
 
 import com.dumbster.smtp.SimpleSmtpServer;
 import com.dumbster.smtp.SmtpMessage;
@@ -48,7 +48,7 @@ public class TestUtils
    }
 
    public static EmailBean buildEmailBean(String from, String to, String replyTo, String subject, String mimeType,
-      String body)
+                                          String body)
    {
       EmailBean bean = new EmailBean();
 

@@ -29,71 +29,56 @@ import java.util.Map;
  * executed synchronously we need to transfer the thread context from the original
  * thread to the executor thread.</p>
  */
-public class EnvironmentContext
-{
-   /**
-    * Host name of current environment.
-    */
-   public final static String MASTERHOST = "com.codenvy.masterhost";
+public class EnvironmentContext {
+    /** Host name of current environment. */
+    public final static String MASTERHOST = "com.codenvy.masterhost";
 
-   public final static String WORKSPACE_ID = "com.codenvy.workspace.id";
+    public final static String WORKSPACE_ID = "com.codenvy.workspace.id";
 
-   public final static String WORKSPACE_NAME = "com.codenvy.workspace.name";
+    public final static String WORKSPACE_NAME = "com.codenvy.workspace.name";
 
-   public final static String VFS_ROOT_DIR = "com.codenvy.vfs.rootdir";
+    public final static String VFS_ROOT_DIR = "com.codenvy.vfs.rootdir";
 
-   public final static String VFS_INDEX_DIR = "com.codenvy.vfs.indexdir";
+    public final static String VFS_INDEX_DIR = "com.codenvy.vfs.indexdir";
 
-   public final static String TMP_DIR = "com.codenvy.tmpdir";
+    public final static String TMP_DIR = "com.codenvy.tmpdir";
 
-   /**
-    * Name of web application that gives access to source files over Git.
-    */
-   public final static String GIT_SERVER = "com.codenvy.git.server.application";
+    /** Name of web application that gives access to source files over Git. */
+    public final static String GIT_SERVER = "com.codenvy.git.server.application";
 
-   /**
-    * ThreadLocal keeper for EnvironmentContext.
-    */
-   private static ThreadLocal<EnvironmentContext> current = new ThreadLocal<EnvironmentContext>()
-   {
-      @Override
-      protected EnvironmentContext initialValue()
-      {
-         return new EnvironmentContext();
-      }
-   };
+    /** ThreadLocal keeper for EnvironmentContext. */
+    private static ThreadLocal<EnvironmentContext> current = new ThreadLocal<EnvironmentContext>() {
+        @Override
+        protected EnvironmentContext initialValue() {
+            return new EnvironmentContext();
+        }
+    };
 
-   public static EnvironmentContext getCurrent()
-   {
-      return current.get();
-   }
+    public static EnvironmentContext getCurrent() {
+        return current.get();
+    }
 
-   public static void setCurrent(EnvironmentContext environment)
-   {
-      current.set(environment);
-   }
+    public static void setCurrent(EnvironmentContext environment) {
+        current.set(environment);
+    }
 
-   public static void reset()
-   {
-      current.remove();
-   }
+    public static void reset() {
+        current.remove();
+    }
 
-   //
+    //
 
-   private Map<String, Object> environment;
+    private Map<String, Object> environment;
 
-   public EnvironmentContext()
-   {
-      environment = new HashMap<String, Object>();
-   }
+    public EnvironmentContext() {
+        environment = new HashMap<String, Object>();
+    }
 
-   public void setVariable(String name, Object value)
-   {
-      environment.put(name, value);
-   }
+    public void setVariable(String name, Object value) {
+        environment.put(name, value);
+    }
 
-   public Object getVariable(String name)
-   {
-      return environment.get(name);
-   }
+    public Object getVariable(String name) {
+        return environment.get(name);
+    }
 }
