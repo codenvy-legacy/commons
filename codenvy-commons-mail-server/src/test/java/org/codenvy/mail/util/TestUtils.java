@@ -18,8 +18,6 @@
  */
 package org.codenvy.mail.util;
 
-import static org.testng.Assert.*;
-
 import com.dumbster.smtp.SimpleSmtpServer;
 import com.dumbster.smtp.SmtpMessage;
 
@@ -28,51 +26,48 @@ import org.codenvy.mail.EmailBean;
 import java.util.Iterator;
 import java.util.Map;
 
-public class TestUtils
-{
+import static org.testng.Assert.assertEquals;
 
-   private TestUtils()
-   {
-   }
+public class TestUtils {
 
-   public static void assertMail(SimpleSmtpServer server, Map<String, String> expectedHeaders)
-   {
-      assertEquals(server.getReceivedEmailSize(), 1);
-      Iterator emailIter = server.getReceivedEmail();
-      SmtpMessage email = (SmtpMessage)emailIter.next();
+    private TestUtils() {
+    }
 
-      assertEquals(email.getHeaderValue("Subject"), expectedHeaders.get("subject"));
-      assertEquals(email.getHeaderValue("From"), expectedHeaders.get("from"));
-      assertEquals(email.getHeaderValue("Reply-To"), expectedHeaders.get("replyTo"));
-      assertEquals(email.getHeaderValue("To"), expectedHeaders.get("to"));
-   }
+    public static void assertMail(SimpleSmtpServer server, Map<String, String> expectedHeaders) {
+        assertEquals(server.getReceivedEmailSize(), 1);
+        Iterator emailIter = server.getReceivedEmail();
+        SmtpMessage email = (SmtpMessage)emailIter.next();
 
-   public static EmailBean buildEmailBean(String from, String to, String replyTo, String subject, String mimeType,
-                                          String body)
-   {
-      EmailBean bean = new EmailBean();
+        assertEquals(email.getHeaderValue("Subject"), expectedHeaders.get("subject"));
+        assertEquals(email.getHeaderValue("From"), expectedHeaders.get("from"));
+        assertEquals(email.getHeaderValue("Reply-To"), expectedHeaders.get("replyTo"));
+        assertEquals(email.getHeaderValue("To"), expectedHeaders.get("to"));
+    }
 
-      bean.setBody(body);
-      bean.setFrom(from);
-      bean.setMimeType(mimeType);
-      bean.setReplyTo(replyTo);
-      bean.setSubject(subject);
-      bean.setTo(to);
+    public static EmailBean buildEmailBean(String from, String to, String replyTo, String subject, String mimeType,
+                                           String body) {
+        EmailBean bean = new EmailBean();
 
-      return bean;
-   }
+        bean.setBody(body);
+        bean.setFrom(from);
+        bean.setMimeType(mimeType);
+        bean.setReplyTo(replyTo);
+        bean.setSubject(subject);
+        bean.setTo(to);
 
-   public static EmailBean buildEmailBean(Map<String, String> params)
-   {
-      EmailBean bean = new EmailBean();
+        return bean;
+    }
 
-      bean.setBody(params.get("body"));
-      bean.setFrom(params.get("from"));
-      bean.setMimeType(params.get("mimeType"));
-      bean.setReplyTo(params.get("replyTo"));
-      bean.setSubject(params.get("subject"));
-      bean.setTo(params.get("to"));
+    public static EmailBean buildEmailBean(Map<String, String> params) {
+        EmailBean bean = new EmailBean();
 
-      return bean;
-   }
+        bean.setBody(params.get("body"));
+        bean.setFrom(params.get("from"));
+        bean.setMimeType(params.get("mimeType"));
+        bean.setReplyTo(params.get("replyTo"));
+        bean.setSubject(params.get("subject"));
+        bean.setTo(params.get("to"));
+
+        return bean;
+    }
 }

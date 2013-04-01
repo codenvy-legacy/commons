@@ -18,8 +18,6 @@
  */
 package org.codenvy.mail;
 
-import static org.codenvy.mail.util.TestUtils.buildEmailBean;
-
 import com.dumbster.smtp.SimpleSmtpServer;
 
 import org.everrest.assured.EverrestJetty;
@@ -27,28 +25,28 @@ import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 
-import java.io.IOException;
 import javax.mail.Session;
+import java.io.IOException;
+
+import static org.codenvy.mail.util.TestUtils.buildEmailBean;
 
 @Listeners(value = {EverrestJetty.class, MockitoTestNGListener.class})
-public class MailSenderTest
-{
-   private Session mailSession;
+public class MailSenderTest {
+    private Session mailSession;
 
-   private MailSender mailSender;
+    private MailSender mailSender;
 
-   private SimpleSmtpServer server;
+    private SimpleSmtpServer server;
 
-   @BeforeMethod
-   public void setup() throws IOException
-   {
-      //      mailSender = new MailSender("/mail-configuration.properties");
-      server = SimpleSmtpServer.start(9000);
-      mailSender = new MailSender("/mail-configuration.properties");
+    @BeforeMethod
+    public void setup() throws IOException {
+        //      mailSender = new MailSender("/mail-configuration.properties");
+        server = SimpleSmtpServer.start(9000);
+        mailSender = new MailSender("/mail-configuration.properties");
 
-   }
+    }
 
-   // TODO remove mockito if it useless
+    // TODO remove mockito if it useless
    /*@Test
    public void shouldBeAbleToSendMessage() throws Exception
    {
@@ -123,7 +121,7 @@ public class MailSenderTest
       assertMailWithMultipleReplyTo(server, parametersMap, parametersMap.get("replyTo").split(","), "hello user");
    }*/
 
-   // Uncomment when UTF-8 supporting was achieved
+    // Uncomment when UTF-8 supporting was achieved
    /*@Test
    public void shouldBeAbleToSendMessageWithNonLatinCharacters() throws Exception
    {
@@ -142,13 +140,12 @@ public class MailSenderTest
       assertMail(server, parametersMap, "hello user");
    }*/
 
-   // smtp server should be installed to send mails
-   public void shouldBeAbleToSendRealMessage() throws Exception
-   {
-      // Used to check that messages comes to you
-      mailSender.sendMail(buildEmailBean("Exo <noreply@cloud-ide.com>", "dev-test@cloud-ide.com",
-         "Exo <dev-test@cloud-ide.com>, " + "" + "Tenant owner <tenantowner@gmail.com>", "Subject",
-         "text/html; charset=utf-8", "hello user"));
-   }
+    // smtp server should be installed to send mails
+    public void shouldBeAbleToSendRealMessage() throws Exception {
+        // Used to check that messages comes to you
+        mailSender.sendMail(buildEmailBean("Exo <noreply@cloud-ide.com>", "dev-test@cloud-ide.com",
+                                           "Exo <dev-test@cloud-ide.com>, " + "" + "Tenant owner <tenantowner@gmail.com>", "Subject",
+                                           "text/html; charset=utf-8", "hello user"));
+    }
 
 }
