@@ -16,7 +16,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.logreader;
+package com.codenvy.logreader;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -28,6 +28,10 @@ import javax.ws.rs.core.MediaType;
 public class LogReaderService {
 
     private final LogPathProvider logPathProvider;
+
+    public LogReaderService() {
+        this(new SystemLogPathProvider());
+    }
 
     public LogReaderService(LogPathProvider logPathProvider) {
         this.logPathProvider = logPathProvider;

@@ -16,34 +16,8 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.logreader;
+package com.codenvy.logreader;
 
-public class LogReaderException extends Exception {
-
-    private final String message;
-
-    private final Throwable cause;
-
-    public LogReaderException(String message) {
-        this.message = message;
-        this.cause = null;
-    }
-
-    public LogReaderException(String message, Throwable cause) {
-        this.message = message;
-        this.cause = cause;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public String getLocalizedMessage() {
-        return message;
-    }
-
-    public Throwable getCause() {
-        return cause;
-    }
-
+public interface LogPathProvider {
+    public String getLogDirectory();
 }

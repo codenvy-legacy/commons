@@ -25,8 +25,8 @@
 
 
     <component>
-        <key>org.exoplatform.logreader.LogReaderServiceApplication</key>
-        <type>org.exoplatform.logreader.LogReaderServiceApplication</type>
+        <key>com.codenvy.logreader.LogReaderServiceApplication</key>
+        <type>com.codenvy.logreader.LogReaderServiceApplication</type>
     </component>
 
 </configuration>

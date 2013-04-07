@@ -16,9 +16,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.logreader;
+package com.codenvy.logreader;
 
 import junit.framework.Assert;
+
+import com.codenvy.logreader.LogEntry;
+import com.codenvy.logreader.LogPathProvider;
+import com.codenvy.logreader.LogReaderException;
+import com.codenvy.logreader.SimpleLogPathProvider;
 
 import org.junit.Test;
 

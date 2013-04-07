@@ -16,21 +16,16 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.exoplatform.logreader;
+package com.codenvy.logreader;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
+public class SystemLogPathProvider implements LogPathProvider {
 
+    public static final String LOG_DIR_PROPERTY = "org.exoplatform.logreader.logpath";
 
-@Provider
-public class LogReaderExceptionMapper implements ExceptionMapper<LogReaderException> {
-
-    /** @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable) */
+    /** @see LogPathProvider#getLogDirectory() */
     @Override
-    public Response toResponse(LogReaderException exception) {
-        return Response.status(204).header("JAXRS-Body-Provided", "Error-Message").entity(exception.getLocalizedMessage
-                ()).type("text/plain").build();
+    public String getLogDirectory() {
+        return System.getProperty(LOG_DIR_PROPERTY);
     }
 
 }
