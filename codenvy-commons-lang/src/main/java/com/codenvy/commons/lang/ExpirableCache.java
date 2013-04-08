@@ -84,6 +84,11 @@ public class ExpirableCache<K, V> {
         queryCount = 0;
     }
 
+    /** @return - number of cached entries. */
+    public int getCacheSize() {
+        return map.size();
+    }
+
     private static class MyEntry<V> {
         V    value;
         long created;
