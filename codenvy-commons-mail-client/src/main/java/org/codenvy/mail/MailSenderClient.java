@@ -25,30 +25,31 @@ import org.everrest.core.impl.provider.json.JsonGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.mail.MessagingException;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
+import javax.mail.MessagingException;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+
 /** Client for MailSender service */
 public class MailSenderClient {
-    private static final Logger LOG = LoggerFactory.getLogger(MailSenderClient.class);
+    private static final Logger LOG                               = LoggerFactory.getLogger(MailSenderClient.class);
 
     private static final String MAILSENDER_APPLICATION_SERVER_URL = "mailsender.application.server.url";
 
     /** Base path */
-    public static final String BASE_URL = "mail/";
+    public static final String  BASE_URL                          = "mail/";
 
     /** UTF-8 encoding name */
-    public static final String UTF_8 = "UTF-8";
+    public static final String  UTF_8                             = "UTF-8";
 
     /** String representation of MailSender Service application address */
-    private String server;
+    private String              server;
 
     public MailSenderClient() {
         this(System.getProperty(MAILSENDER_APPLICATION_SERVER_URL));
@@ -56,11 +57,15 @@ public class MailSenderClient {
 
     /**
      * Simple constructor to pass application server address
-     *
+     * 
      * @param server
      */
     public MailSenderClient(String server) {
-        this.server = server;
+        if (server.endsWith("/")) {
+            this.server = server;
+        } else {
+            this.server = server + "/";
+        }
     }
 
     public void sendMail(String from, String to, String replyTo, String subject, String mimeType,
