@@ -18,6 +18,7 @@
  */
 package com.codenvy.commons.security.oauth;
 
+import com.codenvy.commons.security.shared.Token;
 import com.codenvy.commons.security.shared.User;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -77,9 +78,9 @@ public class GitHubOAuthAuthenticator extends OAuthAuthenticator {
     }
 
     @Override
-    public String getToken(String userId) throws IOException {
-        final String token = super.getToken(userId);
-        if (!(token == null || token.isEmpty())) {
+    public Token getToken(String userId) throws IOException {
+        final Token token = super.getToken(userId);
+        if (!(token == null || token.getToken() == null || token.getToken().isEmpty())) {
             // Need to check if token which stored is valid for requests, then if valid - we returns it to caller
             String tokenVerifyUrl = "https://api.github.com/?access_token=" + token;
             HttpURLConnection http = null;

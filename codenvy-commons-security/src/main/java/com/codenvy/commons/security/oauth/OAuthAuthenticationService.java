@@ -19,6 +19,7 @@
 package com.codenvy.commons.security.oauth;
 
 import com.codenvy.commons.security.SignatureDSA;
+import com.codenvy.commons.security.shared.Token;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,7 +212,7 @@ public class OAuthAuthenticationService {
 
     @GET
     @Path("token")
-    public String token(@QueryParam("oauth_provider") String oauth_provider, @QueryParam("userId") String userId,
+    public Token token(@QueryParam("oauth_provider") String oauth_provider, @QueryParam("userId") String userId,
                         @QueryParam("signature") String signature) throws Exception {
         LOG.debug("oauth_provider='{}'  userId='{}' signature='{}'", new String[]{oauth_provider, userId, signature});
         if (!(userId == null || userId.isEmpty() || signature == null || signature.isEmpty())) {

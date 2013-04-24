@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 eXo Platform SAS.
+ * Copyright (C) 2013 eXo Platform SAS.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -18,24 +18,49 @@
  */
 package com.codenvy.commons.security.oauth;
 
+
 import com.codenvy.commons.security.shared.Token;
 
-import java.io.IOException;
+public class BeanToken implements Token {
 
-/** Retrieves oAuth token with help of OAuthAuthenticatorProvider. */
-public class OAuthAuthenticatorTokenProvider implements OAuthTokenProvider {
-    private final OAuthAuthenticatorProvider oAuthAuthenticatorProvider;
+    private String scope;
+    private String token;
 
-    public OAuthAuthenticatorTokenProvider(OAuthAuthenticatorProvider oAuthAuthenticatorProvider) {
-        this.oAuthAuthenticatorProvider = oAuthAuthenticatorProvider;
+    /** @param token */
+    public BeanToken(String token) {
+        this(token, null);
+    }
+
+
+    /**
+     * @param scope
+     * @param token
+     */
+    public BeanToken(String token, String scope) {
+        this.token = token;
+        this.scope = scope;
     }
 
     @Override
-    public Token getToken(String oauthProviderName, String userId) throws IOException {
-        OAuthAuthenticator oAuthAuthenticator = oAuthAuthenticatorProvider.getAuthenticator(oauthProviderName);
-        if (oAuthAuthenticator != null && oAuthAuthenticator.getToken(userId) != null) {
-            return oAuthAuthenticator.getToken(userId);
-        }
-        return null;
+    public String getToken() {
+        return token;
     }
+
+    @Override
+    public void setToken(String token) {
+        this.token = token;
+
+    }
+
+    @Override
+    public String getScope() {
+        return scope;
+    }
+
+    @Override
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+
 }

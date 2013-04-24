@@ -20,6 +20,7 @@ package com.codenvy.commons.security.oauth;
 
 import com.codenvy.commons.json.JsonHelper;
 import com.codenvy.commons.json.JsonParseException;
+import com.codenvy.commons.security.shared.Token;
 import com.codenvy.commons.security.shared.User;
 import com.google.api.client.auth.oauth2.*;
 import com.google.api.client.http.HttpParser;
@@ -228,14 +229,14 @@ public abstract class OAuthAuthenticator {
      * @throws IOException
      * @see OAuthTokenProvider#getToken(String, String)
      */
-    public String getToken(String userId) throws IOException {
+    public Token getToken(String userId) throws IOException {
         Credential credential = flow.loadCredential(userId);
         if (credential != null) {
             Long expirationTime = credential.getExpiresInSeconds();
             if (expirationTime != null && expirationTime < 0) {
                 credential.refreshToken();
             }
-            return credential.getAccessToken();
+            return new BeanToken(credential.getAccessToken());
         }
         return null;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 eXo Platform SAS.
+ * Copyright (C) 2013 eXo Platform SAS.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -16,24 +16,17 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.codenvy.commons.security.oauth;
+package com.codenvy.commons.security.shared;
 
-import com.codenvy.commons.security.shared.Token;
+public interface Token {
 
-import java.io.IOException;
+    String getToken();
 
-/** Retrieves user token from OAuth providers. */
-public interface OAuthTokenProvider {
-    /**
-     * Get oauth token.
-     *
-     * @param oauthProviderName
-     *         - name of provider.
-     * @param userId
-     *         user
-     * @return oauth token or <code>null</code>
-     * @throws java.io.IOException
-     *         if i/o error occurs when try to refresh expired oauth token
-     */
-    Token getToken(String oauthProviderName, String userId) throws IOException;
+    void setToken(String token);
+    
+    String getScope();
+
+    void setScope(String scope);
+
+    
 }
