@@ -24,10 +24,7 @@ import com.codenvy.commons.security.shared.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -211,6 +208,7 @@ public class OAuthAuthenticationService {
     }
 
     @GET
+    @Produces({MediaType.APPLICATION_JSON})
     @Path("token")
     public Token token(@QueryParam("oauth_provider") String oauth_provider, @QueryParam("userId") String userId,
                         @QueryParam("signature") String signature) throws Exception {
