@@ -48,6 +48,5 @@
         <module>codenvy-commons-log-reader</module>
         <module>codenvy-commons-mail-client</module>
         <module>codenvy-commons-mail-server</module>
-        <module>codenvy-commons-marketo</module>
   </modules>
 </project>
