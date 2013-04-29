@@ -56,6 +56,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.exoplatform.cloud-ide</groupId>
+            <artifactId>cloud-ide-key</artifactId>
+            <version>1.1-M13</version>
+            <classifier>M13</classifier>
+        </dependency>
+
     </dependencies>
     <build>
         <resources>
