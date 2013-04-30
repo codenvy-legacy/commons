@@ -21,7 +21,11 @@ package com.codenvy.commons.lang;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class IoOUtil {
 
@@ -32,14 +36,15 @@ public class IoOUtil {
 
     /**
      * Reads bytes from input stream and builds a string from them.
-     *
-     * @param inputStream
-     *         source stream
+     * 
+     * @param inputStream source stream
      * @return string
-     * @throws java.io.IOException
-     *         if any i/o error occur
+     * @throws java.io.IOException if any i/o error occur
      */
     public static String readStream(InputStream inputStream) throws IOException {
+        if (inputStream == null) {
+            return null;
+        }
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         byte[] buf = new byte[8192];
         int r;
@@ -50,14 +55,11 @@ public class IoOUtil {
     }
 
     /**
-     * Reads bytes from input stream and builds a string from them.
-     * InputStream closed after consumption.
-     *
-     * @param inputStream
-     *         source stream
+     * Reads bytes from input stream and builds a string from them. InputStream closed after consumption.
+     * 
+     * @param inputStream source stream
      * @return string
-     * @throws java.io.IOException
-     *         if any i/o error occur
+     * @throws java.io.IOException if any i/o error occur
      */
     public static String readAndCloseQuietly(InputStream inputStream) throws IOException {
         try {
@@ -78,10 +80,9 @@ public class IoOUtil {
 
     /**
      * Looking for resource by given path. If no file exist by this path, method will try to find it in context.
-     *
-     * @param resource
-     *         - path to resource
-     * @return -   InputStream of resource
+     * 
+     * @param resource - path to resource
+     * @return - InputStream of resource
      * @throws IOException
      */
     public static InputStream getResource(String resource) throws IOException {

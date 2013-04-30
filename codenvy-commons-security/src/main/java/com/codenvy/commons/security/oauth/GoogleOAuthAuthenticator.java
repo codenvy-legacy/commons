@@ -20,6 +20,7 @@ package com.codenvy.commons.security.oauth;
 
 import com.codenvy.commons.json.JsonHelper;
 import com.codenvy.commons.json.JsonParseException;
+import com.codenvy.commons.lang.IoOUtil;
 import com.codenvy.commons.security.shared.Token;
 import com.codenvy.commons.security.shared.User;
 import com.google.api.client.auth.oauth2.CredentialStore;
@@ -29,6 +30,8 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson.JacksonFactory;
 
 import org.everrest.core.impl.provider.json.JsonValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +42,8 @@ import java.util.HashSet;
 
 /** OAuth authentication for google account. */
 public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GoogleOAuthAuthenticator.class);
 
     public GoogleOAuthAuthenticator(CredentialStore credentialStore, GoogleClientSecrets clientSecrets) {
         super(new GoogleAuthorizationCodeFlow.Builder(new NetHttpTransport(), new JacksonFactory(), clientSecrets,
@@ -84,7 +89,10 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
         HttpURLConnection http = null;
         try {
             http = (HttpURLConnection)tokenInfoUrl.openConnection();
-            if (http.getResponseCode() != 200) {
+            int responseCode = http.getResponseCode();
+            if (responseCode != 200) {
+                LOG.error("Can not receive google token by path: {}. Response status: {}. Error message: {}",
+                          new Object[]{tokenInfoUrl.toString(), responseCode, IoOUtil.readStream(http.getErrorStream())});
                 return null;
             }
 
