@@ -29,6 +29,8 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson.JacksonFactory;
 
 import org.everrest.core.impl.provider.json.JsonValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,14 +39,20 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
 /** OAuth authentication for google account. */
 public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
 
+    private static final Logger LOG = LoggerFactory.getLogger(GoogleOAuthAuthenticator.class);
+
     public GoogleOAuthAuthenticator(CredentialStore credentialStore, GoogleClientSecrets clientSecrets) {
         super(new GoogleAuthorizationCodeFlow.Builder(new NetHttpTransport(), new JacksonFactory(), clientSecrets,
-                                                      Collections.<String>emptyList()).setCredentialStore(credentialStore)
-                                                                                      .setApprovalPrompt("auto").setAccessType
-                        ("online").build(), new HashSet<String>(clientSecrets.getDetails().getRedirectUris()));
+                                                      Collections.<String> emptyList()).setCredentialStore(credentialStore)
+                                                                                       .setApprovalPrompt("auto").setAccessType
+                                                                                       ("online").build(),
+              new HashSet<String>(clientSecrets.getDetails().getRedirectUris()));
     }
 
     @Override
@@ -65,6 +73,10 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
             URL tokenInfoUrl = new URL("https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=" + token.getToken());
             try {
                 JsonValue jsonValue = doRequest(tokenInfoUrl);
+                if (jsonValue == null)
+                {
+                    throw new WebApplicationException(Response.serverError().entity("Can not receive token for user " + userId).build());
+                }
                 JsonValue scope = jsonValue.getElement("scope");
                 if (scope != null)
                     token.setScope(scope.getStringValue());
@@ -78,13 +90,14 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
         return null;
     }
 
-
     private JsonValue doRequest(URL tokenInfoUrl) throws IOException, JsonParseException {
         HttpURLConnection http = null;
         try {
             http = (HttpURLConnection)tokenInfoUrl.openConnection();
-            if (http.getResponseCode() != 200) {
-                throw null;
+            int responseCode = http.getResponseCode();
+            if (responseCode != 200) {
+                LOG.error("Can not receive token by path {}. Response code: {}" + tokenInfoUrl.toString(), responseCode);
+                return null;
             }
 
             InputStream input = http.getInputStream();
