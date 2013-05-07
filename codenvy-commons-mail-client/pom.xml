@@ -24,10 +24,16 @@
             <version>${javax.mail.version}</version>
         </dependency>
 
-        <dependency>
+        <!--dependency>
             <groupId>org.everrest</groupId>
             <artifactId>everrest-core</artifactId>
             <version>${everrest.version}</version>
+        </dependency-->
+
+        <dependency>
+            <groupId>com.codenvy.commons</groupId>
+            <artifactId>codenvy-commons-json</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -42,10 +48,12 @@
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
