@@ -34,7 +34,7 @@ public class ZipUtils {
             throw new IllegalArgumentException("Not a directory. ");
         }
         if (filter == null) {
-            filter = IoOUtil.ANY_FILTER;
+            filter = IoUtil.ANY_FILTER;
         }
         FileOutputStream fos = null;
         ZipOutputStream zipOut = null;

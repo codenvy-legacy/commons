@@ -20,7 +20,7 @@ package com.codenvy.commons.security.oauth;
 
 import com.codenvy.commons.json.JsonHelper;
 import com.codenvy.commons.json.JsonParseException;
-import com.codenvy.commons.lang.IoOUtil;
+import com.codenvy.commons.lang.IoUtil;
 import com.codenvy.commons.security.shared.Token;
 import com.codenvy.commons.security.shared.User;
 import com.google.api.client.auth.oauth2.CredentialStore;
@@ -92,7 +92,7 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
             int responseCode = http.getResponseCode();
             if (responseCode != 200) {
                 LOG.error("Can not receive google token by path: {}. Response status: {}. Error message: {}",
-                          new Object[]{tokenInfoUrl.toString(), responseCode, IoOUtil.readStream(http.getErrorStream())});
+                          new Object[]{tokenInfoUrl.toString(), responseCode, IoUtil.readStream(http.getErrorStream())});
                 return null;
             }
 

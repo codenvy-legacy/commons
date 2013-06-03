@@ -18,7 +18,7 @@
  */
 package org.codenvy.mail;
 
-import com.codenvy.commons.lang.IoOUtil;
+import com.codenvy.commons.lang.IoUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,7 +140,7 @@ public class MailSenderConsoleClient {
                 throw new IOException("Not found template file: " + templateName);
             }
 
-            return IoOUtil.readStream(templateInputStream);
+            return IoUtil.readStream(templateInputStream);
         } finally {
             if (templateInputStream != null) {
                 templateInputStream.close();

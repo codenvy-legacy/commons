@@ -33,11 +33,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IoOUtil {
+public class IoUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(IoOUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(IoUtil.class);
 
-    private IoOUtil() {
+    private IoUtil() {
     }
 
     /** Represents filter what select any file */
@@ -118,7 +118,7 @@ public class IoOUtil {
         if (resourceFile.exists() && !resourceFile.isFile()) {
             throw new IOException(resourceFile.getAbsolutePath() + " is not a file. ");
         }
-        is = resourceFile.exists() ? new FileInputStream(resourceFile) : IoOUtil.class.getResourceAsStream(resource);
+        is = resourceFile.exists() ? new FileInputStream(resourceFile) : IoUtil.class.getResourceAsStream(resource);
         if (is == null) {
             throw new IOException("Not found resource: " + resource);
         }
