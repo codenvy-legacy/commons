@@ -103,7 +103,7 @@ public class OAuthAuthenticationService {
         final String mode = getParameter(params, "mode");
         if ("federated_login".equals(mode)) {
             try {
-                return Response.temporaryRedirect(UriBuilder.fromUri(redirectAfterLogin).queryParam("username",
+                return Response.temporaryRedirect(UriBuilder.fromUri(URLDecoder.decode(redirectAfterLogin, "UTF-8")).queryParam("username",
                                                                                                     userId)
                                                             .queryParam("signature", encode(SignatureDSA.getBase64Signature(userId),
                                                                                             "UTF-8"))
