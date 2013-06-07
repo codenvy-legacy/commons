@@ -48,7 +48,7 @@ import java.util.List;
  * @see ConfigurationItem
  */
 public final class DispatcherServletConfiguration implements Iterable<ConfigurationItem> {
-    private final List<ConfigurationItem> configs = new ArrayList<ConfigurationItem>();
+    private final List<ConfigurationItem> configs = new ArrayList<>();
 
     public static DispatcherServletConfiguration create() {
         return new DispatcherServletConfiguration();

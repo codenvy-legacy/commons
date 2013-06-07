@@ -42,9 +42,12 @@ public class DispatcherServlet extends HttpServlet {
     public void init() throws ServletException {
         super.init();
         for (DispatcherServletConfigurationFactory f : ServiceLoader.load(DispatcherServletConfigurationFactory.class)) {
+            int i = 0;
             for (ConfigurationItem configuration : f.newDispatcherServletConfiguration()) {
                 configurations.add(configuration);
+                i++;
             }
+            LOG.info("Loaded {} ConfigurationItem's from {} ", i, f.getClass().getName());
         }
         if (configurations.isEmpty()) {
             throw new ServletException("Not found configuration. ");
