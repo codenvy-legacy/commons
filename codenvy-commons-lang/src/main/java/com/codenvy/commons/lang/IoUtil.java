@@ -156,6 +156,30 @@ public class IoUtil {
 
         return directory.delete();
     }
+    
+    
+    
+    /**
+     * Remove specified file or directory.
+     *
+     * @param fileOrDirectory
+     *         the file or directory to cancel
+     * @return <code>true</code> if specified File was deleted and <code>false</code> otherwise
+     */
+    public static boolean deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            File[] list = fileOrDirectory.listFiles();
+            if (list == null) {
+                return false;
+            }
+            for (File f : list) {
+                if (!deleteRecursive(f)) {
+                    return false;
+                }
+            }
+        }
+        return !fileOrDirectory.exists() || fileOrDirectory.delete();
+    }
 
     private static final SecureRandom DIR_NAME_GENERATOR = new SecureRandom();
 
