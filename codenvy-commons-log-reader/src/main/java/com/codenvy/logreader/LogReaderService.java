@@ -24,7 +24,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-@Path("/log-reader-service/")
+@Path("{ws-name}/log-reader-service/")
 public class LogReaderService {
 
     private final LogPathProvider logPathProvider;
