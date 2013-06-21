@@ -78,7 +78,7 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
                 if (scope != null)
                     token.setScope(scope.getStringValue());
             } catch (JsonParseException e) {
-                e.printStackTrace();
+                LOG.error(e.getLocalizedMessage(), e);
             }
             return token;
         }
@@ -91,7 +91,7 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
             http = (HttpURLConnection)tokenInfoUrl.openConnection();
             int responseCode = http.getResponseCode();
             if (responseCode != 200) {
-                LOG.error("Can not receive google token by path: {}. Response status: {}. Error message: {}",
+                LOG.warn("Can not receive google token by path: {}. Response status: {}. Error message: {}",
                           new Object[]{tokenInfoUrl.toString(), responseCode, IoUtil.readStream(http.getErrorStream())});
                 return null;
             }
