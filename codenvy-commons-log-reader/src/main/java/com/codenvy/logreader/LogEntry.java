@@ -21,7 +21,7 @@ package com.codenvy.logreader;
 /** Been for log entry (represent one log file on file system) */
 public class LogEntry {
 
-    private String token;
+    private String lrtoken;
 
     private String content;
 
@@ -32,25 +32,25 @@ public class LogEntry {
     public LogEntry() {
     }
 
-    public LogEntry(String token, String content, boolean hasNext, boolean hasPrevious) {
+    public LogEntry(String lrtoken, String content, boolean hasNext, boolean hasPrevious) {
         super();
-        this.token = token;
+        this.lrtoken = lrtoken;
         this.content = content;
         this.hasNext = hasNext;
         this.hasPrevious = hasPrevious;
     }
 
     /** @return the token */
-    public String getToken() {
-        return token;
+    public String getLrtoken() {
+        return lrtoken;
     }
 
     /**
-     * @param token
+     * @param lrtoken
      *         the token to set
      */
-    public void setToken(String token) {
-        this.token = token;
+    public void setLrtoken(String lrtoken) {
+        this.lrtoken = lrtoken;
     }
 
     /** @return the content */
