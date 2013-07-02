@@ -66,10 +66,10 @@ public class TestLogReaderService {
         LogPathProvider logPath = new SimpleLogPathProvider(logDir);
         LogReaderService service = new LogReaderService(logPath);
 
-        String token = service.getLastLog().getToken();
+        String token = service.getLastLog().getLrtoken();
 
         for (int i = 0; i < 3; i++) {
-            token = service.getPrevLog(token).getToken();
+            token = service.getPrevLog(token).getLrtoken();
         }
         LogEntry result = service.getPrevLog(token);
         String content = result.getContent();
@@ -99,12 +99,12 @@ public class TestLogReaderService {
         LogPathProvider logPath = new SimpleLogPathProvider(logDir);
         LogReaderService service = new LogReaderService(logPath);
 
-        String token = service.getLastLog().getToken();
+        String token = service.getLastLog().getLrtoken();
 
         for (int i = 0; i < 4; i++) {
-            token = service.getPrevLog(token).getToken();
+            token = service.getPrevLog(token).getLrtoken();
         }
-        token = service.getNextLog(token).getToken();
+        token = service.getNextLog(token).getLrtoken();
         LogEntry result = service.getNextLog(token);
         String content = result.getContent();
 
@@ -133,13 +133,13 @@ public class TestLogReaderService {
         LogPathProvider logPath = new SimpleLogPathProvider(logDir);
         LogReaderService service = new LogReaderService(logPath);
 
-        String token = service.getLastLog().getToken();
+        String token = service.getLastLog().getLrtoken();
 
         for (int i = 0; i < 17; i++) {
-            token = service.getPrevLog(token).getToken();
+            token = service.getPrevLog(token).getLrtoken();
         }
         for (int i = 0; i < 5; i++) {
-            token = service.getNextLog(token).getToken();
+            token = service.getNextLog(token).getLrtoken();
         }
         LogEntry result = service.getNextLog(token);
         String content = result.getContent();
@@ -171,7 +171,7 @@ public class TestLogReaderService {
         // try to get next token from last token
         LogReaderService logReaderService = new LogReaderService(pathGenerator);
 
-        String token = logReaderService.getLastLog().getToken();
+        String token = logReaderService.getLastLog().getLrtoken();
         logReaderService.getNextLog(token);
     }
 
@@ -183,10 +183,10 @@ public class TestLogReaderService {
         // try to get previous token from first token
         LogReaderService logReaderService = new LogReaderService(pathGenerator);
 
-        String token = logReaderService.getLastLog().getToken();
+        String token = logReaderService.getLastLog().getLrtoken();
         while (true) {
             LogEntry result = logReaderService.getPrevLog(token);
-            token = result.getToken();
+            token = result.getLrtoken();
             String content = result.getContent();
             Assert.assertFalse(content.equals("FAIL"));
             Assert.assertTrue(token.matches("/[0-9]+/[0-9]+/[0-9]+/[0-9]+/tenant-[0-9]+.log"));

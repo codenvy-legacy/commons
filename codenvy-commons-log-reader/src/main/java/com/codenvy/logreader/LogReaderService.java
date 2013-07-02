@@ -54,7 +54,7 @@ public class LogReaderService {
     @GET
     @Path("log")
     @Produces(MediaType.APPLICATION_JSON)
-    public LogEntry getLog(@QueryParam("token") String token) throws LogReaderException {
+    public LogEntry getLog(@QueryParam("lrtoken") String token) throws LogReaderException {
 
         LogReader logReader = new LogReader(logPathProvider.getLogDirectory());
         if (!token.equals("null")) {
@@ -68,7 +68,7 @@ public class LogReaderService {
     @GET
     @Path("prev-log")
     @Produces(MediaType.APPLICATION_JSON)
-    public LogEntry getPrevLog(@QueryParam("token") String token) throws LogReaderException {
+    public LogEntry getPrevLog(@QueryParam("lrtoken") String token) throws LogReaderException {
 
         LogReader logReader = new LogReader(logPathProvider.getLogDirectory());
         String newToken = logReader.getPrevToken(token);
@@ -83,7 +83,7 @@ public class LogReaderService {
     @GET
     @Path("next-log")
     @Produces(MediaType.APPLICATION_JSON)
-    public LogEntry getNextLog(@QueryParam("token") String token) throws LogReaderException {
+    public LogEntry getNextLog(@QueryParam("lrtoken") String token) throws LogReaderException {
         LogReader logReader = new LogReader(logPathProvider.getLogDirectory());
         String newToken = logReader.getNextToken(token);
         if (newToken != null) {
