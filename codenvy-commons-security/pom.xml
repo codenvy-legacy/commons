@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.codenvy.commons</groupId>
         <artifactId>codenvy-commons-parent</artifactId>
-        <version>0.6.0</version>
+        <version>0.6.1-SNAPSHOT</version>
     </parent>
     <artifactId>codenvy-commons-security</artifactId>
     <name>Codenvy Commons :: Security</name>
