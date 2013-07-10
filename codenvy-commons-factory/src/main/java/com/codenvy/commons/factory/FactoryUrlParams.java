@@ -28,7 +28,7 @@ public class FactoryUrlParams extends HashMap<String, String> {
     public static String VERSION        = "v";
     public static String VCS            = "vcs";
     public static String VCS_URL        = "vcsurl";
-    public static String ID_COMMIT      = "idcommit";
+    public static String ID_COMMIT      = "commitid";
     public static String PROJECT_NAME   = "pname";
     public static String WORKSPACE_NAME = "wname";
 }
