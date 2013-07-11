@@ -57,16 +57,7 @@ public class FactoryUrlParserTest {
 
     @DataProvider(name = "unsupportedUrls")
     public Object[][] unsupportedUrlsProvider() throws UnsupportedEncodingException {
-        return new Object[][]{{"http://codenvy.com/factory?v=1.0&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" +
-                               enc("http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},// vcs par is missing
-                              {"http://codenvy.com/factory?v=1.0&vcs=git&pname=eee&wname=ttt&vcsurl=" + enc(
-                                      "http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},// idcommit par is missing
-                              {"http://codenvy.com/factory?v=1.0&vcs=git&idcommit=1234567&wname=ttt&vcsurl=" + enc(
-                                      "http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},// pname par is missing
-                              {"http://codenvy.com/factory?v=1.0&vcs=git&idcommit=1234567&pname=eee&vcsurl=" + enc(
-                                      "http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},// wname par is missing
-                              {"http://codenvy.com/factory?v=1.0&vcs=git&idcommit=1234567&pname=eee&wname=ttt"}, // vcsurl par is missing
-                              // there is no format to satisfy that version
+        return new Object[][]{// there is no format to satisfy that version
                               {"http://codenvy.com/factory?v=2.0&vcs=git&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" +
                                enc("http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},
         };

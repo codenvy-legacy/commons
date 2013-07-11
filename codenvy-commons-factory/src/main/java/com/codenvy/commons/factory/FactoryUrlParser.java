@@ -70,6 +70,6 @@ public class FactoryUrlParser {
             } catch (FactoryUrlInvalidFormatException ignored) {
             }
         }
-        throw new FactoryUrlInvalidFormatException("There is no factory url format to validate such url");
+        throw new FactoryUrlInvalidFormatException("Given factory url does not match any known format.");
     }
 }
