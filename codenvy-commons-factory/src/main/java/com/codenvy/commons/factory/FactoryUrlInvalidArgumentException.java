@@ -18,16 +18,13 @@
  */
 package com.codenvy.commons.factory;
 
-/** Provide a way of factory url parameters validation and parsing */
-public interface FactoryUrlValidator {
-    /**
-     * Validate and retrieve factory url parameters
-     *
-     * @param url
-     *         - factory url to validate
-     * @return <code>FactoryUrlParams</code> with factory url parameters if url is valid
-     * @throws FactoryUrlException
-     *         - if factory url is invalid
-     */
-    public FactoryUrlParams validate(String url) throws FactoryUrlException;
+/** Exception thrown if factory url is invalid */
+public class FactoryUrlInvalidArgumentException extends  FactoryUrlException {
+    public FactoryUrlInvalidArgumentException(String message) {
+        super(message);
+    }
+
+    public FactoryUrlInvalidArgumentException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

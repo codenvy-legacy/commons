@@ -18,13 +18,13 @@
  */
 package com.codenvy.commons.factory;
 
-/** Common factory url exception */
-public class FactoryUrlException extends Exception {
-    public FactoryUrlException(String message) {
+/** Exception thrown if factory url doesn't satisfy factory url format implementation */
+public class FactoryUrlInvalidFormatException extends FactoryUrlException {
+    public FactoryUrlInvalidFormatException(String message) {
         super(message);
     }
 
-    public FactoryUrlException(String message, Throwable cause) {
+    public FactoryUrlInvalidFormatException(String message, Throwable cause) {
         super(message, cause);
     }
 }

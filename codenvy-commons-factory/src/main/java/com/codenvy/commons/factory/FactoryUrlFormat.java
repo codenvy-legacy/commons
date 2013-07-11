@@ -18,17 +18,20 @@
  */
 package com.codenvy.commons.factory;
 
-import java.util.HashMap;
-
-/**
- * Class holds Factory url parameters values
- */
-public class FactoryUrlParams extends HashMap<String, String> {
-    /** known factory url parameters */
-    public static String VERSION        = "v";
-    public static String VCS            = "vcs";
-    public static String VCS_URL        = "vcsurl";
-    public static String ID_COMMIT      = "idcommit";
-    public static String PROJECT_NAME   = "pname";
-    public static String WORKSPACE_NAME = "wname";
+/** Provide a way of factory url parameters validation and parsing */
+public interface FactoryUrlFormat {
+    /**
+     * Parse factory url parameters
+     *
+     * @param url
+     *         - factory url to parse
+     * @return <code>FactoryUrl</code> with factory url parameters if url is valid
+     * @throws FactoryUrlInvalidArgumentException
+     *         - if url satisfy format, but arguments is invalid
+     * @throws FactoryUrlInvalidFormatException
+     *         - if url doesn't satisfy format
+     * @throws FactoryUrlException
+     *         - if other exceptions occurs
+     */
+    public FactoryUrl parse(String url) throws FactoryUrlException;
 }

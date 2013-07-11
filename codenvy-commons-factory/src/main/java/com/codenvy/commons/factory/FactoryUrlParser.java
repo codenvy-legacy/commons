@@ -24,30 +24,27 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 /** Class to parse factory url parameters and validate them */
 public class FactoryUrlParser {
     private static final Logger LOG = LoggerFactory.getLogger(FactoryUrlParser.class);
 
-    protected static final FactoryUrlValidator factoryUrlValidator;
+    protected static final Set<FactoryUrlFormat> factoryUrlFormats = new HashSet<>();
 
-    /** Retrieve FactoryUrlValidator implementation */
+    /** Retrieve FactoryUrlFormat implementations */
     static {
-        ServiceLoader<FactoryUrlValidator> availableUrkValidators = ServiceLoader.load(FactoryUrlValidator.class);
-        Iterator<FactoryUrlValidator> it = availableUrkValidators.iterator();
-        if (it.hasNext()) {
-            factoryUrlValidator = it.next();
-            if (it.hasNext()) {
-                LOG.error("Multiple FactoryUrlValidator implementation found. Please, put into service loader one implementation only");
-                throw new RuntimeException(
-                        "Multiple FactoryUrlValidator implementation found. Please, put into service loader one implementation only");
-            }
-        } else {
-            factoryUrlValidator = new CommonFactoryUrlValidator();
+        ServiceLoader<FactoryUrlFormat> availableUrlFormats = ServiceLoader.load(FactoryUrlFormat.class);
+        for (FactoryUrlFormat factoryUrlFormat : availableUrlFormats) {
+            factoryUrlFormats.add(factoryUrlFormat);
+            LOG.info("Used {} as FactoryUrlFormat", factoryUrlFormat.getClass());
         }
-        LOG.info("Used {} as FactoryUrlValidator", factoryUrlValidator.getClass());
+        if (factoryUrlFormats.size() == 0) {
+            LOG.error("FactoryUrlFormat implementations wasn't found");
+            throw new RuntimeException("FactoryUrlFormat implementations wasn't found");
+        }
     }
 
     /**
@@ -55,48 +52,24 @@ public class FactoryUrlParser {
      *
      * @param factoryUrl
      *         - factory url to parse
+     * @throws FactoryUrlInvalidFormatException
+     *         - there is no format to validate such url
+     * @throws FactoryUrlInvalidArgumentException
+     *         - if url satisfy format, but arguments is invalid
      * @throws FactoryUrlException
-     *         - if factoryUrl is invalid
+     *         - if other exceptions occurs
      */
-    public static FactoryUrlParams parse(String factoryUrl) throws FactoryUrlException {
-        FactoryUrlParams factoryUrlParams = factoryUrlValidator.validate(factoryUrl);
-        String vcsUrl = factoryUrlParams.get(FactoryUrlParams.VCS_URL);
-        try {
-            checkRepository(vcsUrl);
-        } catch (IOException e) {
-            LOG.error("Checking Repository " + vcsUrl + " failed. Cause: " + e.getLocalizedMessage(), e);
-            throw new FactoryUrlException("Checking Repository " + vcsUrl + " failed.", e);
-        }
-        return factoryUrlParams;
-    }
-
-    /**
-     * Check git repository for a project existence and availability
-     * @param vcsUrl - git repository url
-     * @throws IOException
-     */
-    protected static void checkRepository(String vcsUrl) throws IOException {
-        try {
-            // To avoid repository cloning use git ls-remote util for repository check
-            // Call git ls-remote is much faster than cloning
-            Process process = Runtime.getRuntime().exec("/usr/bin/git ls-remote " + vcsUrl);
-
-            // check return value of process.
-            if (process.waitFor() != 0) {
-                LOG.error("Can't check repository {}. Exit value is {}", new Object[][]{{vcsUrl, process.exitValue()}});
-                BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
-                String line;
-                while ((line = br.readLine()) != null) {
-                    LOG.error(line);
+    public static FactoryUrl parse(String factoryUrl) throws FactoryUrlException {
+        FactoryUrl factoryUrlParams = null;
+        for (FactoryUrlFormat factoryUrlFormat : factoryUrlFormats) {
+            try {
+                factoryUrlParams = factoryUrlFormat.parse(factoryUrl);
+                if (factoryUrlParams != null) {
+                    return factoryUrlParams;
                 }
-                throw new FactoryUrlException("Checking Repository " + vcsUrl + " failed");
-            } else {
-                LOG.debug("Repository check finished successfully");
+            } catch (FactoryUrlInvalidFormatException ignored) {
             }
-        } catch (InterruptedException e) {
-            LOG.error(e.getLocalizedMessage(), e);
-            throw new FactoryUrlException(e.getLocalizedMessage(), e);
         }
+        throw new FactoryUrlInvalidFormatException("There is no factory url format to validate such url");
     }
 }

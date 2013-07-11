@@ -20,21 +20,27 @@ package com.codenvy.commons.factory;
 
 import com.codenvy.commons.lang.ZipUtils;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 
-import static com.codenvy.commons.factory.CommonFactoryUrlFormatTest.enc;
 import static org.testng.Assert.assertEquals;
 
-public class FactoryUrlParserTest {
+public class CommonFactoryUrlFormatTest {
+    private FactoryUrlFormat factoryUrlFormat;
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+        this.factoryUrlFormat = new CommonFactoryUrlFormat();
+    }
+
     @Test
-    public void shouldReturnFactoryUrlObjectOnSuccessfulParsing() throws URISyntaxException, IOException, FactoryUrlException {
+    public void shouldParseGoodUrl() throws Exception {
         //given
         File testRepository = Files.createTempDirectory("testrepository").toFile();
         ZipUtils.unzip(new File(Thread.currentThread().getContextClassLoader().getResource("testrepository.zip").toURI()), testRepository);
@@ -43,20 +49,20 @@ public class FactoryUrlParserTest {
                 new FactoryUrl("1.0", "git", "file://" + testRepository + "/testrepository", "1234567", "eee", "ttt");
 
         //when
-        FactoryUrl factoryUrl = FactoryUrlParser.parse("http://codenvy.com/factory?v=1.0&vcs=git&idcommit=1234567&pname=eee&wname=ttt" +
-                                                       "&vcsurl=" + enc("file://" + testRepository + "/testrepository"));
+        FactoryUrl factoryUrl = factoryUrlFormat.parse("http://codenvy.com/factory?v=1.0&vcs=git&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" + enc(
+                "file://" + testRepository + "/testrepository"));
 
         //then
         assertEquals(factoryUrl, expectedFactoryUrl);
     }
 
-    @Test(dataProvider = "unsupportedUrls", expectedExceptions = FactoryUrlInvalidFormatException.class)
-    public void shouldThrowFactoryUrlInvalidFormatExceptionForUnsupportedUrlFormat(String factoryUrl) throws FactoryUrlException {
-        FactoryUrlParser.parse(factoryUrl);
+    @Test(dataProvider = "badUrlProvider-InvalidFormat", expectedExceptions = FactoryUrlInvalidFormatException.class)
+    public void shouldThrowFactoryUrlIllegalFormatExceptionIfUrlParametersIsMissing(String url) throws Exception {
+        factoryUrlFormat.parse(url);
     }
 
-    @DataProvider(name = "unsupportedUrls")
-    public Object[][] unsupportedUrlsProvider() throws UnsupportedEncodingException {
+    @DataProvider(name = "badUrlProvider-InvalidFormat")
+    public Object[][] missingParametersFactoryUrlProvider() throws UnsupportedEncodingException {
         return new Object[][]{{"http://codenvy.com/factory?v=1.0&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" +
                                enc("http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},// vcs par is missing
                               {"http://codenvy.com/factory?v=1.0&vcs=git&pname=eee&wname=ttt&vcsurl=" + enc(
@@ -70,5 +76,27 @@ public class FactoryUrlParserTest {
                               {"http://codenvy.com/factory?v=2.0&vcs=git&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" +
                                enc("http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},
         };
+    }
+
+    @Test(dataProvider = "badUrlProvider-InvalidArgument", expectedExceptions = FactoryUrlInvalidArgumentException.class)
+    public void shouldThrowFactoryUrlInvalidArgumentExceptionIfUrlHasInvalidParameters(String url) throws Exception {
+        factoryUrlFormat.parse(url);
+    }
+
+    @DataProvider(name = "badUrlProvider-InvalidArgument")
+    public Object[][] invalidParametersFactoryUrlProvider() throws UnsupportedEncodingException {
+        return new Object[][]{{"http://codenvy.com/factory?vcs=git&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" +
+                               enc("http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},// v par is missing
+                              {"http://codenvy.com/factory?v=1.0&v=2.0&vcs=git&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" +
+                               enc("http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},// v par has is fuplicated
+                              {"http://codenvy.com/factory?v=1.0&vcs=git&vcs=notagit&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" +
+                               enc("http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")},// vcs par is duplicated
+                              {"http://codenvy.com/factory?v=1.0&vcs=&idcommit=1234567&pname=eee&wname=ttt&vcsurl=" + enc(
+                                      "http://github/some/path?somequery=qwe&somequery=sss&somequery=rty")}// vcs par has empty value
+        };
+    }
+
+    static String enc(String str) throws UnsupportedEncodingException {
+        return URLEncoder.encode(str, "UTF-8");
     }
 }
