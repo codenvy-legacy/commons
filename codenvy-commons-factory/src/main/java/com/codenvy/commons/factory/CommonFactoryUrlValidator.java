@@ -40,7 +40,7 @@ public class CommonFactoryUrlValidator implements FactoryUrlValidator {
         mandatoryParameters.add("v");
         mandatoryParameters.add("vcs");
         mandatoryParameters.add("vcsurl");
-        mandatoryParameters.add("commitid");
+        mandatoryParameters.add("idcommit");
         mandatoryParameters.add("pname");
         mandatoryParameters.add("wname");
     }
