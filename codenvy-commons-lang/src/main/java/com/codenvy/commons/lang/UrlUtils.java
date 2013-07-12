@@ -27,6 +27,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * TODO replace this class with URLEncodedUtils
+ */
 public class UrlUtils {
     /**
      * Retrieve query parameters map from String representation of url
