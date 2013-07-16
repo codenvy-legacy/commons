@@ -58,22 +58,26 @@ public class CommonFactoryUrlFormat implements FactoryUrlFormat {
             // check API version first
             List<String> versionValues = params.get("v");
             if (versionValues == null) {
-                throw new FactoryUrlInvalidArgumentException("Factory url should contain not empty version parameter.");
+                throw new FactoryUrlInvalidArgumentException(
+                        "We cannot locate your project. Please try again or contact support@codenvy.com.");
             } else if (!versionValues.contains("1.0")) {
-                throw new FactoryUrlInvalidFormatException("Version of factory url API is illegal.");
+                throw new FactoryUrlInvalidFormatException(
+                        "We cannot locate your project. Please try again or contact support@codenvy.com.");
             }
 
             // check mandatory parameters
             for (String paramToCheck : mandatoryParameters) {
                 List<String> values = params.get(paramToCheck);
                 if (values == null) {
-                    throw new FactoryUrlInvalidArgumentException("Factory parameter " + paramToCheck + " has no values.");
+                    throw new FactoryUrlInvalidArgumentException(
+                            "We cannot locate your project. Please try again or contact support@codenvy.com.");
                 } else {
                     // throw exception if parameter quantity greater than one
                     // Also throw exception if parameter value is null or empty
                     String value = values.size() == 1 ? values.iterator().next() : null;
                     if (value == null || value.isEmpty()) {
-                        throw new FactoryUrlInvalidArgumentException("Factory url parameter " + paramToCheck + " has invalid value.");
+                        throw new FactoryUrlInvalidArgumentException(
+                                "We cannot locate your project. Please try again or contact support@codenvy.com.");
                     }
                 }
             }
@@ -91,7 +95,7 @@ public class CommonFactoryUrlFormat implements FactoryUrlFormat {
             return factoryUrl;
         } catch (IOException e) {
             LOG.error(e.getLocalizedMessage(), e);
-            throw new FactoryUrlException("There was an error while validating your URL. Please contact with administrators.");
+            throw new FactoryUrlException("We cannot locate your project. Please try again or contact support@codenvy.com.");
         }
     }
 
@@ -120,7 +124,8 @@ public class CommonFactoryUrlFormat implements FactoryUrlFormat {
                 while ((line = br.readLine()) != null) {
                     LOG.error(line);
                 }
-                throw new FactoryUrlInvalidArgumentException("Repository " + vcsUrl + " not found.");
+                throw new FactoryUrlInvalidArgumentException(
+                        "We cannot clone the git repository for your project. Please try again or contact support@codenvy.com.");
             } else {
                 LOG.debug("Repository check finished successfully.");
             }

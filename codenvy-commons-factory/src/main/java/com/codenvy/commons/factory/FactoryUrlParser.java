@@ -21,9 +21,6 @@ package com.codenvy.commons.factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -70,6 +67,6 @@ public class FactoryUrlParser {
             } catch (FactoryUrlInvalidFormatException ignored) {
             }
         }
-        throw new FactoryUrlInvalidFormatException("Given factory url does not match any known format.");
+        throw new FactoryUrlInvalidFormatException("We cannot locate your project. Please try again or contact support@codenvy.com.");
     }
 }
