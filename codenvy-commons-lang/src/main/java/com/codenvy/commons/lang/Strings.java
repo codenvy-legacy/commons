@@ -18,8 +18,6 @@
  */
 package com.codenvy.commons.lang;
 
-import java.util.Set;
-
 /** Utility class to work with String */
 public class Strings {
     private Strings() {
@@ -67,18 +65,24 @@ public class Strings {
     }
 
     /**
-     * Concatenates set of aliases to one string (used for dashboard events). Aliases is
-     * separated by comma sign.
-     * @param aliases
-     *         set of aliases to concatenate
+     * Returns a string containing the string representation of each of parts,
+     * using configured separator between each.
+     * @param delimiter
+     *         separator placed between consecutive elements.
+     * @param parts
+     *         strings to concatenate
      * @return
-     *         string with concatenated aliases
+     *         string containing the string representation of each of parts separated by delimiter
      */
-    public static String aliasesToString(Set<String> aliases) {
+    public static String join(String delimiter, String ... parts) {
+        if (delimiter == null) {
+            throw new IllegalArgumentException("First argument can't be null.");
+        }
+
         StringBuilder sb = new StringBuilder();
-        for (String alias : aliases) {
+        for (String alias : parts) {
             if (sb.length() != 0) {
-                sb.append(",");
+                sb.append(delimiter);
             }
             sb.append(alias);
         }

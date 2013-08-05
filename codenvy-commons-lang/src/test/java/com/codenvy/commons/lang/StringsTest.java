@@ -50,4 +50,16 @@ public class StringsTest {
         assertFalse(Strings.isNullOrEmpty("a"));
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testJoinShouldThrowIllegalArgumentExceptionIfDelimiterIsNull() {
+        assertEquals(Strings.join(null, "1", "2"), "");
+    }
+
+    @Test
+    public void testJoin() {
+        assertEquals(Strings.join(",", "1", "2"), "1,2");
+        assertEquals(Strings.join("1", "1", "1"), "111");
+        assertEquals(Strings.join(",", "2"), "2");
+        assertEquals(Strings.join(","), "");
+    }
 }
