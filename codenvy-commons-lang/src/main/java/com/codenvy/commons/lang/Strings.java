@@ -88,4 +88,30 @@ public class Strings {
         }
         return sb.toString();
     }
+
+    /**
+     * Search longest common prefix.
+     *
+     * @param input
+     *         - input array.
+     * @return - longest common prefix of the input array of the string
+     */
+    public static String longestCommonPrefix(String... input) {
+        String prefix = new String();
+        if (input.length > 0) {
+            prefix = input[0];
+        }
+        for (int i = 1; i < input.length; ++i) {
+            String s = input[i];
+            int j = 0;
+            for (; j < Math.min(prefix.length(), s.length()); ++j) {
+                if (prefix.charAt(j) != s.charAt(j)) {
+                    break;
+                }
+            }
+            prefix = prefix.substring(0, j);
+        }
+        return prefix;
+    }
+
 }
