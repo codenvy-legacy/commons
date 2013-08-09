@@ -37,7 +37,7 @@
     <logger name="org.exoplatform" level="INFO"/>
     <!--logger name="org.eclipse" level="DEBUG"/>
     <logger name="org.everrest" level="DEBUG"/>
-    <logger name="org.exoplatform.cloudide" level="DEBUG"/-->
+    <logger name="com.codenvy.cloudide" level="DEBUG"/-->
 
     <logger name="exo" level="INFO"/>
 

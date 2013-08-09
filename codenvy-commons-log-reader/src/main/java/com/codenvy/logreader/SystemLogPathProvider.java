@@ -19,7 +19,7 @@ package com.codenvy.logreader;
 
 public class SystemLogPathProvider implements LogPathProvider {
 
-    public static final String LOG_DIR_PROPERTY = "org.exoplatform.logreader.logpath";
+    public static final String LOG_DIR_PROPERTY = "com.codenvy.logreader.logpath";
 
     /** @see LogPathProvider#getLogDirectory() */
     @Override

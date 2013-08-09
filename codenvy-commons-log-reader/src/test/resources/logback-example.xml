@@ -70,8 +70,8 @@
 
 
     <logger name="org.exoplatform" level="INFO"/>
-    <logger name="org.exoplatform.cloudide" level="DEBUG"/>
-    <logger name="org.exoplatform.cloudmanagement" level="DEBUG"/>
+    <logger name="com.codenvy.cloudide" level="DEBUG"/>
+    <logger name="com.exoplatform.cloud" level="DEBUG"/>
     <logger name="exo" level="INFO"/>
     <logger name="org.gatein" level="INFO"/>
     <logger name="org.chromattic" level="INFO"/>
