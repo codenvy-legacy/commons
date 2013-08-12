@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.codenvy.commons</groupId>
         <artifactId>codenvy-commons-parent</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1-SNAPSHOT</version>
     </parent>
     <artifactId>codenvy-commons-mail-client</artifactId>
     <name>Codenvy Commons :: Mail client</name>
