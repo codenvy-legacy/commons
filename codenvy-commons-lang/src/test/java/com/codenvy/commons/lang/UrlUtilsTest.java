@@ -17,10 +17,9 @@
  */
 package com.codenvy.commons.lang;
 
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,24 +29,9 @@ import java.util.Map;
 import static org.testng.Assert.*;
 
 public class UrlUtilsTest {
-    @Test(dataProvider = "badUrlProvider", expectedExceptions = MalformedURLException.class)
-    public void shouldThrowMalformedUrlExceptionIfUrlIsIllegal(String url) throws Exception {
-        UrlUtils.getQueryParameters(url);
-    }
-
-    @DataProvider(name = "badUrlProvider")
-    public Object[][] factoryUrlProvider() {
-        return new Object[][]{{""},
-                              {"?"},
-                              {"www.localhost:8080/?ds"},
-                              {"localhost:8080/?ds"},
-                              {"www.cloud-ide.int/?ds"}
-        };
-    }
-
     @Test
     public void shouldExtractParametersWithoutValue() throws Exception {
-        Map<String, List<String>> params = UrlUtils.getQueryParameters("http://codenvy.com/factory?v");
+        Map<String, List<String>> params = UrlUtils.getQueryParameters(new URL("http://codenvy.com/factory?v"));
         assertTrue(params.containsKey("v"));
         assertNull(params.get("v").iterator().next());
     }
@@ -61,7 +45,7 @@ public class UrlUtilsTest {
         v.add("www");
         expectedParams.put("v", v);
 
-        Map<String, List<String>> params = UrlUtils.getQueryParameters("http://codenvy.com/factory?v=123&v=qwe&v=www");
+        Map<String, List<String>> params = UrlUtils.getQueryParameters(new URL("http://codenvy.com/factory?v=123&v=qwe&v=www"));
 
         assertEquals(params, expectedParams);
     }
@@ -78,7 +62,7 @@ public class UrlUtilsTest {
         expectedParams.put("v", v);
         expectedParams.put("par", par);
 
-        Map<String, List<String>> params = UrlUtils.getQueryParameters("http://codenvy.com/factory?v=123&par=test&v=qwe&v=www");
+        Map<String, List<String>> params = UrlUtils.getQueryParameters(new URL("http://codenvy.com/factory?v=123&par=test&v=qwe&v=www"));
 
         assertEquals(params, expectedParams);
     }
@@ -95,7 +79,7 @@ public class UrlUtilsTest {
         expectedParams.put("v", v);
         expectedParams.put("par", par);
 
-        Map<String, List<String>> params = UrlUtils.getQueryParameters("http://codenvy.com/factory/?v=123&par=test&v=qwe&v=www");
+        Map<String, List<String>> params = UrlUtils.getQueryParameters(new URL("http://codenvy.com/factory/?v=123&par=test&v=qwe&v=www"));
 
         assertEquals(params, expectedParams);
     }
@@ -108,8 +92,8 @@ public class UrlUtilsTest {
         expectedParams.put("vcsurl", vcsurl);
 
 
-        Map<String, List<String>> params = UrlUtils.getQueryParameters("http://codenvy.com/factory?vcsurl=" + URLEncoder.encode(
-                "http://github/some/path?somequery=qwe&somequery=sss&somequery=rty", "UTF-8"));
+        Map<String, List<String>> params = UrlUtils.getQueryParameters(new URL("http://codenvy.com/factory?vcsurl=" + URLEncoder.encode(
+                "http://github/some/path?somequery=qwe&somequery=sss&somequery=rty", "UTF-8")));
 
         assertEquals(params, expectedParams);
     }
