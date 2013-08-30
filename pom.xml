@@ -29,7 +29,7 @@
     <groupId>com.codenvy.commons</groupId>
     <artifactId>codenvy-commons-parent</artifactId>
     <name>Codenvy Commons :: Parent</name>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.8.0-WEBSITE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <scm>
