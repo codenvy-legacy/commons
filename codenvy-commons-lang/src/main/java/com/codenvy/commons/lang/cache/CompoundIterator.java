@@ -17,44 +17,43 @@
  */
 package com.codenvy.commons.lang.cache;
 
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
+/** A compound iterator, which iterates over two or more other iterators and represents few iterators as one. */
 public class CompoundIterator<T> implements Iterator<T> {
 
-    private final LinkedList<Iterator<T>> iteratorQueue;
-    private       Iterator<T>             current;
+    private final Iterator[] iterators;
+    private       int        index;
 
-    public CompoundIterator(final Iterator<T>... iterators) {
-        this.iteratorQueue = new LinkedList<>();
-        for (final Iterator<T> iterator : iterators) {
-            iteratorQueue.push(iterator);
-        }
-        current = Collections.<T>emptyList().iterator();
+    public CompoundIterator(Iterator<T> iterator1, Iterator<T> iterator2) {
+        iterators = new Iterator[]{iterator1, iterator2};
+    }
+
+    public CompoundIterator(List<Iterator<T>> iterators) {
+        this.iterators = iterators.toArray(new Iterator[iterators.size()]);
     }
 
     public boolean hasNext() {
-        final boolean curHasNext = current.hasNext();
-        if (!curHasNext && !iteratorQueue.isEmpty()) {
-            current = iteratorQueue.pop();
-            return current.hasNext();
-        } else {
-            return curHasNext;
+        while (index < iterators.length) {
+            if (iterators[index].hasNext()) {
+                return true;
+            }
+            index++;
         }
+        return false;
     }
 
+    @SuppressWarnings("unchecked")
     public T next() {
-        if (current.hasNext()) {
-            return current.next();
+        if (!hasNext()) {
+            throw new NoSuchElementException();
         }
-        if (!iteratorQueue.isEmpty()) {
-            current = iteratorQueue.pop();
-        }
-        return current.next();
+        return (T)iterators[index].next();
     }
 
     public void remove() {
-        current.remove();
+        iterators[index].remove();
     }
 }
