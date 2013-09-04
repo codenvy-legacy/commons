@@ -18,7 +18,8 @@
 package com.codenvy.commons.servlet;
 
 /**
- * Sub-classes of this class should be added in file <pre>META-INF/services/com.codenvy.commons.servlet.DispatcherServletConfigurationFactory</pre>.
+ * Sub-classes of this class should be added in file <pre>META-INF/services/com.codenvy.commons.servlet
+ * .DispatcherServletConfigurationFactory</pre>.
  * See details in docs for {@link java.util.ServiceLoader}.
  *
  * @see DispatcherServletConfiguration

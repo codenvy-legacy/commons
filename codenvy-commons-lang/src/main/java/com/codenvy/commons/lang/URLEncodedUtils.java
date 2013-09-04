@@ -36,7 +36,7 @@ public class URLEncodedUtils {
      * http://example.org/path/to/file?a=1&b=2&c=3&c=4 would return a Map three
      * key is a name name of parameter Set<String> is a values, a={1},
      * one for b={2} and two for c={3,4}.
-     *
+     * <p/>
      * <p/>
      * This is typically useful while parsing an HTTP PUT.
      *

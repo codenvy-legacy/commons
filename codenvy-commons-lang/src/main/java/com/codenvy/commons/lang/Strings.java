@@ -66,14 +66,14 @@ public class Strings {
     /**
      * Returns a string containing the string representation of each of parts,
      * using configured separator between each.
+     *
      * @param delimiter
      *         separator placed between consecutive elements.
      * @param parts
      *         strings to concatenate
-     * @return
-     *         string containing the string representation of each of parts separated by delimiter
+     * @return string containing the string representation of each of parts separated by delimiter
      */
-    public static String join(String delimiter, String ... parts) {
+    public static String join(String delimiter, String... parts) {
         if (delimiter == null) {
             throw new IllegalArgumentException("First argument can't be null.");
         }

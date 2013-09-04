@@ -93,12 +93,12 @@ public class TestURLEncodedUtils {
 
         //given
         Map<String, Set<String>> parameters = new LinkedHashMap<>();
-        parameters.put("Name5",  new LinkedHashSet<>(Arrays.asList(new String[]{"aaa"})));
-        parameters.put("Name6",  new LinkedHashSet<>(Arrays.asList(new String[]{"bbb"})));
+        parameters.put("Name5", new LinkedHashSet<>(Arrays.asList(new String[]{"aaa"})));
+        parameters.put("Name6", new LinkedHashSet<>(Arrays.asList(new String[]{"bbb"})));
         //when
-        String actual =  URLEncodedUtils.format(parameters, "UTF-8");
+        String actual = URLEncodedUtils.format(parameters, "UTF-8");
         //then
-        assertEquals(actual,"Name5=aaa&Name6=bbb" );
+        assertEquals(actual, "Name5=aaa&Name6=bbb");
 
     }
 
@@ -132,16 +132,17 @@ public class TestURLEncodedUtils {
         String ch_hello = constructString(SWISS_GERMAN_HELLO);
 
         Map<String, Set<String>> parameters = new LinkedHashMap<>();
-        parameters.put("russian",  new LinkedHashSet<>(Arrays.asList(new String[]{ru_hello})));
-        parameters.put("swiss",  new LinkedHashSet<>(Arrays.asList(new String[]{ch_hello})));
+        parameters.put("russian", new LinkedHashSet<>(Arrays.asList(new String[]{ru_hello})));
+        parameters.put("swiss", new LinkedHashSet<>(Arrays.asList(new String[]{ch_hello})));
         //when
-        String actual =  URLEncodedUtils.format(parameters, "UTF-8");
+        String actual = URLEncodedUtils.format(parameters, "UTF-8");
         //then
-        assertEquals(actual,"russian=%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82" +
-                            "&swiss=Gr%C3%BCezi_z%C3%A4m%C3%A4" );
+        assertEquals(actual, "russian=%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82" +
+                             "&swiss=Gr%C3%BCezi_z%C3%A4m%C3%A4");
 
 
     }
+
     @Test
     public void shouldParseUTF8() {
         //given

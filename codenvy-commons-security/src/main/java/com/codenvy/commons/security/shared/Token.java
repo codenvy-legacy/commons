@@ -22,10 +22,10 @@ public interface Token {
     String getToken();
 
     void setToken(String token);
-    
+
     String getScope();
 
     void setScope(String scope);
 
-    
+
 }
