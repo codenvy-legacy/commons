@@ -373,7 +373,9 @@ public class IoUtil {
                                 throw new IOException(
                                         String.format("Unable create directory '%s'. ", newFile.getAbsolutePath()));
                             }
-                            q.push(f);
+                            if (!f.equals(target)) {
+                                q.push(f);
+                            }
                         } else {
                             if (nio) {
                                 nioCopyFile(f, newFile, replaceIfExists);
