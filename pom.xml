@@ -29,14 +29,14 @@
     <groupId>com.codenvy.commons</groupId>
     <artifactId>codenvy-commons-parent</artifactId>
     <name>Codenvy Commons :: Parent</name>
-    <version>0.7.2</version>
+    <version>0.7.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <scm>
         <connection>scm:git:git@github.com:codenvy/commons.git</connection>
         <url>https://fisheye.codenvycorp.com/browse/commons</url>
         <developerConnection>scm:git:git@github.com:codenvy/commons.git</developerConnection>
-        <tag>0.7.2</tag>
+        <tag>HEAD</tag>
     </scm>
     <properties>
         <javax.ws.rs.version>1.0</javax.ws.rs.version>
