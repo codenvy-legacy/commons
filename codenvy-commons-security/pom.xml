@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.codenvy.commons</groupId>
         <artifactId>codenvy-commons-parent</artifactId>
-        <version>0.7.2-SNAPSHOT</version>
+        <version>0.7.2</version>
     </parent>
     <artifactId>codenvy-commons-security</artifactId>
     <name>Codenvy Commons :: Security</name>
