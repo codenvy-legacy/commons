@@ -46,7 +46,6 @@ public class CommonFactoryUrlFormat implements FactoryUrlFormat {
         mandatoryParameters.add("vcsurl");
         mandatoryParameters.add("idcommit");
         mandatoryParameters.add("pname");
-        mandatoryParameters.add("wname");
     }
 
     @Override
@@ -89,7 +88,9 @@ public class CommonFactoryUrlFormat implements FactoryUrlFormat {
             factoryUrl.setVcs(params.get("vcs").iterator().next());
             factoryUrl.setVcsUrl(params.get("vcsurl").iterator().next());
             factoryUrl.setProjectName(params.get("pname").iterator().next());
-            factoryUrl.setWorkspaceName(params.get("wname").iterator().next());
+
+            List<String> wnameValues = params.get("wname");
+            factoryUrl.setWorkspaceName((wnameValues == null || wnameValues.size() == 0) ? null : wnameValues.get(0));
 
             return factoryUrl;
         } catch (IOException e) {
