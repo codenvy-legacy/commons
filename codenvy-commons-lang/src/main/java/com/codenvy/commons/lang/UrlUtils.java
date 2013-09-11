@@ -18,7 +18,6 @@
 package com.codenvy.commons.lang;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -33,14 +32,11 @@ public class UrlUtils {
      *
      * @param url
      * @return - <code>Map</code> with parameters names as map keys and parameters values as map values
-     * @throws MalformedURLException
-     *         - if url is invalid
      * @throws UnsupportedEncodingException
      */
-    public static Map<String, List<String>> getQueryParameters(String url) throws MalformedURLException, UnsupportedEncodingException {
+    public static Map<String, List<String>> getQueryParameters(URL url) throws UnsupportedEncodingException {
         Map<String, List<String>> params = new HashMap<>();
-        URL verifiedUrl = new URL(url);
-        String query = verifiedUrl.getQuery();
+        String query = url.getQuery();
         if (query != null) {
             for (String param : query.split("&")) {
                 String pair[] = param.split("=");
