@@ -59,7 +59,7 @@
         <!-- Logger libs -->
         <slf4j.version>1.6.1</slf4j.version>
         <logback.version>1.0.0</logback.version>
-        <everrest.version>1.1.2</everrest.version>
+        <everrest.version>1.1.3</everrest.version>
 
     </properties>
     <modules>
