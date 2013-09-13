@@ -61,26 +61,26 @@ public class StringsTest {
     }
 
     @Test
-    public void shouldReturnEmptyStringOnEmptyParameters_longestCommonPrefix(){
+    public void shouldReturnEmptyStringOnEmptyParameters_longestCommonPrefix() {
         assertEquals("", Strings.longestCommonPrefix());
 
     }
 
     @Test
-    public void shouldReturnSameStringIf1Parameter_longestCommonPrefix(){
+    public void shouldReturnSameStringIf1Parameter_longestCommonPrefix() {
         assertEquals("param", Strings.longestCommonPrefix("param"));
 
     }
 
     @Test
-    public void shouldReturnEmptyIfNoCommonPrefix_longestCommonPrefix(){
-        assertEquals("", Strings.longestCommonPrefix("dff","blafa"));
+    public void shouldReturnEmptyIfNoCommonPrefix_longestCommonPrefix() {
+        assertEquals("", Strings.longestCommonPrefix("dff", "blafa"));
 
     }
 
     @Test
-    public void shouldFindCommonPrefix_longestCommonPrefix(){
-        assertEquals("bla", Strings.longestCommonPrefix("blafoijqoweir","blafa", "blamirfjo"));
+    public void shouldFindCommonPrefix_longestCommonPrefix() {
+        assertEquals("bla", Strings.longestCommonPrefix("blafoijqoweir", "blafa", "blamirfjo"));
 
     }
 }

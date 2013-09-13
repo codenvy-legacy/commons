@@ -43,7 +43,6 @@ public class OAuthAuthenticationService {
     private final OAuthAuthenticatorProvider providers;
 
 
-
     public OAuthAuthenticationService(OAuthAuthenticatorProvider providers) {
         this.providers = providers;
     }
@@ -103,7 +102,7 @@ public class OAuthAuthenticationService {
         if ("federated_login".equals(mode)) {
             try {
                 return Response.temporaryRedirect(UriBuilder.fromUri(URLDecoder.decode(redirectAfterLogin, "UTF-8")).queryParam("username",
-                                                                                                    userId)
+                                                                                                                                userId)
                                                             .queryParam("signature", encode(SignatureDSA.getBase64Signature(userId),
                                                                                             "UTF-8"))
                                                             .queryParam("oauth_provider", providerName).build()).build();
@@ -210,7 +209,7 @@ public class OAuthAuthenticationService {
     @Produces({MediaType.APPLICATION_JSON})
     @Path("token")
     public Token token(@QueryParam("oauth_provider") String oauth_provider, @QueryParam("userId") String userId,
-                        @QueryParam("signature") String signature) throws Exception {
+                       @QueryParam("signature") String signature) throws Exception {
         LOG.debug("oauth_provider='{}'  userId='{}' signature='{}'", new String[]{oauth_provider, userId, signature});
         if (!(userId == null || userId.isEmpty() || signature == null || signature.isEmpty())) {
 

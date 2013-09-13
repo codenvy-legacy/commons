@@ -18,7 +18,7 @@
 package com.codenvy.commons.factory;
 
 /** Exception thrown if factory url is invalid */
-public class FactoryUrlInvalidArgumentException extends  FactoryUrlException {
+public class FactoryUrlInvalidArgumentException extends FactoryUrlException {
     public FactoryUrlInvalidArgumentException(String message) {
         super(message);
     }

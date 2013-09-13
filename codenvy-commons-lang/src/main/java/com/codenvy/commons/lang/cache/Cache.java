@@ -2,8 +2,8 @@
  * CODENVY CONFIDENTIAL
  * __________________
  *
- *  [2012] - [2013] Codenvy, S.A.
- *  All Rights Reserved.
+ * [2012] - [2013] Codenvy, S.A.
+ * All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
  * the property of Codenvy S.A. and its suppliers,
@@ -15,17 +15,22 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.commons.security.shared;
+package com.codenvy.commons.lang.cache;
 
-public interface Token {
-
-    String getToken();
-
-    void setToken(String token);
-
-    String getScope();
-
-    void setScope(String scope);
+import java.util.Map.Entry;
 
 
+/** Cache abstraction. */
+public interface Cache<K, V> extends Iterable<Entry<K, V>> {
+    V get(K key);
+
+    V put(K key, V value);
+
+    V remove(K key);
+
+    boolean contains(K key);
+
+    void clear();
+
+    int size();
 }

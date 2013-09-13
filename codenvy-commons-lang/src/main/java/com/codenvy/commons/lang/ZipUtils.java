@@ -148,6 +148,26 @@ public class ZipUtils {
         }
     }
 
+
+    /**
+     * Checks is specified file is zip file or not. Zip file <a href="http://en.wikipedia.org/wiki/Zip_(file_format)#File_headers">headers
+     * description</a>.
+     */
+    public static boolean isZipFile(java.io.File file) throws IOException {
+        if (file.isDirectory()) {
+            return false;
+        }
+        // NOTE: little-indian bytes order!
+        byte[] bytes = new byte[4];
+        try (FileInputStream fIn = new FileInputStream(file)) {
+            if (fIn.read(bytes) != 4) {
+                return false;
+            }
+        }
+        final int header = bytes[0] + (bytes[1] << 8) + (bytes[2] << 16) + (bytes[3] << 24);
+        return 0x04034b50 == header;
+    }
+
     private ZipUtils() {
     }
 }
