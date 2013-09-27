@@ -19,11 +19,6 @@ package com.codenvy.logreader;
 
 import junit.framework.Assert;
 
-import com.codenvy.logreader.LogEntry;
-import com.codenvy.logreader.LogPathProvider;
-import com.codenvy.logreader.LogReaderException;
-import com.codenvy.logreader.SimpleLogPathProvider;
-
 import org.junit.Test;
 
 import java.io.BufferedReader;

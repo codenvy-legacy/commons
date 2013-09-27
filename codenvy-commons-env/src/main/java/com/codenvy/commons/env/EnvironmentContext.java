@@ -36,14 +36,14 @@ public class EnvironmentContext {
     public final static String MASTERHOST_PORT = "com.codenvy.masterhost.port";
 
     /** URL to master host including protocol and port */
-    public final static String MASTERHOST_URL= "com.codenvy.masterhost.url";
+    public final static String MASTERHOST_URL = "com.codenvy.masterhost.url";
 
     public final static String WORKSPACE_ID = "com.codenvy.workspace.id";
 
     public final static String WORKSPACE_NAME = "com.codenvy.workspace.name";
 
     /** URL to current workspace host including protocol and port */
-    public final static String WORKSPACE_URL= "com.codenvy.workspace.url";
+    public final static String WORKSPACE_URL = "com.codenvy.workspace.url";
 
     public final static String VFS_ROOT_DIR = "com.codenvy.vfs.rootdir";
 

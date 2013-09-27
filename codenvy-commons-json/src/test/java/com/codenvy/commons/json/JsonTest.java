@@ -18,10 +18,9 @@
 package com.codenvy.commons.json;
 
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 public class JsonTest {
     public static class Foo {

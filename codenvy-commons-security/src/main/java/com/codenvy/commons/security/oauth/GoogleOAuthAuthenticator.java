@@ -46,9 +46,9 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
 
     public GoogleOAuthAuthenticator(CredentialStore credentialStore, GoogleClientSecrets clientSecrets) {
         super(new GoogleAuthorizationCodeFlow.Builder(new NetHttpTransport(), new JacksonFactory(), clientSecrets,
-                                                      Collections.<String> emptyList()).setCredentialStore(credentialStore)
-                                                                                       .setApprovalPrompt("auto").setAccessType
-                                                                                       ("online").build(),
+                                                      Collections.<String>emptyList()).setCredentialStore(credentialStore)
+                                                                                      .setApprovalPrompt("auto").setAccessType
+                        ("online").build(),
               new HashSet<String>(clientSecrets.getDetails().getRedirectUris()));
     }
 
@@ -91,7 +91,7 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
             int responseCode = http.getResponseCode();
             if (responseCode != 200) {
                 LOG.warn("Can not receive google token by path: {}. Response status: {}. Error message: {}",
-                          new Object[]{tokenInfoUrl.toString(), responseCode, IoUtil.readStream(http.getErrorStream())});
+                         new Object[]{tokenInfoUrl.toString(), responseCode, IoUtil.readStream(http.getErrorStream())});
                 return null;
             }
 
