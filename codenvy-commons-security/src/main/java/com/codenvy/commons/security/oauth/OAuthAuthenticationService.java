@@ -91,7 +91,7 @@ public class OAuthAuthenticationService {
         // TODO redirect to previous page instead of login page
         if (errorValues != null && errorValues.contains("access_denied")) {
             return Response.temporaryRedirect(
-                    uriInfo.getRequestUriBuilder().replacePath("/login").replaceQuery(null).build()).build();
+                    uriInfo.getRequestUriBuilder().replacePath("/site/login").replaceQuery(null).build()).build();
         }
         final String providerName = getParameter(params, "oauth_provider");
         OAuthAuthenticator oauth = getAuthenticator(providerName);
