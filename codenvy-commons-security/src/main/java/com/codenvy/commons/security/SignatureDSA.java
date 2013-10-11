@@ -280,7 +280,7 @@ public final class SignatureDSA {
             LOG.debug("Signature verification for {} successful ", data);
             return true;
         } else {
-            LOG.error("Signature verification for {} failed ", data);
+            LOG.warn("Signature verification for {} failed ", data);
             return false;
         }
     }
