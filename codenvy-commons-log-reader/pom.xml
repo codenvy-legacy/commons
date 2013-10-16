@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.codenvy.commons</groupId>
         <artifactId>codenvy-commons-parent</artifactId>
-        <version>0.9.0</version>
+        <version>0.9.1-SNAPSHOT</version>
     </parent>
     <artifactId>codenvy-commons-log-reader</artifactId>
     <name>Codenvy Commons :: Log Reader</name>
