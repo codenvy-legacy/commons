@@ -80,10 +80,10 @@
         </dependency>
 
         <dependency>
-            <groupId>com.exoplatform.cloud-ide</groupId>
+            <groupId>com.codenvy.cloud-ide</groupId>
             <artifactId>cloud-ide-key</artifactId>
-            <version>1.1-M13</version>
-            <classifier>M13</classifier>
+            <version>1.1-M14</version>
+            <classifier>M14</classifier>
         </dependency>
 
     </dependencies>
