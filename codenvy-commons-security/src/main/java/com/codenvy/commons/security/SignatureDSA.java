@@ -58,7 +58,7 @@ public final class SignatureDSA {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         InputStream is = cl.getResourceAsStream(resource);
         if (is == null) {
-            throw new IOException("Unreachable resource: " + resource);
+            throw new FileNotFoundException("Unreachable resource: " + resource);
         }
         return read(is);
     }
@@ -83,13 +83,9 @@ public final class SignatureDSA {
 
    /* ======================================================= */
 
-    private static final String defaultPrivateKeyName  = "cloudide.key";
+    private static final String defaultPrivateKeyFile = "cloudide.key";
 
-    private static final String defaultPublicKeyName = "cloudide.pub";
-
-    private static final String defaultPrivateKeyFile = "META-INF/keys/" + defaultPrivateKeyName;
-
-    private static final String defaultPublicKeyFile = "META-INF/keys/" + defaultPublicKeyName;
+    private static final String defaultPublicKeyFile = "cloudide.pub";
 
     private final Signature delegate = newSignature();
 
@@ -262,16 +258,20 @@ public final class SignatureDSA {
      */
     public static String getBase64Signature(String data) throws GeneralSecurityException, IOException {
         SignatureDSA dsa = new SignatureDSA();
-        if (System.getProperty("codenvy.local.conf.dir") == null) {
+        try {
             dsa.initSign();
-        } else {
+        } catch (FileNotFoundException e) {
+            if (System.getProperty("codenvy.local.conf.dir") == null)
+                throw new GeneralSecurityException("Private key cannot be found in classpath and no conf directory defined.");
+
             File privateKey =
-                    new File(System.getProperty("codenvy.local.conf.dir"), defaultPrivateKeyName);
+                    new File(System.getProperty("codenvy.local.conf.dir"), defaultPrivateKeyFile);
             if (privateKey.exists() && !privateKey.isDirectory()) {
                 dsa.initSign(new FileInputStream(privateKey));
             } else {
-                dsa.initSign();
+                throw new GeneralSecurityException("Private key cannot be found in classpath or conf directory.");
             }
+
         }
         dsa.update(data);
         return new String(dsa.sign(true));
@@ -286,15 +286,18 @@ public final class SignatureDSA {
      */
     public static boolean isSignatureValid(String data, String signature) throws Exception {
         SignatureDSA dsa = new SignatureDSA();
-        if (System.getProperty("codenvy.local.conf.dir") == null) {
-            dsa.initVerify();
-        } else {
+        try {
+            dsa.initSign();
+        } catch (FileNotFoundException e) {
+            if (System.getProperty("codenvy.local.conf.dir") == null)
+                throw new GeneralSecurityException("Public key cannot be found in classpath and no conf directory defined.");
+
             File publicKey =
-                    new File(System.getProperty("codenvy.local.conf.dir"), defaultPublicKeyName);
+                    new File(System.getProperty("codenvy.local.conf.dir"), defaultPublicKeyFile);
             if (publicKey.exists() && !publicKey.isDirectory()) {
                 dsa.initVerify(new FileInputStream(publicKey));
             } else {
-                dsa.initVerify();
+                throw new GeneralSecurityException("Public key cannot be found in classpath or conf directory.");
             }
         }
         dsa.update(data);
