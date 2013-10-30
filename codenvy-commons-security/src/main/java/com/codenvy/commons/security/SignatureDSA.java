@@ -21,10 +21,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -67,7 +64,7 @@ public final class SignatureDSA {
     }
 
     private static byte[] read(InputStream is) throws IOException {
-        try {
+        try  {
             byte[] buf = new byte[512];
             ByteArrayOutputStream bout = new ByteArrayOutputStream(1024);
             int r;
@@ -86,9 +83,13 @@ public final class SignatureDSA {
 
    /* ======================================================= */
 
-    private static final String defaultPrivateKeyFile = "META-INF/keys/cloudide.key";
+    private static final String defaultPrivateKeyName  = "cloudide.key";
 
-    private static final String defaultPublicKeyFile = "META-INF/keys/cloudide.pub";
+    private static final String defaultPublicKeyName = "cloudide.pub";
+
+    private static final String defaultPrivateKeyFile = "META-INF/keys/" + defaultPrivateKeyName;
+
+    private static final String defaultPublicKeyFile = "META-INF/keys/" + defaultPublicKeyName;
 
     private final Signature delegate = newSignature();
 
@@ -254,13 +255,24 @@ public final class SignatureDSA {
     /**
      * Return signature of the given data
      *
-     * @param data
+     * @param data data to sign
      * @return Base64 encoded signature
-     * @throws Exception
+     * @throws GeneralSecurityException
+     * @throws IOException
      */
     public static String getBase64Signature(String data) throws GeneralSecurityException, IOException {
         SignatureDSA dsa = new SignatureDSA();
-        dsa.initSign();
+        if (System.getProperty("codenvy.local.conf.dir") == null) {
+            dsa.initSign();
+        } else {
+            File privateKey =
+                    new File(System.getProperty("codenvy.local.conf.dir"), defaultPrivateKeyName);
+            if (privateKey.exists() && !privateKey.isDirectory()) {
+                dsa.initSign(new FileInputStream(privateKey));
+            } else {
+                dsa.initSign();
+            }
+        }
         dsa.update(data);
         return new String(dsa.sign(true));
     }
@@ -268,13 +280,23 @@ public final class SignatureDSA {
     /**
      * Check data signature
      *
-     * @param data
+     * @param data  data to check
      * @return true if signature is valid.
      * @throws Exception
      */
     public static boolean isSignatureValid(String data, String signature) throws Exception {
         SignatureDSA dsa = new SignatureDSA();
-        dsa.initVerify();
+        if (System.getProperty("codenvy.local.conf.dir") == null) {
+            dsa.initVerify();
+        } else {
+            File publicKey =
+                    new File(System.getProperty("codenvy.local.conf.dir"), defaultPublicKeyName);
+            if (publicKey.exists() && !publicKey.isDirectory()) {
+                dsa.initVerify(new FileInputStream(publicKey));
+            } else {
+                dsa.initVerify();
+            }
+        }
         dsa.update(data);
         if (dsa.verify(signature.getBytes())) {
             LOG.debug("Signature verification for {} successful ", data);
