@@ -287,7 +287,7 @@ public final class SignatureDSA {
     public static boolean isSignatureValid(String data, String signature) throws Exception {
         SignatureDSA dsa = new SignatureDSA();
         try {
-            dsa.initSign();
+            dsa.initVerify();
         } catch (FileNotFoundException e) {
             if (System.getProperty("codenvy.local.conf.dir") == null)
                 throw new GeneralSecurityException("Public key cannot be found in classpath and no conf directory defined.");
