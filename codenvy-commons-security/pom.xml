@@ -79,13 +79,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.codenvy.cloud-ide</groupId>
-            <artifactId>cloud-ide-key</artifactId>
-            <version>1.1-M14</version>
-            <classifier>M14</classifier>
-        </dependency>
-
     </dependencies>
     <build>
         <resources>
