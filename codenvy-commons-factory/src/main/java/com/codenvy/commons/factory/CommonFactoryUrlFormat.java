@@ -95,7 +95,7 @@ public class CommonFactoryUrlFormat implements FactoryUrlFormat {
 
             return factoryUrl;
         } catch (IOException e) {
-            LOG.error(e.getLocalizedMessage(), e);
+            LOG.warn(e.getLocalizedMessage(), e);
             throw new FactoryUrlException("We cannot locate your project. Please try again or contact support@codenvy.com.");
         }
     }
@@ -118,7 +118,7 @@ public class CommonFactoryUrlFormat implements FactoryUrlFormat {
 
             // check return value of process.
             if (process.waitFor() != 0) {
-                LOG.error("Can't check repository {}. Exit value is {}", new Object[][]{{vcsUrl, process.exitValue()}});
+                LOG.warn("Can't check repository {}. Exit value is {}", new Object[][]{{vcsUrl, process.exitValue()}});
                 BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
                 String line;
@@ -131,7 +131,7 @@ public class CommonFactoryUrlFormat implements FactoryUrlFormat {
                 LOG.debug("Repository check finished successfully.");
             }
         } catch (InterruptedException | IOException e) {
-            LOG.error(e.getLocalizedMessage(), e);
+            LOG.warn(e.getLocalizedMessage(), e);
             throw new FactoryUrlException(e.getLocalizedMessage(), e);
         }
     }

@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.codenvy.commons</groupId>
         <artifactId>codenvy-commons-parent</artifactId>
-        <version>0.8.2-SNAPSHOT</version>
+        <version>0.9.2-SNAPSHOT</version>
     </parent>
     <artifactId>codenvy-commons-security</artifactId>
     <name>Codenvy Commons :: Security</name>
@@ -80,10 +80,10 @@
         </dependency>
 
         <dependency>
-            <groupId>com.exoplatform.cloud-ide</groupId>
+            <groupId>com.codenvy.cloud-ide</groupId>
             <artifactId>cloud-ide-key</artifactId>
-            <version>1.1-M13</version>
-            <classifier>M13</classifier>
+            <version>1.1-M14</version>
+            <classifier>M14</classifier>
         </dependency>
 
     </dependencies>
