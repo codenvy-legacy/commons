@@ -19,13 +19,33 @@ package com.codenvy.commons.security.shared;
 
 public interface Token {
 
+    /** Get OAuth token */
     String getToken();
 
+    /** Set OAuth token */
     void setToken(String token);
 
+    /** Get OAuth 1.0 secret token */
+    String getSecret();
+
+    /** Get OAuth 1.0 secret token */
+    void setSecret(String secret);
+
+    /** Get OAuth scope */
     String getScope();
 
+    /** Set OAuth scope */
     void setScope(String scope);
 
+    /** Get OAuth version of token */
+    String getVersion();
 
+    /** Set OAuth version of token */
+    void setVersion(String version);
+
+    /** Get value of authenticator header for signing OAuth 1.0 request */
+    String getAuthHeader();
+
+    /** Set value of authenticator header for signing OAuth 1.0 request */
+    void setAuthHeader(String headerValue);
 }

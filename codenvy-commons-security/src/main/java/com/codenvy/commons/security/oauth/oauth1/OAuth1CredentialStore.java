@@ -1,10 +1,10 @@
 /*
  * CODENVY CONFIDENTIAL
  * __________________
- *
- *  [2012] - [2013] Codenvy, S.A.
+ * 
+ *  [2012] - [2013] Codenvy, S.A. 
  *  All Rights Reserved.
- *
+ * 
  * NOTICE:  All information contained herein is, and remains
  * the property of Codenvy S.A. and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -15,17 +15,15 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.commons.security.oauth;
+package com.codenvy.commons.security.oauth.oauth1;
 
-import javax.ws.rs.core.Application;
-import java.util.HashSet;
-import java.util.Set;
+import org.scribe.model.Token;
 
-public class OAuthAuthenticationApplication extends Application {
-    @Override
-    public Set<Class<?>> getClasses() {
-        Set<Class<?>> cls = new HashSet<>(1);
-        cls.add(OAuthAuthenticationService.class);
-        return cls;
-    }
+/** OAuth request token storage */
+public interface OAuth1CredentialStore {
+    public void put(String userId, Token token);
+
+    public void delete(String userId);
+
+    public Token get(String userId);
 }

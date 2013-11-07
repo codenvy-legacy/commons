@@ -79,6 +79,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.scribe</groupId>
+            <artifactId>scribe</artifactId>
+            <version>${scribe.version}</version>
+        </dependency>
+
     </dependencies>
     <build>
         <resources>

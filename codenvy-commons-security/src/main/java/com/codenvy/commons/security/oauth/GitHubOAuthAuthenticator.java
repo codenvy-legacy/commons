@@ -59,11 +59,11 @@ public class GitHubOAuthAuthenticator extends OAuthAuthenticator {
     }
 
     @Override
-    public User getUser(String accessToken) throws OAuthAuthenticationException {
-        GitHubUser user = getJson("https://api.github.com/user?access_token=" + accessToken, GitHubUser.class);
+    public User getUser(Token accessToken) throws OAuthAuthenticationException {
+        GitHubUser user = getJson("https://api.github.com/user?access_token=" + accessToken.getToken(), GitHubUser.class);
 
 
-        GithubEmail[] result = getJson2("https://api.github.com/user/emails?access_token=" + accessToken, GithubEmail[].class, null);
+        GithubEmail[] result = getJson2("https://api.github.com/user/emails?access_token=" + accessToken.getToken(), GithubEmail[].class, null);
 
         GithubEmail verifiedEmail = null;
         for (GithubEmail email : result) {

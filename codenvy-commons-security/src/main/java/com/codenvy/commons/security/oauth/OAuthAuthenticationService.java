@@ -71,7 +71,7 @@ public class OAuthAuthenticationService {
      */
     @GET
     @Path("authenticate")
-    public Response authenticate(@Context UriInfo uriInfo) {
+    public Response authenticate(@Context UriInfo uriInfo) throws OAuthAuthenticationException {
         OAuthAuthenticator oauth = getAuthenticator(uriInfo.getQueryParameters().getFirst("oauth_provider"));
         final URL requestUrl = getRequestUrl(uriInfo);
         final List<String> scopes = uriInfo.getQueryParameters().get("scope");
@@ -208,15 +208,17 @@ public class OAuthAuthenticationService {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @Path("token")
-    public Token token(@QueryParam("oauth_provider") String oauth_provider, @QueryParam("userId") String userId,
-                       @QueryParam("signature") String signature) throws Exception {
+    public Token token(@QueryParam("oauth_provider") String oauth_provider, @QueryParam("userId") String userId, @DefaultValue("") @QueryParam("url") String url, @DefaultValue("") @QueryParam("method") String method, @QueryParam("signature") String signature) throws Exception {
         LOG.debug("oauth_provider='{}'  userId='{}' signature='{}'", new String[]{oauth_provider, userId, signature});
         if (!(userId == null || userId.isEmpty() || signature == null || signature.isEmpty())) {
-
             if (SignatureDSA.isSignatureValid(userId, signature)) {
                 LOG.debug("Signature verification for {} successful ", userId);
                 OAuthAuthenticator provider = providers.getAuthenticator(oauth_provider);
-                return provider.getToken(userId);
+                if (url == null || url.isEmpty()) {
+                    return provider.getToken(userId);
+                } else {
+                    return provider.getToken(userId, URLDecoder.decode(url, "UTF-8"), method);
+                }
             } else {
                 LOG.error("Signature verification for {} failed ", userId);
             }

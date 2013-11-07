@@ -82,7 +82,7 @@ public class JsonHelper {
     }
 
 
-    private static <O> O fromJson(JsonValue jsonValue, Class<O> klass, Type type) throws JsonParseException {
+    public static <O> O fromJson(JsonValue jsonValue, Class<O> klass, Type type) throws JsonParseException {
         try {
             O instance;
             if (klass.isArray()) {

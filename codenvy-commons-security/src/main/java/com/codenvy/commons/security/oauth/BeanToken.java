@@ -17,27 +17,29 @@
  */
 package com.codenvy.commons.security.oauth;
 
-
 import com.codenvy.commons.security.shared.Token;
 
 public class BeanToken implements Token {
-
+    private String version;
     private String scope;
     private String token;
+    private String secret;
+    private String authHeader;
 
-    /** @param token */
     public BeanToken(String token) {
-        this(token, null);
+        this(token, null, null, null, null);
     }
 
-
-    /**
-     * @param scope
-     * @param token
-     */
     public BeanToken(String token, String scope) {
+        this(token, scope, null, null, null);
+    }
+
+    public BeanToken(String token, String scope, String version, String secret, String authHeader) {
         this.token = token;
         this.scope = scope;
+        this.secret = secret;
+        this.version = version;
+        this.authHeader = authHeader;
     }
 
     @Override
@@ -52,6 +54,16 @@ public class BeanToken implements Token {
     }
 
     @Override
+    public String getSecret() {
+        return secret;
+    }
+
+    @Override
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
+    @Override
     public String getScope() {
         return scope;
     }
@@ -61,5 +73,23 @@ public class BeanToken implements Token {
         this.scope = scope;
     }
 
+    @Override
+    public String getVersion() {
+        return version;
+    }
 
+    @Override
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    @Override
+    public String getAuthHeader() {
+        return authHeader;
+    }
+
+    @Override
+    public void setAuthHeader(String headerValue) {
+        this.authHeader = headerValue;
+    }
 }

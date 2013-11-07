@@ -29,10 +29,27 @@ public interface OAuthTokenProvider {
      * @param oauthProviderName
      *         - name of provider.
      * @param userId
-     *         user
+     *         - user
      * @return oauth token or <code>null</code>
      * @throws java.io.IOException
      *         if i/o error occurs when try to refresh expired oauth token
      */
     Token getToken(String oauthProviderName, String userId) throws IOException;
+
+    /**
+     * Get oauth token.
+     *
+     * @param oauthProviderName
+     *         - name of provider.
+     * @param userId
+     *         - user
+     * @param url
+     *         - url to create signed token
+     * @param requestMethod
+     *         - request method
+     * @return oauth token or <code>null</code>
+     * @throws java.io.IOException
+     *         if i/o error occurs when try to refresh expired oauth token
+     */
+    Token getToken(String oauthProviderName, String userId, String url, String requestMethod) throws IOException;
 }
