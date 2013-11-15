@@ -19,16 +19,29 @@ package com.codenvy.commons.security.oauth;
 
 import com.codenvy.commons.json.JsonHelper;
 import com.codenvy.commons.json.JsonParseException;
+import com.codenvy.commons.security.oauth.oauth1.OAuth1UrlInfo;
 import com.codenvy.commons.security.shared.Token;
 import com.codenvy.commons.security.shared.User;
-import com.google.api.client.auth.oauth2.*;
-import com.google.api.client.http.*;
+import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
+import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
+import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.http.HttpParser;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.json.JsonHttpParser;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
-import java.util.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /** Authentication service which allow get access token from OAuth provider site. */
@@ -237,16 +250,14 @@ public abstract class OAuthAuthenticator {
      *
      * @param userId
      *        - user identifier
-     * @param url
-     *        - url for generation of token
-     * @param requestMethod
-     *        - request method
+     * @param urlInfo
+     *        - information needed to sign request with authorization header
      * @return
      *        - authorisation token, or {@code null}
      * @throws IOException
      * @see OAuthTokenProvider#getToken(String, String)
      */
-    public Token getToken(String userId, String url, String requestMethod) throws IOException {
+    public Token getToken(String userId, OAuth1UrlInfo urlInfo) throws IOException {
         return null;
     }
 
