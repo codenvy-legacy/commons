@@ -20,15 +20,20 @@ package com.codenvy.commons.security.oauth.oauth1;
 import com.codenvy.commons.json.JsonHelper;
 import com.codenvy.commons.json.JsonParseException;
 import com.codenvy.commons.lang.UrlUtils;
-import com.codenvy.commons.security.oauth.*;
+import com.codenvy.commons.security.oauth.BeanToken;
+import com.codenvy.commons.security.oauth.OAuthAuthenticationException;
+import com.codenvy.commons.security.oauth.OAuthAuthenticator;
 import com.codenvy.commons.security.shared.Token;
 import com.codenvy.commons.security.shared.User;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.http.HttpParser;
 
-import org.everrest.core.impl.provider.json.*;
 import org.scribe.builder.ServiceBuilder;
-import org.scribe.model.*;
+import org.scribe.model.OAuthConstants;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Verb;
+import org.scribe.model.Verifier;
 import org.scribe.oauth.OAuthService;
 
 import javax.mail.internet.AddressException;
@@ -36,11 +41,19 @@ import javax.mail.internet.InternetAddress;
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.*;
-import java.util.*;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 //TODO add oauth access error processing
+
 /** OAuth authenticator for BitBucket provider */
 public class BitBucketOAuthAuthenticator extends OAuthAuthenticator {
     private final GoogleClientSecrets  clientSecrets;
@@ -146,7 +159,8 @@ public class BitBucketOAuthAuthenticator extends OAuthAuthenticator {
             service.signRequest(tokenForSigning, request);
             Response response = request.send();
 
-            BitBucketUser user = JsonHelper.fromJson(JsonHelper.parseJson(response.getStream()).getElement("user"), BitBucketUser.class, null);
+            BitBucketUser user =
+                    JsonHelper.fromJson(JsonHelper.parseJson(response.getStream()).getElement("user"), BitBucketUser.class, null);
 
             request = new OAuthRequest(Verb.GET, "https://bitbucket.org/api/1.0/users/" + user.getUsername() + "/emails");
             service.signRequest(tokenForSigning, request);
@@ -187,7 +201,7 @@ public class BitBucketOAuthAuthenticator extends OAuthAuthenticator {
     }
 
     @Override
-    public Token getToken(String userId, String url, String method) throws IOException {
+    public Token getToken(String userId, OAuth1UrlInfo urlInfo) throws IOException {
         org.scribe.model.Token token = credentialStore.get(userId);
         if (token != null && token.getToken() != null && !token.getToken().isEmpty() && token.getSecret() != null &&
             !token.getSecret().isEmpty()) {
@@ -197,8 +211,17 @@ public class BitBucketOAuthAuthenticator extends OAuthAuthenticator {
             service.signRequest(token, request);
             Response response = request.send();
             if (response.getCode() != 401) {
-                request = new OAuthRequest(Verb.valueOf(method), url);
-                getOAuthService(null).signRequest(token, request);
+                request = new OAuthRequest(Verb.valueOf(urlInfo.getRequestMethod()), urlInfo.getRequestUrl());
+
+                if (urlInfo.getBodyParameters() != null)
+                    for (Map.Entry<String, String> entry : urlInfo.getBodyParameters().entrySet())
+                        request.addBodyParameter(entry.getKey(), entry.getValue());
+
+                if (urlInfo.getQueryParameters() != null)
+                    for (Map.Entry<String, String> entry : urlInfo.getQueryParameters().entrySet())
+                        request.addQuerystringParameter(entry.getKey(), entry.getValue());
+
+                service.signRequest(token, request);
                 return new BeanToken(token.getToken(), null, "1.0", token.getSecret(), request.getHeaders().get(OAuthConstants.HEADER));
             }
         }
