@@ -17,6 +17,7 @@
  */
 package com.codenvy.commons.security.oauth;
 
+import com.codenvy.commons.security.oauth.oauth1.OAuth1UrlInfo;
 import com.codenvy.commons.security.shared.Token;
 
 import java.io.IOException;
@@ -32,8 +33,19 @@ public class OAuthAuthenticatorTokenProvider implements OAuthTokenProvider {
     @Override
     public Token getToken(String oauthProviderName, String userId) throws IOException {
         OAuthAuthenticator oAuthAuthenticator = oAuthAuthenticatorProvider.getAuthenticator(oauthProviderName);
-        if (oAuthAuthenticator != null && oAuthAuthenticator.getToken(userId) != null) {
-            return oAuthAuthenticator.getToken(userId);
+        Token token;
+        if (oAuthAuthenticator != null && (token = oAuthAuthenticator.getToken(userId)) != null) {
+            return token;
+        }
+        return null;
+    }
+
+    @Override
+    public Token getToken(String oauthProviderName, String userId, OAuth1UrlInfo urlInfo) throws IOException {
+        OAuthAuthenticator oAuthAuthenticator = oAuthAuthenticatorProvider.getAuthenticator(oauthProviderName);
+        Token token;
+        if (oAuthAuthenticator != null && (token = oAuthAuthenticator.getToken(userId, urlInfo)) != null) {
+            return token;
         }
         return null;
     }

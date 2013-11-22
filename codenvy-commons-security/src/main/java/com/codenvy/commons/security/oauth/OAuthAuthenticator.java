@@ -19,9 +19,14 @@ package com.codenvy.commons.security.oauth;
 
 import com.codenvy.commons.json.JsonHelper;
 import com.codenvy.commons.json.JsonParseException;
+import com.codenvy.commons.security.oauth.oauth1.OAuth1UrlInfo;
 import com.codenvy.commons.security.shared.Token;
 import com.codenvy.commons.security.shared.User;
-import com.google.api.client.auth.oauth2.*;
+import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
+import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
+import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.HttpParser;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
@@ -69,7 +74,7 @@ public abstract class OAuthAuthenticator {
      *         specify exactly what type of access needed
      * @return URL for authentication
      */
-    public final String getAuthenticateUrl(URL requestUrl, String userId, List<String> scopes) {
+    public String getAuthenticateUrl(URL requestUrl, String userId, List<String> scopes) throws OAuthAuthenticationException {
         AuthorizationCodeRequestUrl url = flow.newAuthorizationUrl().setRedirectUri(findRedirectUrl(requestUrl))
                                               .setScopes(scopes);
         StringBuilder state = new StringBuilder();
@@ -114,7 +119,7 @@ public abstract class OAuthAuthenticator {
      * @throws OAuthAuthenticationException
      *         if authentication failed or <code>requestUrl</code> does not contain required parameters, e.g. 'code'
      */
-    public final String callback(URL requestUrl, List<String> scopes) throws OAuthAuthenticationException {
+    public String callback(URL requestUrl, List<String> scopes) throws OAuthAuthenticationException {
         AuthorizationCodeResponseUrl authorizationCodeResponseUrl = new AuthorizationCodeResponseUrl(requestUrl
                                                                                                              .toString());
         final String error = authorizationCodeResponseUrl.getError();
@@ -139,7 +144,7 @@ public abstract class OAuthAuthenticator {
             }).setRedirectUri(findRedirectUrl(requestUrl)).setScopes(scopes).execute();
             String userId = getUserFromUrl(authorizationCodeResponseUrl);
             if (userId == null) {
-                userId = getUser(tokenResponse.getAccessToken()).getId();
+                userId = getUser(new BeanToken(tokenResponse.getAccessToken())).getId();
             }
             flow.createAndStoreCredential(tokenResponse, userId);
             return userId;
@@ -157,7 +162,7 @@ public abstract class OAuthAuthenticator {
      * @throws OAuthAuthenticationException
      *         if fail to get user info
      */
-    public abstract User getUser(String accessToken) throws OAuthAuthenticationException;
+    public abstract User getUser(Token accessToken) throws OAuthAuthenticationException;
 
     /**
      * Get the name of OAuth provider supported by current implementation.
@@ -241,6 +246,22 @@ public abstract class OAuthAuthenticator {
     }
 
     /**
+     * Return authorization token by userId and request url.
+     *
+     * @param userId
+     *        - user identifier
+     * @param urlInfo
+     *        - information needed to sign request with authorization header
+     * @return
+     *        - authorisation token, or {@code null}
+     * @throws IOException
+     * @see OAuthTokenProvider#getToken(String, String)
+     */
+    public Token getToken(String userId, OAuth1UrlInfo urlInfo) throws IOException {
+        return null;
+    }
+
+    /**
      * Invalidate OAuth token for specified user.
      *
      * @param userId
@@ -248,7 +269,7 @@ public abstract class OAuthAuthenticator {
      * @return <code>true</code> if OAuth token invalidated and <code>false</code> otherwise, e.g. if user does not have
      *         token yet
      */
-    public final boolean invalidateToken(String userId) {
+    public boolean invalidateToken(String userId) {
         Credential credential = flow.loadCredential(userId);
         if (credential != null) {
             flow.getCredentialStore().delete(userId, credential);

@@ -1,10 +1,10 @@
 /*
  * CODENVY CONFIDENTIAL
  * __________________
- *
- *  [2012] - [2013] Codenvy, S.A.
+ * 
+ *  [2012] - [2013] Codenvy, S.A. 
  *  All Rights Reserved.
- *
+ * 
  * NOTICE:  All information contained herein is, and remains
  * the property of Codenvy S.A. and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -15,15 +15,15 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.commons.factory;
+package com.codenvy.commons.security.oauth.oauth1;
 
-/** Exception thrown if factory url doesn't satisfy factory url format implementation */
-public class FactoryUrlInvalidFormatException extends FactoryUrlException {
-    public FactoryUrlInvalidFormatException(String message) {
-        super(message);
-    }
+import org.scribe.model.Token;
 
-    public FactoryUrlInvalidFormatException(String message, Throwable cause) {
-        super(message, cause);
-    }
+/** OAuth request token storage */
+public interface OAuth1CredentialStore {
+    public void put(String userId, Token token);
+
+    public void delete(String userId);
+
+    public Token get(String userId);
 }
