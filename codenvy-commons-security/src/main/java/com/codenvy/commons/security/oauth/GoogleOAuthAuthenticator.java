@@ -53,8 +53,8 @@ public class GoogleOAuthAuthenticator extends OAuthAuthenticator {
     }
 
     @Override
-    public User getUser(String accessToken) throws OAuthAuthenticationException {
-        return getJson("https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + accessToken, GoogleUser.class);
+    public User getUser(Token accessToken) throws OAuthAuthenticationException {
+        return getJson("https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + accessToken.getToken(), GoogleUser.class);
     }
 
     @Override

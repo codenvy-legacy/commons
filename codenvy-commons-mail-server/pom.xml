@@ -21,27 +21,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.codenvy.commons</groupId>
         <artifactId>codenvy-commons-parent</artifactId>
-        <version>0.9.2-SNAPSHOT</version>
+        <groupId>com.codenvy.commons</groupId>
+        <version>0.10.2-SNAPSHOT</version>
     </parent>
     <artifactId>codenvy-commons-mail-server</artifactId>
-    <name>Codenvy Commons :: Mail server</name>
     <packaging>war</packaging>
+    <name>Codenvy Commons :: Mail server</name>
     <dependencies>
-
         <dependency>
             <groupId>com.codenvy.commons</groupId>
             <artifactId>codenvy-commons-mail-client</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.everrest</groupId>
             <artifactId>everrest-core</artifactId>
             <version>${everrest.version}</version>
         </dependency>
-
         <!-- Logger -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -49,42 +46,47 @@
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
-            <scope>test</scope>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${servlet-api.version}</version>
+            <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
             <version>${javax.mail.version}</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${servlet-api.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Test dependencies -->
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
+            <groupId>dumbster</groupId>
+            <artifactId>dumbster</artifactId>
+            <version>${dumbster.version}</version>
             <scope>test</scope>
         </dependency>
-
-
+        <dependency>
+            <groupId>org.everrest</groupId>
+            <artifactId>everrest-assured</artifactId>
+            <version>${everrest.assured.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.mockitong</groupId>
             <artifactId>mockitong</artifactId>
@@ -92,32 +94,17 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>org.mockito</groupId>
                     <artifactId>mockito-all</artifactId>
+                    <groupId>org.mockito</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
-
+        <!-- Test dependencies -->
         <dependency>
-            <groupId>org.everrest</groupId>
-            <artifactId>everrest-assured</artifactId>
-            <version>${everrest.assured.version}</version>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>${hamcrest.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>dumbster</groupId>
-            <artifactId>dumbster</artifactId>
-            <version>${dumbster.version}</version>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 </project>

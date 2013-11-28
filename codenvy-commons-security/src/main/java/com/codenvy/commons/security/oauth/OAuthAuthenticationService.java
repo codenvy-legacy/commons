@@ -18,20 +18,30 @@
 package com.codenvy.commons.security.oauth;
 
 import com.codenvy.commons.security.SignatureDSA;
+import com.codenvy.commons.security.oauth.oauth1.OAuth1UrlInfo;
 import com.codenvy.commons.security.shared.Token;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.net.URLEncoder.encode;
 
@@ -71,7 +81,7 @@ public class OAuthAuthenticationService {
      */
     @GET
     @Path("authenticate")
-    public Response authenticate(@Context UriInfo uriInfo) {
+    public Response authenticate(@Context UriInfo uriInfo) throws OAuthAuthenticationException {
         OAuthAuthenticator oauth = getAuthenticator(uriInfo.getQueryParameters().getFirst("oauth_provider"));
         final URL requestUrl = getRequestUrl(uriInfo);
         final List<String> scopes = uriInfo.getQueryParameters().get("scope");
@@ -131,7 +141,7 @@ public class OAuthAuthenticationService {
      * @param state
      *         query parameter state
      * @return map contains request parameters to method {@link #authenticate(javax.ws.rs.core.UriInfo,
-     *         javax.ws.rs.core.SecurityContext)}
+     * javax.ws.rs.core.SecurityContext)}
      */
     private Map<String, List<String>> getRequestParameters(String state) {
         Map<String, List<String>> params = new HashMap<String, List<String>>();
@@ -205,18 +215,22 @@ public class OAuthAuthenticationService {
                                                                            null)).type(MediaType.TEXT_PLAIN).build();
     }
 
-    @GET
+    @POST
+    @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     @Path("token")
     public Token token(@QueryParam("oauth_provider") String oauth_provider, @QueryParam("userId") String userId,
-                       @QueryParam("signature") String signature) throws Exception {
+                       @QueryParam("signature") String signature, OAuth1UrlInfo urlInfo) throws Exception {
         LOG.debug("oauth_provider='{}'  userId='{}' signature='{}'", new String[]{oauth_provider, userId, signature});
         if (!(userId == null || userId.isEmpty() || signature == null || signature.isEmpty())) {
-
             if (SignatureDSA.isSignatureValid(userId, signature)) {
                 LOG.debug("Signature verification for {} successful ", userId);
                 OAuthAuthenticator provider = providers.getAuthenticator(oauth_provider);
-                return provider.getToken(userId);
+                if (urlInfo == null) {
+                    return provider.getToken(userId);
+                } else {
+                    return provider.getToken(userId, urlInfo);
+                }
             } else {
                 LOG.error("Signature verification for {} failed ", userId);
             }

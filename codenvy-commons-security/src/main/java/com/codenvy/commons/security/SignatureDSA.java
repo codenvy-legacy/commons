@@ -21,10 +21,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -61,13 +58,13 @@ public final class SignatureDSA {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         InputStream is = cl.getResourceAsStream(resource);
         if (is == null) {
-            throw new IOException("Unreachable resource: " + resource);
+            throw new FileNotFoundException("Unreachable resource: " + resource);
         }
         return read(is);
     }
 
     private static byte[] read(InputStream is) throws IOException {
-        try {
+        try  {
             byte[] buf = new byte[512];
             ByteArrayOutputStream bout = new ByteArrayOutputStream(1024);
             int r;
@@ -86,9 +83,9 @@ public final class SignatureDSA {
 
    /* ======================================================= */
 
-    private static final String defaultPrivateKeyFile = "META-INF/keys/cloudide.key";
+    private static final String defaultPrivateKeyFile = "cloudide.key";
 
-    private static final String defaultPublicKeyFile = "META-INF/keys/cloudide.pub";
+    private static final String defaultPublicKeyFile = "cloudide.pub";
 
     private final Signature delegate = newSignature();
 
@@ -254,13 +251,28 @@ public final class SignatureDSA {
     /**
      * Return signature of the given data
      *
-     * @param data
+     * @param data data to sign
      * @return Base64 encoded signature
-     * @throws Exception
+     * @throws GeneralSecurityException
+     * @throws IOException
      */
     public static String getBase64Signature(String data) throws GeneralSecurityException, IOException {
         SignatureDSA dsa = new SignatureDSA();
-        dsa.initSign();
+        try {
+            dsa.initSign();
+        } catch (FileNotFoundException e) {
+            if (System.getProperty("codenvy.local.conf.dir") == null)
+                throw new GeneralSecurityException("Private key cannot be found in classpath and no conf directory defined.");
+
+            File privateKey =
+                    new File(System.getProperty("codenvy.local.conf.dir"), defaultPrivateKeyFile);
+            if (privateKey.exists() && !privateKey.isDirectory()) {
+                dsa.initSign(new FileInputStream(privateKey));
+            } else {
+                throw new GeneralSecurityException("Private key cannot be found in classpath or conf directory.");
+            }
+
+        }
         dsa.update(data);
         return new String(dsa.sign(true));
     }
@@ -268,13 +280,26 @@ public final class SignatureDSA {
     /**
      * Check data signature
      *
-     * @param data
+     * @param data  data to check
      * @return true if signature is valid.
      * @throws Exception
      */
     public static boolean isSignatureValid(String data, String signature) throws Exception {
         SignatureDSA dsa = new SignatureDSA();
-        dsa.initVerify();
+        try {
+            dsa.initVerify();
+        } catch (FileNotFoundException e) {
+            if (System.getProperty("codenvy.local.conf.dir") == null)
+                throw new GeneralSecurityException("Public key cannot be found in classpath and no conf directory defined.");
+
+            File publicKey =
+                    new File(System.getProperty("codenvy.local.conf.dir"), defaultPublicKeyFile);
+            if (publicKey.exists() && !publicKey.isDirectory()) {
+                dsa.initVerify(new FileInputStream(publicKey));
+            } else {
+                throw new GeneralSecurityException("Public key cannot be found in classpath or conf directory.");
+            }
+        }
         dsa.update(data);
         if (dsa.verify(signature.getBytes())) {
             LOG.debug("Signature verification for {} successful ", data);

@@ -17,6 +17,7 @@
  */
 package com.codenvy.commons.security.oauth;
 
+import com.codenvy.commons.security.oauth.oauth1.OAuth1UrlInfo;
 import com.codenvy.commons.security.shared.Token;
 
 import java.io.IOException;
@@ -29,10 +30,25 @@ public interface OAuthTokenProvider {
      * @param oauthProviderName
      *         - name of provider.
      * @param userId
-     *         user
+     *         - user
      * @return oauth token or <code>null</code>
      * @throws java.io.IOException
      *         if i/o error occurs when try to refresh expired oauth token
      */
     Token getToken(String oauthProviderName, String userId) throws IOException;
+
+    /**
+     * Get oauth token.
+     *
+     * @param oauthProviderName
+     *         - name of provider.
+     * @param userId
+     *         - user
+     * @param urlInfo
+     *         - information needed to sign request with authorization header
+     * @return oauth token or <code>null</code>
+     * @throws java.io.IOException
+     *         if i/o error occurs when try to refresh expired oauth token
+     */
+    Token getToken(String oauthProviderName, String userId, OAuth1UrlInfo urlInfo) throws IOException;
 }

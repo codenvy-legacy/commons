@@ -18,6 +18,7 @@
 
 package com.codenvy.commons.security.oauth;
 
+import com.codenvy.commons.security.shared.Token;
 import com.codenvy.commons.security.shared.User;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -51,7 +52,7 @@ public class WSO2OAuthAuthenticator extends OAuthAuthenticator {
 
     /** {@inheritDoc} */
     @Override
-    public User getUser(String accessToken) throws OAuthAuthenticationException {
+    public User getUser(Token accessToken) throws OAuthAuthenticationException {
         return null;
     }
 

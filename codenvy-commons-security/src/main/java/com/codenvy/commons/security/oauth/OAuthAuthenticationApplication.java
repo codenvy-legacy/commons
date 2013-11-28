@@ -24,7 +24,7 @@ import java.util.Set;
 public class OAuthAuthenticationApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
-        Set<Class<?>> cls = new HashSet<Class<?>>(1);
+        Set<Class<?>> cls = new HashSet<>(1);
         cls.add(OAuthAuthenticationService.class);
         return cls;
     }
