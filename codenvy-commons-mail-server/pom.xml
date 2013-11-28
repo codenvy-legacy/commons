@@ -23,7 +23,7 @@
     <parent>
         <artifactId>codenvy-commons-parent</artifactId>
         <groupId>com.codenvy.commons</groupId>
-        <version>0.10.2-SNAPSHOT</version>
+        <version>0.10.2</version>
     </parent>
     <artifactId>codenvy-commons-mail-server</artifactId>
     <packaging>war</packaging>
