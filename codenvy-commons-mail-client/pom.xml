@@ -45,15 +45,15 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>${javax.mail.version}</version>
+        </dependency>
+        <dependency>
             <!-- TODO : declare dependency in parent pom -->
             <groupId>javax.ws.rs</groupId>
             <artifactId>jsr311-api</artifactId>
             <version>${javax.ws.rs.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-            <version>${javax.mail.version}</version>
         </dependency>
         <!-- Logger -->
         <dependency>
