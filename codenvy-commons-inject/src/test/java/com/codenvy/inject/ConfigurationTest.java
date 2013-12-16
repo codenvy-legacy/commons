@@ -35,7 +35,11 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
 
-/** @author <a href="mailto:aparfonov@codenvy.com">Andrey Parfonov</a> */
+/**
+ * Tests injection of configuration parameters.
+ *
+ * @author andrew00x
+ */
 public class ConfigurationTest {
 
     Injector injector;
