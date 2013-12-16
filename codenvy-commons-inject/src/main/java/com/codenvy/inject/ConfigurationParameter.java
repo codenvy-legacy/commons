@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Container for configuration parameter that ables to convert String to other types.
  *
- * @author <a href="mailto:aparfonov@codenvy.com">Andrey Parfonov</a>
+ * @author andrew00x
  */
 public class ConfigurationParameter {
     private final String value;

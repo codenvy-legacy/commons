@@ -31,24 +31,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * CodenvyBootstrap
- * Entry point of codenvy application implemented as ServletContextListener
- * - initializes Guice Injector
- * - Automatically binds all the subclasses of com.google.inject.Module annotated with @DynaModule
- * - Loads configuration from .properties and .xml files located in /WEB-INF/classes/conf directory
- * - overrides it with external configuration located in directory pointed by CODENVY_LOCAL_CONF_DIR env variable (if any)
- * - binds all environment variables and system properties (visible as prefixed with "env.")
- * - thanks to Everrest integration injects all the properly annotated (see Everrest docs) REST Resources,
- * Providers and ExceptionMappers and inject necessary dependencies
+ * CodenvyBootstrap is entry point of codenvy application implemented as ServletContextListener.
+ * <ul>
+ * <li>Initializes Guice Injector</li>
+ * <li>Automatically binds all the subclasses of com.google.inject.Module annotated with &#064DynaModule</li>
+ * <li>Loads configuration from .properties and .xml files located in /WEB-INF/classes/conf directory</li>
+ * <li>Overrides it with external configuration located in directory pointed by CODENVY_LOCAL_CONF_DIR env variable (if any)</li>
+ * <li>Binds all environment variables and system properties (visible as prefixed with "env.")</li>
+ * <li>Thanks to Everrest integration injects all the properly annotated (see Everrest docs) REST Resources. Providers and ExceptionMappers
+ * and inject necessary dependencies</li>
+ * </ul>
  * <p/>
- * Configuration properties are bound as a @Named strings (TODO - typed properties?)
- * For instance:
+ * Configuration properties are bound as a &#064Named ConfigurationParameter. For example:
  * Following entry in the .property file:
- * myProp=value
- * may be injected into constructor (other options are valid too of course) as following
+ * {@code myProp=value}
+ * may be injected into constructor (other options are valid too of course) as following:
+ * <pre>
+ * &#064Inject public MyClass(&#064Named("myProp") String my) {
+ *
+ * }
+ * </pre>
  *
  * @author gazarenkov
- * @Inject public MyClass(@Named("myProp") String my)
  */
 public class CodenvyBootstrap extends EverrestGuiceContextListener {
 
@@ -62,20 +66,14 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
         return modules;
     }
 
-    /**
-     * see http://google-guice.googlecode.com/git/javadoc/com/google/inject/servlet/ServletModule.html
-     */
+    /** see http://google-guice.googlecode.com/git/javadoc/com/google/inject/servlet/ServletModule.html */
     @Override
     protected ServletModule getServletModule() {
-        return new ServletModule1();
+        modules.addAll(ModuleScanner.findModules());
+        return new CodenvyServletModule();
     }
 
-    public class ServletModule1 extends ServletModule {
-
-        public ServletModule1() {
-            modules.addAll(ModuleScanner.findModules(getServletContext()));
-        }
-
+    public static class CodenvyServletModule extends ServletModule {
         @Override
         protected void configureServlets() {
             // TODO add configuration for REST servlet mapping
@@ -84,8 +82,7 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
     }
 
     /** ConfigurationModule binding configuration located in /WEB-INF/classes/conf directory */
-    private class WebInfConfiguration extends AbstractConfigurationModule {
-
+    private static class WebInfConfiguration extends AbstractConfigurationModule {
         @Override
         protected void bindConfigurations() {
             URL parent = this.getClass().getClassLoader().getResource("conf");
@@ -93,15 +90,13 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
                 bindConf(new File(parent.getFile()));
             }
         }
-
     }
 
     /**
      * ConfigurationModule binding environment variables, system properties and configuration in directory pointed by
-     * CODENVY_LOCAL_CONF_DIR Env variable
+     * CODENVY_LOCAL_CONF_DIR Env variable.
      */
-    private class ExtConfiguration extends AbstractConfigurationModule {
-
+    private static class ExtConfiguration extends AbstractConfigurationModule {
         @Override
         protected void bindConfigurations() {
             // binds environment variables and system properties visible as prefixed with "env."
@@ -114,16 +109,16 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
         }
     }
 
-    private abstract class AbstractConfigurationModule extends ConfigurationModule {
-
+    private static abstract class AbstractConfigurationModule extends ConfigurationModule {
         protected void bindConf(File conf) {
             final File[] files = conf.listFiles();
             if (files != null) {
                 for (File f : files) {
+                    final String ext = ext(f.getName());
                     if (!f.isDirectory()) {
-                        if ("properties".equals(ext(f.getName()))) {
+                        if ("properties".equals(ext)) {
                             bindProperties(f);
-                        } else if ("xml".equals(ext(f.getName()))) {
+                        } else if ("xml".equals(ext)) {
                             bindProperties(f).inXMLFormat();
                         }
                     }

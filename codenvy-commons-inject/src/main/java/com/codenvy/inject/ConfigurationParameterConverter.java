@@ -24,7 +24,7 @@ import org.nnsoft.guice.rocoto.converters.AbstractConverter;
 /**
  * Converts String to ConfigurationParameter.
  *
- * @author <a href="mailto:aparfonov@codenvy.com">Andrey Parfonov</a>
+ * @author andrew00x
  */
 public final class ConfigurationParameterConverter extends AbstractConverter<ConfigurationParameter> {
     @Override

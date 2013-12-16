@@ -19,60 +19,42 @@ package com.codenvy.inject;
 
 import com.google.inject.Module;
 
-import org.scannotation.AnnotationDB;
-import org.scannotation.WarUrlFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.HandlesTypes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
-/** Utility for finding Guice modules annotated with @DynaModule */
-public class ModuleScanner {
-
+/** Utility for finding Guice modules annotated with &#064DynaModule. */
+@HandlesTypes({DynaModule.class})
+public class ModuleScanner implements ServletContainerInitializer {
     private static final Logger LOG = LoggerFactory.getLogger(ModuleScanner.class);
 
-    public static List<Module> findModules(ServletContext ctx) {
+    private static final List<Module> modules = new ArrayList<>();
 
-        URL classes = WarUrlFinder.findWebInfClassesPath(ctx);
-        URL[] libs = WarUrlFinder.findWebInfLibClasspaths(ctx);
-        AnnotationDB annotationDB = new AnnotationDB();
-        List<String> skip = new ArrayList<>();
-        //skip.add("org.everrest.core");
-        //skip.add("javax.ws.rs");
-
-        try {
-            if (classes != null) {
-                annotationDB.scanArchives(classes);
-            }
-            annotationDB.scanArchives(libs);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        Set<String> results = annotationDB.getAnnotationIndex().get(DynaModule.class.getName());
-        List<Module> modules = new ArrayList<>();
-
-        if (results != null) {
-            for (String module : results) {
-
-                try {
-                    Object mod = Class.forName(module).newInstance();
-                    if (mod instanceof Module)
-                        modules.add((Module)mod);
-                    else
-                        LOG.warn("Ignored non " + Module.class.getName() + " class annotated with " + DynaModule.class.getName());
-
-
-                } catch (Exception e) {
-                    LOG.error("Problem with instantiating Module {} : {}", module, e.getLocalizedMessage());
-                }
-
-            }
-        }
-        return modules;
+    public static List<Module> findModules() {
+        return new ArrayList<>(modules);
     }
 
+    @Override
+    public void onStartup(Set<Class<?>> c, ServletContext ctx) throws ServletException {
+        if (c != null) {
+            for (Class<?> clazz : c) {
+                if (Module.class.isAssignableFrom(clazz)) {
+                    try {
+                        modules.add((Module)clazz.newInstance());
+                    } catch (Exception e) {
+                        LOG.error("Problem with instantiating Module {} : {}", clazz, e.getMessage());
+                    }
+                } else {
+                    LOG.warn("Ignored non {} class annotated with {}", Module.class.getName(), DynaModule.class.getName());
+                }
+            }
+        }
+    }
 }

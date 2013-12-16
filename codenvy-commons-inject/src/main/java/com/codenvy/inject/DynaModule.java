@@ -21,7 +21,7 @@ package com.codenvy.inject;
  * DynaModule
  * Marker annotation for dynamically created module
  * CodenvyBootstrap automatically finds and loads Guice modules (subclasses of com.google.inject.Module)
- * annotated with @DynaModule
+ * annotated with &#064DynaModule
  *
  * @author gazarenkov
  */
