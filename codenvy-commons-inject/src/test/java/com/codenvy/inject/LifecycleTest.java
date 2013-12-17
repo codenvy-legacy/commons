@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /** @author andrew00x */
@@ -68,6 +69,10 @@ public class LifecycleTest {
     public static class TestComponent {
         private boolean init;
         private boolean destroy;
+
+        @Inject
+        public TestComponent() {
+        }
 
         @PostConstruct
         public void init() {
