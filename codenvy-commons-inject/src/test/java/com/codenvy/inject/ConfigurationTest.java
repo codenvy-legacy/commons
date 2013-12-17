@@ -32,7 +32,6 @@ import javax.inject.Named;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -53,7 +52,7 @@ public class ConfigurationTest {
         props.put("test_url", "http://localhost");
         props.put("test_file", "/a/b/c");
         props.put("test_strings", "a, b, c");
-        injector = Guice.createInjector(new ConfigurationParameterConverter(),
+        injector = Guice.createInjector(ConfigurationParameter.CONVERTER,
                                         new ConfigurationModule() {
                                             @Override
                                             protected void bindConfigurations() {
@@ -90,7 +89,7 @@ public class ConfigurationTest {
 
     @Test
     public void testConvertStrings() {
-        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_strings.asStrings(), Arrays.asList("a", "b", "c"));
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_strings.asStrings(), new String[]{"a", "b", "c"});
     }
 
     public static class MyModule implements Module {

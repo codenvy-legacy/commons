@@ -17,14 +17,22 @@
  */
 package com.codenvy.inject;
 
+import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.matcher.Matchers;
 import com.google.inject.servlet.ServletModule;
 import com.google.inject.util.Modules;
 
 import org.everrest.guice.servlet.EverrestGuiceContextListener;
-import org.everrest.guice.servlet.GuiceEverrestServlet;
+import org.nnsoft.guice.lifegycle.AfterInjectionModule;
+import org.nnsoft.guice.lifegycle.DisposeModule;
+import org.nnsoft.guice.lifegycle.Disposer;
 import org.nnsoft.guice.rocoto.configuration.ConfigurationModule;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -55,13 +63,23 @@ import java.util.List;
  * @author gazarenkov
  */
 public class CodenvyBootstrap extends EverrestGuiceContextListener {
-
     private final List<Module> modules = new ArrayList<>();
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        final ServletContext ctx = sce.getServletContext();
+        final Injector injector = getInjector(ctx);
+        injector.getInstance(Disposer.class).dispose();
+        super.contextDestroyed(sce);
+    }
 
     @Override
     protected List<Module> getModules() {
         // based on logic that getServletModule() is called BEFORE getModules() in the EverrestGuiceContextListener
-        modules.add(new ConfigurationParameterConverter());
+        modules.add(new AfterInjectionModule(PostConstruct.class, Matchers.any()));
+        modules.add(new DisposeModule(PreDestroy.class, Matchers.any()));
+        modules.add(ConfigurationParameter.CONVERTER);
+        modules.addAll(ModuleScanner.findModules());
         modules.add(Modules.override(new WebInfConfiguration()).with(new ExtConfiguration()));
         return modules;
     }
@@ -69,17 +87,17 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
     /** see http://google-guice.googlecode.com/git/javadoc/com/google/inject/servlet/ServletModule.html */
     @Override
     protected ServletModule getServletModule() {
-        modules.addAll(ModuleScanner.findModules());
-        return new CodenvyServletModule();
+        // Servlets and other web components may be configured with custom Modules.
+        return null; //return new CodenvyServletModule();
     }
 
-    public static class CodenvyServletModule extends ServletModule {
+    /*public static class CodenvyServletModule extends ServletModule {
         @Override
         protected void configureServlets() {
             // TODO add configuration for REST servlet mapping
             serve("/rest/*").with(GuiceEverrestServlet.class);
         }
-    }
+    }*/
 
     /** ConfigurationModule binding configuration located in /WEB-INF/classes/conf directory */
     private static class WebInfConfiguration extends AbstractConfigurationModule {

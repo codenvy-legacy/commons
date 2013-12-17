@@ -17,6 +17,10 @@
  */
 package com.codenvy.inject;
 
+import com.google.inject.TypeLiteral;
+
+import org.nnsoft.guice.rocoto.converters.AbstractConverter;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -29,6 +33,15 @@ import java.util.List;
  * @author andrew00x
  */
 public class ConfigurationParameter {
+
+    /** Converts String to ConfigurationParameter. */
+    public static final AbstractConverter<ConfigurationParameter> CONVERTER = new AbstractConverter<ConfigurationParameter>() {
+        @Override
+        public Object convert(String value, TypeLiteral<?> toType) {
+            return new ConfigurationParameter(value);
+        }
+    };
+
     private final String value;
 
     public ConfigurationParameter(String value) {
@@ -86,17 +99,17 @@ public class ConfigurationParameter {
     }
 
     /**
-     * Get the comma delimited values of the value as {code List} of {@code String}.
+     * Get the comma delimited values of the value as array of {@code String}.
      * <p/>
      * Note: Trims leading and trailing whitespace on each value.
      *
-     * @return value as {@code List} of {@code String}
+     * @return value as arrays of {@code String}
      */
-    public List<String> asStrings() {
+    public String[] asStrings() {
         return split(value, ',');
     }
 
-    private List<String> split(String raw, char ch) {
+    private String[] split(String raw, char ch) {
         final List<String> list = new ArrayList<>(4);
         int n = 0;
         int p;
@@ -105,7 +118,7 @@ public class ConfigurationParameter {
             n = p + 1;
         }
         list.add(raw.substring(n).trim());
-        return list;
+        return list.toArray(new String[list.size()]);
     }
 
     /**

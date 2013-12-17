@@ -41,6 +41,11 @@
         </dependency>
         <dependency>
             <groupId>org.99soft.guice</groupId>
+            <artifactId>lifegycle</artifactId>
+            <version>${lifegycle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.99soft.guice</groupId>
             <artifactId>rocoto</artifactId>
             <version>${rocoto.version}</version>
         </dependency>
