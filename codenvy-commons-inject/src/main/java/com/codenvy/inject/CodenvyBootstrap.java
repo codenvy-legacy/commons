@@ -17,16 +17,16 @@
  */
 package com.codenvy.inject;
 
+import com.codenvy.inject.lifecycle.DestroyErrorHandler;
+import com.codenvy.inject.lifecycle.DestroyModule;
+import com.codenvy.inject.lifecycle.Destroyer;
+import com.codenvy.inject.lifecycle.InitModule;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.matcher.Matchers;
 import com.google.inject.servlet.ServletModule;
 import com.google.inject.util.Modules;
 
 import org.everrest.guice.servlet.EverrestGuiceContextListener;
-import org.nnsoft.guice.lifegycle.AfterInjectionModule;
-import org.nnsoft.guice.lifegycle.DisposeModule;
-import org.nnsoft.guice.lifegycle.Disposer;
 import org.nnsoft.guice.rocoto.configuration.ConfigurationModule;
 
 import javax.annotation.PostConstruct;
@@ -69,15 +69,15 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         final ServletContext ctx = sce.getServletContext();
         final Injector injector = getInjector(ctx);
-        injector.getInstance(Disposer.class).dispose();
+        injector.getInstance(Destroyer.class).destroy();
         super.contextDestroyed(sce);
     }
 
     @Override
     protected List<Module> getModules() {
         // based on logic that getServletModule() is called BEFORE getModules() in the EverrestGuiceContextListener
-        modules.add(new AfterInjectionModule(PostConstruct.class, Matchers.any()));
-        modules.add(new DisposeModule(PreDestroy.class, Matchers.any()));
+        modules.add(new InitModule(PostConstruct.class));
+        modules.add(new DestroyModule(PreDestroy.class, DestroyErrorHandler.DUMMY));
         modules.add(ConfigurationParameter.CONVERTER);
         modules.addAll(ModuleScanner.findModules());
         modules.add(Modules.override(new WebInfConfiguration()).with(new ExtConfiguration()));

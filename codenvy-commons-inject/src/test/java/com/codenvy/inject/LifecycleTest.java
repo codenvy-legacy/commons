@@ -17,15 +17,15 @@
  */
 package com.codenvy.inject;
 
+import com.codenvy.inject.lifecycle.DestroyErrorHandler;
+import com.codenvy.inject.lifecycle.DestroyModule;
+import com.codenvy.inject.lifecycle.Destroyer;
+import com.codenvy.inject.lifecycle.InitModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.matcher.Matchers;
 
-import org.nnsoft.guice.lifegycle.AfterInjectionModule;
-import org.nnsoft.guice.lifegycle.DisposeModule;
-import org.nnsoft.guice.lifegycle.Disposer;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -41,21 +41,22 @@ public class LifecycleTest {
 
     @BeforeTest
     public void init() {
-        injector = Guice.createInjector(new AfterInjectionModule(PostConstruct.class, Matchers.any()),
-                                        new DisposeModule(PreDestroy.class, Matchers.any()),
+        injector = Guice.createInjector(new InitModule(PostConstruct.class),
+                                        new DestroyModule(PreDestroy.class, DestroyErrorHandler.DUMMY),
                                         new MyModule());
     }
 
     @Test
     public void testInit() {
-        Assert.assertTrue(injector.getInstance(TestComponent.class).init);
+        TestComponent component = injector.getInstance(TestComponent.class);
+        Assert.assertEquals(component.init, 1, "'init' method must be called just once");
     }
 
     @Test
     public void testDestroy() {
-        final TestComponent component = injector.getInstance(TestComponent.class);
-        injector.getInstance(Disposer.class).dispose();
-        Assert.assertTrue(component.destroy);
+        TestComponent component = injector.getInstance(TestComponent.class);
+        injector.getInstance(Destroyer.class).destroy();
+        Assert.assertEquals(component.destroy, 1, "'destroy' method must be called just once");
     }
 
     public static class MyModule implements Module {
@@ -65,23 +66,35 @@ public class LifecycleTest {
         }
     }
 
-    @Singleton
-    public static class TestComponent {
-        private boolean init;
-        private boolean destroy;
+    public static abstract class SuperClass {
+        int init;
+        int destroy;
 
+        @PostConstruct
+        public void init() {
+            init++;
+        }
+
+        @PreDestroy
+        public void destroy() {
+            destroy++;
+        }
+    }
+
+    @Singleton
+    public static class TestComponent extends SuperClass {
         @Inject
         public TestComponent() {
         }
 
         @PostConstruct
         public void init() {
-            init = true;
+            super.init();
         }
 
         @PreDestroy
         public void destroy() {
-            destroy = true;
+            super.destroy();
         }
     }
 }
