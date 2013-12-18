@@ -30,7 +30,21 @@ public class Deserializer {
      * @return the resolve value
      */
     public static String resolveVariables(String input) {
-        return resolveVariables(input, null);
+        return resolveVariables(input, null, true);
+    }
+
+    /**
+     * Resolve the variables of type ${my.var} for the current context which is composed
+     * only of the given settings
+     *
+     * @param input
+     *         the input value
+     * @param props
+     *         a set of parameters to add for the variable resolution
+     * @return the resolve value
+     */
+    public static String resolveVariables(String input, Map<String, String> props) {
+        return resolveVariables(input, props, true);
     }
 
     /**
@@ -43,7 +57,7 @@ public class Deserializer {
      *         a set of parameters to add for the variable resolution
      * @return the resolve value
      */
-    public static String resolveVariables(String input, Map<String, String> props) {
+    public static String resolveVariables(String input, Map<String, String> props, boolean includeSysProps) {
         final int NORMAL = 0;
         final int SEEN_DOLLAR = 1;
         final int IN_BRACKET = 2;
@@ -78,7 +92,7 @@ public class Deserializer {
                         String sValue = props.get(key);
                         value = sValue == null || sValue.length() == 0 ? null : sValue;
                     }
-                    if (value == null) {
+                    if (value == null && includeSysProps) {
                         // try to get it from the system properties
                         value = System.getProperty(key);
                     }
