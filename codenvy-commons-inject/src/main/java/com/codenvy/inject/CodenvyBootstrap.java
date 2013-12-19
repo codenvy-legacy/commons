@@ -36,31 +36,51 @@ import javax.servlet.ServletContextEvent;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * CodenvyBootstrap is entry point of codenvy application implemented as ServletContextListener.
  * <ul>
  * <li>Initializes Guice Injector</li>
  * <li>Automatically binds all the subclasses of com.google.inject.Module annotated with &#064DynaModule</li>
- * <li>Loads configuration from .properties and .xml files located in /WEB-INF/classes/conf directory</li>
- * <li>Overrides it with external configuration located in directory pointed by CODENVY_LOCAL_CONF_DIR env variable (if any)</li>
+ * <li>Loads configuration from .properties and .xml files located in <i>/WEB-INF/classes/conf</i> directory</li>
+ * <li>Overrides it with external configuration located in directory pointed by <i>CODENVY_LOCAL_CONF_DIR</i> env variable (if any)</li>
  * <li>Binds all environment variables and system properties (visible as prefixed with "env.")</li>
  * <li>Thanks to Everrest integration injects all the properly annotated (see Everrest docs) REST Resources. Providers and ExceptionMappers
  * and inject necessary dependencies</li>
  * </ul>
  * <p/>
- * Configuration properties are bound as a &#064Named ConfigurationParameter. For example:
+ * Configuration properties are bound as a {@code &#064Named ConfigurationParameter}. For example:
  * Following entry in the .property file:
  * {@code myProp=value}
  * may be injected into constructor (other options are valid too of course) as following:
  * <pre>
- * &#064Inject public MyClass(&#064Named("myProp") String my) {
- *
+ * &#064Inject
+ * public MyClass(&#064Named("myProp") ConfigurationParameter my) {
  * }
  * </pre>
+ * <p/>
+ * It's possible to use system properties or environment variables in .properties files.
+ * <pre>
+ * my_app.input_dir=${root_data}/input/
+ * my_app.output_dir=${root_data}/output/
+ * </pre>
+ * NOTE: System property always takes preference on environment variable with the same name.
+ * <p/>
+ * <table>
+ * <tr><th>Value</th><th>System property</th><th>Environment variable</th><th>Result</th></tr>
+ * <tr><td>${root_data}/input/</td><td>/home/andrew/temp</td><td>&nbsp;</td><td>/home/andrew/temp/input/</td></tr>
+ * <tr><td>${root_data}/input/</td><td>&nbsp;</td><td>/usr/local</td><td>/usr/local/input/</td></tr>
+ * <tr><td>${root_data}/input/</td><td>/home/andrew/temp</td><td>/usr/local</td><td>/home/andrew/temp/input/</td></tr>
+ * <tr><td>${root_data}/input/</td><td>&nbsp;</td><td>&nbsp;</td><td>${root_data}/input/</td></tr>
+ * </table>
  *
  * @author gazarenkov
+ * @author andrew00x
  */
 public class CodenvyBootstrap extends EverrestGuiceContextListener {
     private final List<Module> modules = new ArrayList<>();
@@ -99,8 +119,8 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
         }
     }*/
 
-    /** ConfigurationModule binding configuration located in /WEB-INF/classes/conf directory */
-    private static class WebInfConfiguration extends AbstractConfigurationModule {
+    /** ConfigurationModule binding configuration located in <i>/WEB-INF/classes/conf</i> directory */
+    static class WebInfConfiguration extends AbstractConfigurationModule {
         @Override
         protected void bindConfigurations() {
             URL parent = this.getClass().getClassLoader().getResource("conf");
@@ -112,22 +132,24 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
 
     /**
      * ConfigurationModule binding environment variables, system properties and configuration in directory pointed by
-     * CODENVY_LOCAL_CONF_DIR Env variable.
+     * <i>CODENVY_LOCAL_CONF_DIR</i> Env variable.
      */
-    private static class ExtConfiguration extends AbstractConfigurationModule {
+    static class ExtConfiguration extends AbstractConfigurationModule {
         @Override
         protected void bindConfigurations() {
             // binds environment variables and system properties visible as prefixed with "env."
             bindEnvironmentVariables();
             bindSystemProperties();
-            String extConfig = System.getenv().get("CODENVY_LOCAL_CONF_DIR");
+            String extConfig = System.getenv("CODENVY_LOCAL_CONF_DIR");
             if (extConfig != null) {
                 bindConf(new File(extConfig));
             }
         }
     }
 
-    private static abstract class AbstractConfigurationModule extends ConfigurationModule {
+    private static final Pattern PATTERN = Pattern.compile("\\$\\{[^\\}^\\$\\{]+\\}");
+
+    static abstract class AbstractConfigurationModule extends ConfigurationModule {
         protected void bindConf(File conf) {
             final File[] files = conf.listFiles();
             if (files != null) {
@@ -151,6 +173,43 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
                 extension = fileName.substring(i + 1);
             }
             return extension;
+        }
+
+        @Override
+        protected void bindProperties(Iterator<Map.Entry<String, String>> properties) {
+            StringBuilder buf = null;
+            while (properties.hasNext()) {
+                Map.Entry<String, String> property = properties.next();
+                String value = property.getValue();
+                final Matcher matcher = PATTERN.matcher(value);
+                if (matcher.find()) {
+                    int start = 0;
+                    if (buf == null) {
+                        buf = new StringBuilder();
+                    } else {
+                        buf.setLength(0);
+                    }
+                    do {
+                        final int i = matcher.start();
+                        final int j = matcher.end();
+                        buf.append(value.substring(start, i));
+                        final String template = value.substring(i, j);
+                        final String name = value.substring(i + 2, j - 1);
+                        String actual = System.getProperty(name);
+                        if (actual == null) {
+                            actual = System.getenv(name);
+                        }
+                        if (actual == null) {
+                            actual = template;
+                        }
+                        buf.append(actual);
+                        start = matcher.end();
+                    } while (matcher.find());
+                    buf.append(value.substring(start));
+                    value = buf.toString();
+                }
+                bindProperty(property.getKey()).toValue(value);
+            }
         }
     }
 }
