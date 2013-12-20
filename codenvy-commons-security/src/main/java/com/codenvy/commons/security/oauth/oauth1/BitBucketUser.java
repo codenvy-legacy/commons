@@ -49,6 +49,7 @@ public class BitBucketUser implements User {
         this.email = email;
     }
 
+    @Override
     public String getName() {
         StringBuilder name = new StringBuilder();
         if (first_name != null && !first_name.isEmpty()) {
@@ -72,13 +73,15 @@ public class BitBucketUser implements User {
                '}';
     }
 
-    public void setFirst_name(String first_name) {
-        this.first_name = first_name;
+    @Override
+    public void setName(String name) {
+        String [] names = name.split(" ", 2);
+        this.first_name = names[0];
+        if (names.length > 1) {
+           this.last_name = names[1];
+        }
     }
 
-    public void setLast_name(String last_name) {
-        this.last_name = last_name;
-    }
 
     public void setUsername(String username) {
         this.username = username;
