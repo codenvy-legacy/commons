@@ -47,10 +47,12 @@ public class GoogleUser implements User {
         this.email = email;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
