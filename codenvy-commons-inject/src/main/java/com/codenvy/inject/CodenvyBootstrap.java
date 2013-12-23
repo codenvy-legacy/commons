@@ -28,6 +28,9 @@ import com.google.inject.util.Modules;
 
 import org.everrest.guice.servlet.EverrestGuiceContextListener;
 import org.nnsoft.guice.rocoto.configuration.ConfigurationModule;
+import org.nnsoft.guice.rocoto.converters.FileConverter;
+import org.nnsoft.guice.rocoto.converters.URIConverter;
+import org.nnsoft.guice.rocoto.converters.URLConverter;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -54,13 +57,13 @@ import java.util.regex.Pattern;
  * and inject necessary dependencies</li>
  * </ul>
  * <p/>
- * Configuration properties are bound as a {@code &#064Named ConfigurationParameter}. For example:
+ * Configuration properties are bound as a {@code &#064Named}. For example:
  * Following entry in the .property file:
  * {@code myProp=value}
  * may be injected into constructor (other options are valid too of course) as following:
  * <pre>
  * &#064Inject
- * public MyClass(&#064Named("myProp") ConfigurationParameter my) {
+ * public MyClass(&#064Named("myProp") String my) {
  * }
  * </pre>
  * <p/>
@@ -98,7 +101,10 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
         // based on logic that getServletModule() is called BEFORE getModules() in the EverrestGuiceContextListener
         modules.add(new InitModule(PostConstruct.class));
         modules.add(new DestroyModule(PreDestroy.class, DestroyErrorHandler.DUMMY));
-        modules.add(ConfigurationParameter.CONVERTER);
+        modules.add(new URIConverter());
+        modules.add(new URLConverter());
+        modules.add(new FileConverter());
+        modules.add(new StringArrayConverter());
         modules.addAll(ModuleScanner.findModules());
         modules.add(Modules.override(new WebInfConfiguration()).with(new ExtConfiguration()));
         return modules;

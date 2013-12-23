@@ -22,11 +22,17 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.name.Names;
+import com.google.inject.util.Providers;
 
 import org.nnsoft.guice.rocoto.configuration.ConfigurationModule;
+import org.nnsoft.guice.rocoto.converters.FileConverter;
+import org.nnsoft.guice.rocoto.converters.URIConverter;
+import org.nnsoft.guice.rocoto.converters.URLConverter;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.testng.internal.Nullable;
 
 import javax.inject.Named;
 import java.net.MalformedURLException;
@@ -52,44 +58,53 @@ public class ConfigurationTest {
         props.put("test_url", "http://localhost");
         props.put("test_file", "/a/b/c");
         props.put("test_strings", "a, b, c");
-        injector = Guice.createInjector(ConfigurationParameter.CONVERTER,
-                                        new ConfigurationModule() {
-                                            @Override
-                                            protected void bindConfigurations() {
-                                                bindProperties(props);
-                                            }
-                                        },
-                                        new MyModule());
+        injector = Guice.createInjector(
+                new URIConverter(),
+                new URLConverter(),
+                new FileConverter(),
+                new StringArrayConverter(),
+                new ConfigurationModule() {
+                    @Override
+                    protected void bindConfigurations() {
+                        bindProperties(props);
+                    }
+                },
+                new MyModule());
     }
 
     @Test
     public void testConvertInt() {
-        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_int.asInt(), 123);
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_int, 123);
+    }
+
+    @Test
+    public void testConvertLong() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_long, 123);
     }
 
     @Test
     public void testConvertBoolean() {
-        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_bool.asBoolean(), true);
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_bool, true);
     }
 
     @Test
     public void testConvertUri() {
-        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_uri.asURI(), URI.create("file:/a/b/c"));
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_uri, URI.create("file:/a/b/c"));
     }
 
     @Test
     public void testConvertUrl() throws MalformedURLException {
-        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_url.asURL(), new URL("http://localhost"));
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_url, new URL("http://localhost"));
     }
 
     @Test
     public void testConvertFile() {
-        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_file.asFile(), new java.io.File("/a/b/c"));
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_file, new java.io.File("/a/b/c"));
     }
 
     @Test
     public void testConvertStrings() {
-        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_strings.asStrings(), new String[]{"a", "b", "c"});
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_strings, new String[]{"a", "b", "c"});
     }
 
     public static class MyModule implements Module {
@@ -102,26 +117,31 @@ public class ConfigurationTest {
     public static class TestComponent {
         @Named("test_int")
         @Inject
-        ConfigurationParameter parameter_int;
+        int parameter_int;
+
+        @Named("test_int")
+        @Inject
+        int parameter_long;
 
         @Named("test_bool")
         @Inject
-        ConfigurationParameter parameter_bool;
+        boolean parameter_bool;
 
         @Named("test_uri")
         @Inject
-        ConfigurationParameter parameter_uri;
+        URI parameter_uri;
 
         @Named("test_url")
         @Inject
-        ConfigurationParameter parameter_url;
+        URL parameter_url;
 
         @Named("test_file")
         @Inject
-        ConfigurationParameter parameter_file;
+        java.io.File parameter_file;
 
         @Named("test_strings")
+        @Nullable
         @Inject
-        ConfigurationParameter parameter_strings;
+        String[] parameter_strings;
     }
 }
