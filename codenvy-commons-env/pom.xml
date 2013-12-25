@@ -28,4 +28,11 @@
     <artifactId>codenvy-commons-env</artifactId>
     <packaging>jar</packaging>
     <name>Codenvy Commons :: Environment</name>
+    <dependencies>
+        <dependency>
+            <groupId>com.codenvy.commons</groupId>
+            <artifactId>codenvy-commons-lang</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
