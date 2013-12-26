@@ -46,7 +46,7 @@ import java.util.Map;
 import static java.net.URLEncoder.encode;
 
 /** RESTful wrapper for OAuthAuthenticator. */
-@Path("ide/oauth")
+@Path("oauth")
 public class OAuthAuthenticationService {
     private static final Logger LOG = LoggerFactory.getLogger(OAuthAuthenticationService.class);
     private final OAuthAuthenticatorProvider providers;
