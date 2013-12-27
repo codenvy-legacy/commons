@@ -193,7 +193,7 @@ public class ZipUtils {
      *         used. All temp files will be deleted after merging.
      * @throws IOException when it is not possible to create temp directory, check file type, zip directory or unzip archive.
      */
-    public static void mergeArchives(Set<java.io.File> archives, java.io.File targetArchive, java.io.File tmpDirParent) throws IOException {
+    public static void mergeArchives(java.io.File targetArchive, java.io.File tmpDirParent, java.io.File... archives) throws IOException {
         if (tmpDirParent == null) {
             tmpDirParent = new File(System.getProperty("java.io.tmpdir"));
         }
