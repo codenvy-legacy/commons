@@ -24,6 +24,7 @@ import com.codenvy.commons.security.shared.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -51,7 +52,7 @@ public class OAuthAuthenticationService {
     private static final Logger LOG = LoggerFactory.getLogger(OAuthAuthenticationService.class);
     private final OAuthAuthenticatorProvider providers;
 
-
+    @Inject
     public OAuthAuthenticationService(OAuthAuthenticatorProvider providers) {
         this.providers = providers;
     }
