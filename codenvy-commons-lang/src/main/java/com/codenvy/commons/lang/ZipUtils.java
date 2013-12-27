@@ -17,17 +17,29 @@
  */
 package com.codenvy.commons.lang;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-
+/**
+ * Utils for ZIP.
+ *
+ * @author Eugene Voevodin
+ */
 public class ZipUtils {
+
     public static void zipDir(String zipRootPath, File dir, File zip, FilenameFilter filter) throws IOException {
         if (!dir.isDirectory()) {
             throw new IllegalArgumentException("Not a directory. ");
@@ -166,6 +178,36 @@ public class ZipUtils {
         }
         final int header = bytes[0] + (bytes[1] << 8) + (bytes[2] << 16) + (bytes[3] << 24);
         return 0x04034b50 == header;
+    }
+
+
+    /**
+     * Merges set of zip archives into one zip archive.
+     *
+     * @param archives
+     *         set of archives that will be merged
+     * @param targetArchive
+     *         result of merging. If file exists it will be replaced with new file.
+     * @param tmpDirParent
+     *         parent directory that will be used for temporary file storing. If it is {@code null} system property java.io.tmpdir will be
+     *         used. All temp files will be deleted after merging.
+     * @throws IOException when it is not possible to create temp directory, check file type, zip directory or unzip archive.
+     */
+    public static void mergeArchives(java.io.File targetArchive, java.io.File tmpDirParent, java.io.File... archives) throws IOException {
+        if (tmpDirParent == null) {
+            tmpDirParent = new File(System.getProperty("java.io.tmpdir"));
+        }
+        File tmp = Files.createTempDirectory(tmpDirParent.toPath(), "tmp").toFile();
+        try {
+            for (File archive : archives) {
+                if (isZipFile(archive)) {
+                    unzip(archive, tmp);
+                }
+            }
+            zipDir(tmp.getAbsolutePath(), tmp, targetArchive, IoUtil.ANY_FILTER);
+        } finally {
+            IoUtil.deleteRecursive(tmp);
+        }
     }
 
     private ZipUtils() {
