@@ -114,22 +114,14 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
     @Override
     protected ServletModule getServletModule() {
         // Servlets and other web components may be configured with custom Modules.
-        return null; //return new CodenvyServletModule();
+        return null;
     }
-
-    /*public static class CodenvyServletModule extends ServletModule {
-        @Override
-        protected void configureServlets() {
-            // TODO add configuration for REST servlet mapping
-            serve("/rest/*").with(GuiceEverrestServlet.class);
-        }
-    }*/
 
     /** ConfigurationModule binding configuration located in <i>/WEB-INF/classes/conf</i> directory */
     static class WebInfConfiguration extends AbstractConfigurationModule {
         @Override
         protected void bindConfigurations() {
-            URL parent = this.getClass().getClassLoader().getResource("conf");
+            URL parent = this.getClass().getClassLoader().getResource("codenvy");
             if (parent != null) {
                 bindConf(new File(parent.getFile()));
             }
