@@ -49,7 +49,6 @@ import static java.net.URLEncoder.encode;
 @Path("ide/oauth")
 public class OAuthAuthenticationService {
     private static final Logger LOG = LoggerFactory.getLogger(OAuthAuthenticationService.class);
-
     private final OAuthAuthenticatorProvider providers;
 
 
@@ -136,12 +135,11 @@ public class OAuthAuthenticationService {
     /**
      * OAuth 2.0 support pass query parameters 'state' to OAuth authorization server. Authorization server sends it back
      * to callback URL. Here restore all parameters specified in initial request to {@link
-     * #authenticate(javax.ws.rs.core.UriInfo, javax.ws.rs.core.SecurityContext)} .
+     * #authenticate(javax.ws.rs.core.UriInfo)} .
      *
      * @param state
      *         query parameter state
-     * @return map contains request parameters to method {@link #authenticate(javax.ws.rs.core.UriInfo,
-     * javax.ws.rs.core.SecurityContext)}
+     * @return map contains request parameters to method {@link #authenticate(javax.ws.rs.core.UriInfo)}
      */
     private Map<String, List<String>> getRequestParameters(String state) {
         Map<String, List<String>> params = new HashMap<String, List<String>>();

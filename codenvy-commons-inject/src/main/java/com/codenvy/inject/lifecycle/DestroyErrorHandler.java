@@ -15,22 +15,25 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.commons.security.shared;
+package com.codenvy.inject.lifecycle;
+
+import java.lang.reflect.Method;
 
 /**
- * Represents an User with unique identifier. Have such interface to be able use GWT AutoBean feature. Any interface
- * that represents an User should extend this interface.
+ * Helps to be more flexible when need handle errors of invocation destroy-methods.
+ *
+ * @author andrew00x
  */
-public interface User {
-    String getId();
+public interface DestroyErrorHandler {
+    void onError(Object instance, Method method, Throwable error);
 
-    void setId(String id);
-
-    String getName();
-
-    void setName(String name);
-
-    String getEmail();
-
-    void setEmail(String email);
+    /**
+     * Implementation of DestroyErrorHandler that ignore errors, e.g. such behaviour is required for annotation {@link
+     * javax.annotation.PreDestroy}.
+     */
+    DestroyErrorHandler DUMMY = new DestroyErrorHandler() {
+        @Override
+        public void onError(Object instance, Method method, Throwable error) {
+        }
+    };
 }

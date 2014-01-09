@@ -37,10 +37,12 @@ public class GitHubUser implements User {
         // Ignore calls of this method. Email address is used as user identifier.
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }

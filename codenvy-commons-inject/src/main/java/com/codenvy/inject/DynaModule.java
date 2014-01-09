@@ -15,22 +15,15 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.commons.security.shared;
+package com.codenvy.inject;
 
 /**
- * Represents an User with unique identifier. Have such interface to be able use GWT AutoBean feature. Any interface
- * that represents an User should extend this interface.
+ * DynaModule
+ * Marker annotation for dynamically created module
+ * CodenvyBootstrap automatically finds and loads Guice modules (subclasses of com.google.inject.Module)
+ * annotated with &#064DynaModule
+ *
+ * @author gazarenkov
  */
-public interface User {
-    String getId();
-
-    void setId(String id);
-
-    String getName();
-
-    void setName(String name);
-
-    String getEmail();
-
-    void setEmail(String email);
+public @interface DynaModule {
 }
