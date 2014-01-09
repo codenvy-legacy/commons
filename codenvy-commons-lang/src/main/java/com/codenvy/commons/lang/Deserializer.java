@@ -64,6 +64,9 @@ public class Deserializer {
         if (input == null) {
             return input;
         }
+        if (!includeSysProps && (props == null || props.size() == 0)) {
+            return input;
+        }
         char[] chars = input.toCharArray();
         StringBuffer buffer = new StringBuffer();
         boolean properties = false;
