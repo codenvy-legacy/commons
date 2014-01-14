@@ -23,7 +23,7 @@
     <parent>
         <artifactId>codenvy-commons-parent</artifactId>
         <groupId>com.codenvy.commons</groupId>
-        <version>0.11.1-SNAPSHOT</version>
+        <version>0.12.1-SNAPSHOT</version>
     </parent>
     <artifactId>codenvy-commons-lang</artifactId>
     <packaging>jar</packaging>

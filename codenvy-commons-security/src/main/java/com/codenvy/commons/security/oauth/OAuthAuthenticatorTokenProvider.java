@@ -20,12 +20,16 @@ package com.codenvy.commons.security.oauth;
 import com.codenvy.commons.security.oauth.oauth1.OAuth1UrlInfo;
 import com.codenvy.commons.security.shared.Token;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 
 /** Retrieves oAuth token with help of OAuthAuthenticatorProvider. */
+@Singleton
 public class OAuthAuthenticatorTokenProvider implements OAuthTokenProvider {
     private final OAuthAuthenticatorProvider oAuthAuthenticatorProvider;
 
+    @Inject
     public OAuthAuthenticatorTokenProvider(OAuthAuthenticatorProvider oAuthAuthenticatorProvider) {
         this.oAuthAuthenticatorProvider = oAuthAuthenticatorProvider;
     }

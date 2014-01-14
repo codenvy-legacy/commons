@@ -17,6 +17,8 @@
  */
 package com.codenvy.commons.env;
 
+import com.codenvy.commons.lang.concurrent.ThreadLocalPropagateContext;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,6 +63,10 @@ public class EnvironmentContext {
             return new EnvironmentContext();
         }
     };
+
+    static {
+        ThreadLocalPropagateContext.addThreadLocal(current);
+    }
 
     public static EnvironmentContext getCurrent() {
         return current.get();
