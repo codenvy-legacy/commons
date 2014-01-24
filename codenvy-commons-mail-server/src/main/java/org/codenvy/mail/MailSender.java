@@ -40,7 +40,7 @@ import java.util.Properties;
 public class MailSender {
     private static final Logger LOG = LoggerFactory.getLogger(MailSender.class);
 
-    private static final String EMAIL_CONNECTION_FILE_NAME = "old/email-connection.properties";
+    private static final String EMAIL_CONNECTION_FILE_NAME = "email-connection.properties";
 
     private final String configuration;
 
