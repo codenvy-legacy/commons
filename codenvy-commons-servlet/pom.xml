@@ -29,7 +29,11 @@
     <packaging>jar</packaging>
     <name>Codenvy Commons :: Servlet commons</name>
     <dependencies>
-        <!-- Logger -->
+        <dependency>
+            <groupId>com.codenvy.commons</groupId>
+            <artifactId>codenvy-commons-env</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -47,7 +51,6 @@
             <version>${logback.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Test dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
