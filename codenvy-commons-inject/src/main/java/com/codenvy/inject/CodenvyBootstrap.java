@@ -117,7 +117,7 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
         return null;
     }
 
-    /** ConfigurationModule binding configuration located in <i>/WEB-INF/classes/conf</i> directory */
+    /** ConfigurationModule binding configuration located in <i>/WEB-INF/classes/codenvy</i> directory */
     static class WebInfConfiguration extends AbstractConfigurationModule {
         @Override
         protected void bindConfigurations() {
