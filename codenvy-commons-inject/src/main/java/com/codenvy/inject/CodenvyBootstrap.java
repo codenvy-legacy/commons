@@ -117,7 +117,7 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
         return null;
     }
 
-    /** ConfigurationModule binding configuration located in <i>/WEB-INF/classes/conf</i> directory */
+    /** ConfigurationModule binding configuration located in <i>/WEB-INF/classes/codenvy</i> directory */
     static class WebInfConfiguration extends AbstractConfigurationModule {
         @Override
         protected void bindConfigurations() {
@@ -152,12 +152,9 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
             final File[] files = conf.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    final String ext = ext(f.getName());
                     if (!f.isDirectory()) {
-                        if ("properties".equals(ext)) {
+                        if ("properties".equals(ext(f.getName()))) {
                             bindProperties(f);
-                        } else if ("xml".equals(ext)) {
-                            bindProperties(f).inXMLFormat();
                         }
                     }
                 }

@@ -17,6 +17,8 @@
  */
 package com.codenvy.commons.servlet;
 
+import com.codenvy.commons.env.EnvironmentContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,24 +57,9 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String requestPath = request.getPathInfo();
-        LOG.debug("request path: {}", requestPath);
-
-        String workspace = null;
-        final int length = requestPath.length();
-        int p = 1;
-        int n = requestPath.indexOf('/', p);
-        if (n < 0) {
-            n = length;
-        }
-        final String tmp = requestPath.substring(p, n);
-        if (!tmp.isEmpty()) {
-            workspace = tmp;
-        }
-
-        request.setAttribute("ws", workspace);
-        LOG.debug("workspace: {}", workspace);
-
+        LOG.debug("request path: {}", request.getPathInfo());
+        request.setAttribute("wsName", EnvironmentContext.getCurrent().getVariable(EnvironmentContext.WORKSPACE_NAME));
+        request.setAttribute("wsId", EnvironmentContext.getCurrent().getVariable(EnvironmentContext.WORKSPACE_ID));
         for (ConfigurationItem configuration : configurations) {
             if (configuration.getCondition().matches(request, response)) {
                 configuration.getAction().perform(request, response);
@@ -82,10 +69,10 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     public static String genIdeStaticResourceUrl(HttpServletRequest request, String name) {
-        return request.getContextPath() + '/' + request.getAttribute("ws") + "/_ide/" + name;
+        return request.getContextPath() + '/' + request.getAttribute("wsName") + "/_ide/" + name;
     }
 
     public static String genShellStaticResourceUrl(HttpServletRequest request, String name) {
-        return request.getContextPath() + '/' + request.getAttribute("ws") + "/_shell/" + name;
+        return request.getContextPath() + '/' + request.getAttribute("wsName") + "/_shell/" + name;
     }
 }
