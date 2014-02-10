@@ -22,13 +22,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.name.Names;
-import com.google.inject.util.Providers;
 
-import org.nnsoft.guice.rocoto.configuration.ConfigurationModule;
-import org.nnsoft.guice.rocoto.converters.FileConverter;
-import org.nnsoft.guice.rocoto.converters.URIConverter;
-import org.nnsoft.guice.rocoto.converters.URLConverter;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -63,9 +57,10 @@ public class ConfigurationTest {
                 new URLConverter(),
                 new FileConverter(),
                 new StringArrayConverter(),
-                new ConfigurationModule() {
+                new CodenvyBootstrap.ExtConfiguration(),
+                new CodenvyBootstrap.AbstractConfigurationModule() {
                     @Override
-                    protected void bindConfigurations() {
+                    protected void configure() {
                         bindProperties(props);
                     }
                 },
@@ -107,6 +102,17 @@ public class ConfigurationTest {
         Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_strings, new String[]{"a", "b", "c"});
     }
 
+    @Test
+    public void testGetSystemProperty() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).tmpDir, new java.io.File(System.getProperty("java.io.tmpdir")));
+        System.out.println(injector.getInstance(TestComponent.class).path);
+    }
+
+    @Test
+    public void testGetEnvironmentVariable() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).path, System.getenv("PATH"));
+    }
+
     public static class MyModule implements Module {
         @Override
         public void configure(Binder binder) {
@@ -140,8 +146,15 @@ public class ConfigurationTest {
         java.io.File parameter_file;
 
         @Named("test_strings")
-        @Nullable
         @Inject
         String[] parameter_strings;
+
+        @Named("sys.java.io.tmpdir")
+        @Inject
+        java.io.File tmpDir;
+
+        @Named("env.PATH")
+        @Inject
+        String path;
     }
 }
