@@ -21,7 +21,10 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Module;
+import com.google.inject.name.Names;
+import com.google.inject.util.Modules;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -105,7 +108,6 @@ public class ConfigurationTest {
     @Test
     public void testGetSystemProperty() {
         Assert.assertEquals(injector.getInstance(TestComponent.class).tmpDir, new java.io.File(System.getProperty("java.io.tmpdir")));
-        System.out.println(injector.getInstance(TestComponent.class).path);
     }
 
     @Test
@@ -156,5 +158,31 @@ public class ConfigurationTest {
         @Named("env.PATH")
         @Inject
         String path;
+    }
+
+    @Test
+    public void testConfigurationOverride() {
+        final Properties props1 = new Properties();
+        props1.put("test_a", "bar");
+        props1.put("test_b", "foo");
+        Module module1 = new CodenvyBootstrap.AbstractConfigurationModule() {
+            @Override
+            protected void configure() {
+                bindProperties(props1);
+            }
+        };
+
+        final Properties props2 = new Properties();
+        props2.put("test_a", "overridden bar");
+        Module module2 = new CodenvyBootstrap.AbstractConfigurationModule() {
+            @Override
+            protected void configure() {
+                bindProperties(props2);
+            }
+        };
+
+        Injector myInjector = Guice.createInjector(Modules.override(module1).with(module2));
+        Assert.assertEquals(myInjector.getBinding(Key.get(String.class, Names.named("test_a"))).getProvider().get(), "overridden bar");
+        Assert.assertEquals(myInjector.getBinding(Key.get(String.class, Names.named("test_b"))).getProvider().get(), "foo");
     }
 }
