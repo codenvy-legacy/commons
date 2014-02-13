@@ -29,7 +29,6 @@ import com.google.inject.util.Modules;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.testng.internal.Nullable;
 
 import javax.inject.Named;
 import java.net.MalformedURLException;
@@ -55,6 +54,8 @@ public class ConfigurationTest {
         props.put("test_url", "http://localhost");
         props.put("test_file", "/a/b/c");
         props.put("test_strings", "a, b, c");
+        props.put("some.dir.in_tmp_dir", "${java.io.tmpdir}/some_dir");
+        props.put("suffixed.PATH", "${PATH}" + java.io.File.pathSeparator + "some_path");
         injector = Guice.createInjector(
                 new URIConverter(),
                 new URLConverter(),
@@ -115,6 +116,18 @@ public class ConfigurationTest {
         Assert.assertEquals(injector.getInstance(TestComponent.class).path, System.getenv("PATH"));
     }
 
+    @Test
+    public void testInjectSystemPropertyInConfiguration() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).someDir,
+                            new java.io.File(System.getProperty("java.io.tmpdir"), "/some_dir"));
+    }
+
+    @Test
+    public void testInjectEnvironmentVariableInConfiguration() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).suffixedPath,
+                            System.getenv("PATH") +  java.io.File.pathSeparator + "some_path");
+    }
+
     public static class MyModule implements Module {
         @Override
         public void configure(Binder binder) {
@@ -158,6 +171,14 @@ public class ConfigurationTest {
         @Named("env.PATH")
         @Inject
         String path;
+
+        @Named("some.dir.in_tmp_dir")
+        @Inject
+        java.io.File someDir;
+
+        @Named("suffixed.PATH")
+        @Inject
+        String suffixedPath;
     }
 
     @Test
