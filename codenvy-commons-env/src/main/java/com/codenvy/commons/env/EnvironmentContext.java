@@ -103,6 +103,8 @@ public class EnvironmentContext {
 
     private String workspaceId;
 
+    private String accountId;
+
     public EnvironmentContext() {
         environment = new HashMap<String, Object>();
     }
@@ -141,5 +143,13 @@ public class EnvironmentContext {
 
     public void setWorkspaceId(String workspaceId) {
         this.workspaceId = workspaceId;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 }

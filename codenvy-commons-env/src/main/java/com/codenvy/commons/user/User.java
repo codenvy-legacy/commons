@@ -33,7 +33,16 @@ public interface User {
 
     /**
      * Get user auth token to be able to execute request as user
+     *
      * @return - user token
      */
     String getToken();
+
+    /**
+     * Get user unique identifier of user.
+     * In comparison with name id never changes for the given user.
+     *
+     * @return - unique identifier of user.
+     */
+    String getId();
 }
