@@ -109,6 +109,14 @@ public class EnvironmentContext {
         environment = new HashMap<String, Object>();
     }
 
+    public EnvironmentContext(EnvironmentContext other) {
+        environment = new HashMap<String, Object>(other.environment);
+        setUser(other.getUser());
+        setWorkspaceName(other.getWorkspaceName());
+        setWorkspaceId(other.getWorkspaceId());
+        setAccountId(other.getAccountId());
+    }
+
     /** Only for IDE2 support */
     @Deprecated
     void setVariable(String name, Object value) {
