@@ -58,8 +58,8 @@ public class DispatcherServlet extends HttpServlet {
 
     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         LOG.debug("request path: {}", request.getPathInfo());
-        request.setAttribute("wsName", EnvironmentContext.getCurrent().getVariable(EnvironmentContext.WORKSPACE_NAME));
-        request.setAttribute("wsId", EnvironmentContext.getCurrent().getVariable(EnvironmentContext.WORKSPACE_ID));
+        request.setAttribute("wsName", EnvironmentContext.getCurrent().getWorkspaceName());
+        request.setAttribute("wsId", EnvironmentContext.getCurrent().getWorkspaceId());
         for (ConfigurationItem configuration : configurations) {
             if (configuration.getCondition().matches(request, response)) {
                 configuration.getAction().perform(request, response);

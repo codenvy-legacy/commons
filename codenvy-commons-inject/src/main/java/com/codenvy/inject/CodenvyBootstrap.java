@@ -21,27 +21,29 @@ import com.codenvy.inject.lifecycle.DestroyErrorHandler;
 import com.codenvy.inject.lifecycle.DestroyModule;
 import com.codenvy.inject.lifecycle.Destroyer;
 import com.codenvy.inject.lifecycle.InitModule;
+import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.name.Names;
 import com.google.inject.servlet.ServletModule;
 import com.google.inject.util.Modules;
 
 import org.everrest.guice.servlet.EverrestGuiceContextListener;
-import org.nnsoft.guice.rocoto.configuration.ConfigurationModule;
-import org.nnsoft.guice.rocoto.converters.FileConverter;
-import org.nnsoft.guice.rocoto.converters.URIConverter;
-import org.nnsoft.guice.rocoto.converters.URLConverter;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,7 +54,7 @@ import java.util.regex.Pattern;
  * <li>Automatically binds all the subclasses of com.google.inject.Module annotated with &#064DynaModule</li>
  * <li>Loads configuration from .properties and .xml files located in <i>/WEB-INF/classes/conf</i> directory</li>
  * <li>Overrides it with external configuration located in directory pointed by <i>CODENVY_LOCAL_CONF_DIR</i> env variable (if any)</li>
- * <li>Binds all environment variables and system properties (visible as prefixed with "env.")</li>
+ * <li>Binds all environment variables (visible as prefixed with "env.") and system properties (visible as prefixed with "sys.")</li>
  * <li>Thanks to Everrest integration injects all the properly annotated (see Everrest docs) REST Resources. Providers and ExceptionMappers
  * and inject necessary dependencies</li>
  * </ul>
@@ -119,8 +121,7 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
 
     /** ConfigurationModule binding configuration located in <i>/WEB-INF/classes/codenvy</i> directory */
     static class WebInfConfiguration extends AbstractConfigurationModule {
-        @Override
-        protected void bindConfigurations() {
+        protected void configure() {
             URL parent = this.getClass().getClassLoader().getResource("codenvy");
             if (parent != null) {
                 bindConf(new File(parent.getFile()));
@@ -134,10 +135,11 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
      */
     static class ExtConfiguration extends AbstractConfigurationModule {
         @Override
-        protected void bindConfigurations() {
-            // binds environment variables and system properties visible as prefixed with "env."
-            bindEnvironmentVariables();
-            bindSystemProperties();
+        protected void configure() {
+            // binds environment variables visible as prefixed with "env."
+            bindProperties("env.", System.getenv());
+            // binds system properties visible as prefixed with "sys."
+            bindProperties("sys.", System.getProperties());
             String extConfig = System.getenv("CODENVY_LOCAL_CONF_DIR");
             if (extConfig != null) {
                 bindConf(new File(extConfig));
@@ -147,14 +149,20 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
 
     private static final Pattern PATTERN = Pattern.compile("\\$\\{[^\\}^\\$\\{]+\\}");
 
-    static abstract class AbstractConfigurationModule extends ConfigurationModule {
-        protected void bindConf(File conf) {
-            final File[] files = conf.listFiles();
+    static abstract class AbstractConfigurationModule extends AbstractModule {
+        protected void bindConf(File confDir) {
+            final File[] files = confDir.listFiles();
             if (files != null) {
                 for (File f : files) {
                     if (!f.isDirectory()) {
                         if ("properties".equals(ext(f.getName()))) {
-                            bindProperties(f);
+                            Properties properties = new Properties();
+                            try (Reader reader = Files.newBufferedReader(f.toPath(), Charset.forName("UTF-8"))) {
+                                properties.load(reader);
+                            } catch (IOException e) {
+                                throw new IllegalStateException(String.format("Unable to read configuration file %s", f), e);
+                            }
+                            bindProperties(properties);
                         }
                     }
                 }
@@ -170,13 +178,27 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
             return extension;
         }
 
-        @Override
-        protected void bindProperties(Iterator<Map.Entry<String, String>> properties) {
+        protected void bindProperties(Properties properties) {
+            bindProperties(null, properties.entrySet());
+        }
+
+        protected void bindProperties(Map<String, String> properties) {
+            bindProperties(null, properties.entrySet());
+        }
+
+        protected void bindProperties(String prefix, Properties properties) {
+            bindProperties(prefix, properties.entrySet());
+        }
+
+        protected void bindProperties(String prefix, Map<String, String> properties) {
+            bindProperties(prefix, properties.entrySet());
+        }
+
+        protected <K, V> void bindProperties(String prefix, Iterable<Map.Entry<K, V>> properties) {
             StringBuilder buf = null;
-            while (properties.hasNext()) {
-                Map.Entry<String, String> property = properties.next();
-                String value = property.getValue();
-                final Matcher matcher = PATTERN.matcher(value);
+            for (Map.Entry<K, V> e : properties) {
+                String pValue = (String)e.getValue();
+                final Matcher matcher = PATTERN.matcher(pValue);
                 if (matcher.find()) {
                     int start = 0;
                     if (buf == null) {
@@ -187,9 +209,9 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
                     do {
                         final int i = matcher.start();
                         final int j = matcher.end();
-                        buf.append(value.substring(start, i));
-                        final String template = value.substring(i, j);
-                        final String name = value.substring(i + 2, j - 1);
+                        buf.append(pValue.substring(start, i));
+                        final String template = pValue.substring(i, j);
+                        final String name = pValue.substring(i + 2, j - 1);
                         String actual = System.getProperty(name);
                         if (actual == null) {
                             actual = System.getenv(name);
@@ -200,10 +222,10 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
                         buf.append(actual);
                         start = matcher.end();
                     } while (matcher.find());
-                    buf.append(value.substring(start));
-                    value = buf.toString();
+                    buf.append(pValue.substring(start));
+                    pValue = buf.toString();
                 }
-                bindProperty(property.getKey()).toValue(value);
+                bindConstant().annotatedWith(Names.named(prefix == null ? (String)e.getKey() : (prefix + e.getKey()))).to(pValue);
             }
         }
     }

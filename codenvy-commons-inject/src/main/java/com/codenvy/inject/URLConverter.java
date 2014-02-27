@@ -18,34 +18,27 @@
 package com.codenvy.inject;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.ProvisionException;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeConverter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /** @author andrew00x */
-public class StringArrayConverter extends AbstractModule implements TypeConverter {
+public class URLConverter extends AbstractModule implements TypeConverter {
     @Override
     public Object convert(String value, TypeLiteral<?> toType) {
-        return split(value, ',');
-    }
-
-    private String[] split(String raw, char ch) {
-        final List<String> list = new ArrayList<>(4);
-        int n = 0;
-        int p;
-        while ((p = raw.indexOf(ch, n)) != -1) {
-            list.add(raw.substring(n, p).trim());
-            n = p + 1;
+        try {
+            return new URL(value);
+        } catch (MalformedURLException e) {
+            throw new ProvisionException(String.format("Invalid URL '%s'", value), e);
         }
-        list.add(raw.substring(n).trim());
-        return list.toArray(new String[list.size()]);
     }
 
     @Override
     protected void configure() {
-        convertToTypes(Matchers.only(TypeLiteral.get(String[].class)), this);
+        convertToTypes(Matchers.only(TypeLiteral.get(URL.class)), this);
     }
 }
