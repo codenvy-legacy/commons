@@ -103,8 +103,18 @@ public class EnvironmentContext {
 
     private String workspaceId;
 
+    private String accountId;
+
     public EnvironmentContext() {
         environment = new HashMap<String, Object>();
+    }
+
+    public EnvironmentContext(EnvironmentContext other) {
+        environment = new HashMap<String, Object>(other.environment);
+        setUser(other.getUser());
+        setWorkspaceName(other.getWorkspaceName());
+        setWorkspaceId(other.getWorkspaceId());
+        setAccountId(other.getAccountId());
     }
 
     /** Only for IDE2 support */
@@ -141,5 +151,13 @@ public class EnvironmentContext {
 
     public void setWorkspaceId(String workspaceId) {
         this.workspaceId = workspaceId;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 }
