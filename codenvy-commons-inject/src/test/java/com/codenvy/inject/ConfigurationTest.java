@@ -30,6 +30,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import javax.annotation.Nullable;
 import javax.inject.Named;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -56,6 +57,7 @@ public class ConfigurationTest {
         props.put("test_strings", "a, b, c");
         props.put("some.dir.in_tmp_dir", "${java.io.tmpdir}/some_dir");
         props.put("suffixed.PATH", "${PATH}" + java.io.File.pathSeparator + "some_path");
+        props.put("nullable", "NULL");
         injector = Guice.createInjector(
                 new URIConverter(),
                 new URLConverter(),
@@ -69,6 +71,11 @@ public class ConfigurationTest {
                     }
                 },
                 new MyModule());
+    }
+
+    @Test
+    public void testNullable() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).nullable, null);
     }
 
     @Test
@@ -179,6 +186,11 @@ public class ConfigurationTest {
         @Named("suffixed.PATH")
         @Inject
         String suffixedPath;
+
+        @Named("nullable")
+        @Inject
+        @Nullable
+        String nullable;
     }
 
     @Test

@@ -23,7 +23,7 @@
     <parent>
         <artifactId>codenvy-commons-parent</artifactId>
         <groupId>com.codenvy.commons</groupId>
-        <version>0.15.1-SNAPSHOT</version>
+        <version>0.16.0-SNAPSHOT</version>
     </parent>
     <artifactId>codenvy-commons-inject</artifactId>
     <packaging>jar</packaging>
@@ -71,7 +71,12 @@
             <version>${logback.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Test dependencies -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>1.3.9</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

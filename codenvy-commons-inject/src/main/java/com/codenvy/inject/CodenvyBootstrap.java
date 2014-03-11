@@ -27,6 +27,7 @@ import com.google.inject.Module;
 import com.google.inject.name.Names;
 import com.google.inject.servlet.ServletModule;
 import com.google.inject.util.Modules;
+import com.google.inject.util.Providers;
 
 import org.everrest.guice.servlet.EverrestGuiceContextListener;
 
@@ -198,34 +199,39 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
             StringBuilder buf = null;
             for (Map.Entry<K, V> e : properties) {
                 String pValue = (String)e.getValue();
-                final Matcher matcher = PATTERN.matcher(pValue);
-                if (matcher.find()) {
-                    int start = 0;
-                    if (buf == null) {
-                        buf = new StringBuilder();
-                    } else {
-                        buf.setLength(0);
+                if ("NULL".equals(pValue)) {
+                    bind(String.class).annotatedWith(Names.named(prefix == null ? (String)e.getKey() : (prefix + e.getKey())))
+                                      .toProvider(Providers.<String>of(null));
+                } else {
+                    final Matcher matcher = PATTERN.matcher(pValue);
+                    if (matcher.find()) {
+                        int start = 0;
+                        if (buf == null) {
+                            buf = new StringBuilder();
+                        } else {
+                            buf.setLength(0);
+                        }
+                        do {
+                            final int i = matcher.start();
+                            final int j = matcher.end();
+                            buf.append(pValue.substring(start, i));
+                            final String template = pValue.substring(i, j);
+                            final String name = pValue.substring(i + 2, j - 1);
+                            String actual = System.getProperty(name);
+                            if (actual == null) {
+                                actual = System.getenv(name);
+                            }
+                            if (actual == null) {
+                                actual = template;
+                            }
+                            buf.append(actual);
+                            start = matcher.end();
+                        } while (matcher.find());
+                        buf.append(pValue.substring(start));
+                        pValue = buf.toString();
                     }
-                    do {
-                        final int i = matcher.start();
-                        final int j = matcher.end();
-                        buf.append(pValue.substring(start, i));
-                        final String template = pValue.substring(i, j);
-                        final String name = pValue.substring(i + 2, j - 1);
-                        String actual = System.getProperty(name);
-                        if (actual == null) {
-                            actual = System.getenv(name);
-                        }
-                        if (actual == null) {
-                            actual = template;
-                        }
-                        buf.append(actual);
-                        start = matcher.end();
-                    } while (matcher.find());
-                    buf.append(pValue.substring(start));
-                    pValue = buf.toString();
+                    bindConstant().annotatedWith(Names.named(prefix == null ? (String)e.getKey() : (prefix + e.getKey()))).to(pValue);
                 }
-                bindConstant().annotatedWith(Names.named(prefix == null ? (String)e.getKey() : (prefix + e.getKey()))).to(pValue);
             }
         }
     }
