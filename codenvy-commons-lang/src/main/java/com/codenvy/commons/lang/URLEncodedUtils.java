@@ -32,10 +32,10 @@ public class URLEncodedUtils {
 
     /**
      * Returns Map<String, Set<String>>  as built from the
-     * URI's query portion. For example, a URI of
-     * http://example.org/path/to/file?a=1&b=2&c=3&c=4 would return a Map three
-     * key is a name name of parameter Set<String> is a values, a={1},
-     * one for b={2} and two for c={3,4}.
+     * URI's query portion. If <code>encoding</code> is null encoding does not performed.
+     * For example, a URI of http://example.org/path/to/file?a=1&b=2&c=3&c=4
+     * would return a Map three key is a name name of parameter Set<String>
+     * is a values, a={1}, one for b={2} and two for c={3,4}.
      * <p/>
      * <p/>
      * This is typically useful while parsing an HTTP PUT.
@@ -43,7 +43,7 @@ public class URLEncodedUtils {
      * @param uri
      *         uri to parse
      * @param encoding
-     *         encoding to use while parsing the query
+     *         encoding to use while parsing the query. If encoding is null encoding does not performed.
      */
     public static Map<String, Set<String>> parse(final URI uri, final String encoding) {
         Map<String, Set<String>> result = Collections.emptyMap();
@@ -57,8 +57,9 @@ public class URLEncodedUtils {
 
     /**
      * Adds all parameters within the Scanner to the list of
-     * <code>parameters</code>, as encoded by <code>encoding</code>. For
-     * example, a scanner containing the string <code>a=1&b=2&c=3</code> would
+     * <code>parameters</code>, as encoded by <code>encoding</code>.
+     * If <code>encoding</code> is null encoding does not performed.
+     * For example, a scanner containing the string <code>a=1&b=2&c=3</code> would
      * add the Map<String, Set<String>>  a=1, b=2, and c=3 to the
      * list of parameters.
      *
@@ -67,7 +68,7 @@ public class URLEncodedUtils {
      * @param scanner
      *         Input that contains the parameters to parse.
      * @param encoding
-     *         Encoding to use when decoding the parameters.
+     *         Encoding to use when decoding the parameters. If encoding is null encoding does not performed.
      */
     public static void parse(final Map<String, Set<String>> parameters, final Scanner scanner, final String encoding) {
         scanner.useDelimiter(PARAMETER_SEPARATOR);
@@ -76,10 +77,10 @@ public class URLEncodedUtils {
             if (nameValue.length == 0 || nameValue.length > 2)
                 throw new IllegalArgumentException("bad parameter");
 
-            final String name = decode(nameValue[0], encoding);
+            final String name = (encoding != null ? decode(nameValue[0], encoding) : nameValue[0]);
             String value = null;
             if (nameValue.length == 2)
-                value = decode(nameValue[1], encoding);
+                value = (encoding != null ? decode(nameValue[1], encoding) : nameValue[1]);
 
             Set<String> values = parameters.get(name);
             if (values == null) {

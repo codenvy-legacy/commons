@@ -68,7 +68,7 @@ public class TestURLEncodedUtils {
     @Test(dataProvider = "uris")
     public void shouldParseURI(String url, String expectedName, String[] expectedValues) throws Exception {
 
-        assertNameValuePair(parse(url, null), expectedName, expectedValues);
+        assertNameValuePair(parse(url, "UTF-8"), expectedName, expectedValues);
     }
 
     @Test(dataProvider = "uris")
