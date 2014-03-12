@@ -32,8 +32,7 @@ public class URLEncodedUtils {
 
     /**
      * Returns Map<String, Set<String>>  as built from the
-     * URI's query portion. If <code>encoding</code> is null encoding does not performed.
-     * For example, a URI of http://example.org/path/to/file?a=1&b=2&c=3&c=4
+     * URI's query portion. For example, a URI of http://example.org/path/to/file?a=1&b=2&c=3&c=4
      * would return a Map three key is a name name of parameter Set<String>
      * is a values, a={1}, one for b={2} and two for c={3,4}.
      * <p/>
@@ -43,7 +42,7 @@ public class URLEncodedUtils {
      * @param uri
      *         uri to parse
      * @param encoding
-     *         encoding to use while parsing the query. If encoding is null encoding does not performed.
+     *         encoding to use while parsing the query.
      */
     public static Map<String, Set<String>> parse(final URI uri, final String encoding) {
         Map<String, Set<String>> result = Collections.emptyMap();
@@ -51,6 +50,29 @@ public class URLEncodedUtils {
         if (query != null && query.length() > 0) {
             result = new HashMap<>();
             parse(result, new Scanner(query), encoding);
+        }
+        return result;
+    }
+
+    /**
+     * Returns Map<String, Set<String>>  as built from the
+     * URI's query portion. Parameters encoding does not performed.
+     * For example, a URI of http://example.org/path/to/file?a=1&b=2&c=3&c=4
+     * would return a Map three key is a name name of parameter Set<String>
+     * is a values, a={1}, one for b={2} and two for c={3,4}.
+     * <p/>
+     * <p/>
+     * This is typically useful while parsing an HTTP PUT.
+     *
+     * @param uri
+     *         uri to parse
+     */
+    public static Map<String, Set<String>> parse(final URI uri) {
+        Map<String, Set<String>> result = Collections.emptyMap();
+        final String query = uri.getRawQuery();
+        if (query != null && query.length() > 0) {
+            result = new HashMap<>();
+            parse(result, new Scanner(query), null);
         }
         return result;
     }
@@ -70,7 +92,7 @@ public class URLEncodedUtils {
      * @param encoding
      *         Encoding to use when decoding the parameters. If encoding is null encoding does not performed.
      */
-    public static void parse(final Map<String, Set<String>> parameters, final Scanner scanner, final String encoding) {
+    private static void parse(final Map<String, Set<String>> parameters, final Scanner scanner, final String encoding) {
         scanner.useDelimiter(PARAMETER_SEPARATOR);
         while (scanner.hasNext()) {
             final String[] nameValue = scanner.next().split(NAME_VALUE_SEPARATOR);

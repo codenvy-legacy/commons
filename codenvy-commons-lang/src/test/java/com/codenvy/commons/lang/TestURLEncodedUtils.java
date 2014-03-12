@@ -158,6 +158,21 @@ public class TestURLEncodedUtils {
 
     }
 
+    @Test
+    public void shouldParseWithoutDecoding() {
+        //given
+        String ru_hello = "%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82";
+        String ch_hello = "Gr%C3%BCezi_z%C3%A4m%C3%A4";
+
+        //when
+        Map<String, Set<String>> parameters = URLEncodedUtils.parse(
+                URI.create("http://hc.apache.org/params?russian=" + ru_hello + "&swiss=" + ch_hello));
+        //then
+        assertNameValuePair(parameters, "russian", ru_hello);
+        assertNameValuePair(parameters, "swiss", ch_hello);
+
+    }
+
     private Map<String, Set<String>> parse(final String params, final String encoding) {
         return URLEncodedUtils.parse(URI.create("http://hc.apache.org/params?" + params), encoding);
     }
