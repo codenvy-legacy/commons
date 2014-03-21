@@ -23,6 +23,8 @@ import com.codenvy.commons.lang.Deserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.mail.MessagingException;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
@@ -48,16 +50,13 @@ public class MailSenderClient {
     /** String representation of MailSender Service application address */
     private String server;
 
-    public MailSenderClient() {
-        this(System.getProperty(MAILSENDER_APPLICATION_SERVER_URL));
-    }
-
     /**
      * Simple constructor to pass application server address
      *
      * @param server
      */
-    public MailSenderClient(String server) {
+    @Inject
+    public MailSenderClient(@Named(MAILSENDER_APPLICATION_SERVER_URL) String server) {
         if (server.endsWith("/")) {
             this.server = server;
         } else {
