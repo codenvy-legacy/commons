@@ -57,11 +57,7 @@ public class MailSenderClient {
      */
     @Inject
     public MailSenderClient(@Named(MAILSENDER_APPLICATION_SERVER_URL) String server) {
-        if (server.endsWith("/")) {
-            this.server = server;
-        } else {
-            this.server = server + "/";
-        }
+        this.server = server;
     }
 
     public void sendMail(String from, String to, String replyTo, String subject, String mimeType,
