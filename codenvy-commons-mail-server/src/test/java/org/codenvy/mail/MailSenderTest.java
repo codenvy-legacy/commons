@@ -41,7 +41,7 @@ public class MailSenderTest {
     public void setup() throws IOException {
         //      mailSender = new MailSender("/mail-configuration.properties");
         server = SimpleSmtpServer.start(9000);
-        mailSender = new MailSender("/mail-configuration.properties");
+        mailSender = new MailSender(new SessionHolder("/mail-configuration.properties"));
 
     }
 

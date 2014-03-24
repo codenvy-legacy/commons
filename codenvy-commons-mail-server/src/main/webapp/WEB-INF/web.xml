@@ -26,21 +26,15 @@
          metadata-complete="true">
     <display-name>eXo Cloud + IDE</display-name>
 
-    <context-param>
-        <param-name>javax.ws.rs.Application</param-name>
-        <param-value>org.codenvy.mail.MailApplication</param-value>
-    </context-param>
-
     <listener>
-        <listener-class>org.everrest.core.servlet.EverrestInitializedListener</listener-class>
+        <listener-class>com.codenvy.inject.CodenvyBootstrap</listener-class>
     </listener>
-    <servlet>
-        <servlet-name>EverrestServlet</servlet-name>
-        <servlet-class>org.everrest.core.servlet.EverrestServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>EverrestServlet</servlet-name>
+    <filter>
+        <filter-name>guiceFilter</filter-name>
+        <filter-class>com.google.inject.servlet.GuiceFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>guiceFilter</filter-name>
         <url-pattern>/*</url-pattern>
-    </servlet-mapping>
-
+    </filter-mapping>
 </web-app>
