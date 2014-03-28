@@ -15,28 +15,23 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package org.codenvy.mail;
+package org.codenvy.mail.deploy;
 
-import javax.ws.rs.core.Application;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
-/** Set of email services. */
-public class MailApplication extends Application {
-    private final Set<Object> objects = new LinkedHashSet<Object>();
+import com.codenvy.inject.DynaModule;
+import com.google.inject.servlet.ServletModule;
 
-    public MailApplication() {
-        objects.add(new MailSender());
-    }
+import org.everrest.guice.servlet.GuiceEverrestServlet;
 
+/**
+ * Servlet module composer for api war.
+ *
+ */
+
+@DynaModule
+public class CloudIdeMailServletModule extends ServletModule {
     @Override
-    public Set<Object> getSingletons() {
-        return objects;
-    }
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        return Collections.emptySet();
+    protected void configureServlets() {
+        serve("/*").with(GuiceEverrestServlet.class);
     }
 }
