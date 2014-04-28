@@ -103,6 +103,8 @@ public class EnvironmentContext {
 
     private String workspaceId;
 
+    private Boolean workspaceTemporary;
+
     private String accountId;
 
     public EnvironmentContext() {
@@ -115,6 +117,7 @@ public class EnvironmentContext {
         setWorkspaceName(other.getWorkspaceName());
         setWorkspaceId(other.getWorkspaceId());
         setAccountId(other.getAccountId());
+        setWorkspaceTemporary(other.isWorkspaceTemporary());
     }
 
     /** Only for IDE2 support */
@@ -159,5 +162,13 @@ public class EnvironmentContext {
 
     public void setAccountId(String accountId) {
         this.accountId = accountId;
+    }
+
+    public Boolean isWorkspaceTemporary() {
+        return workspaceTemporary;
+    }
+
+    public void setWorkspaceTemporary(Boolean workspaceTemporary) {
+        this.workspaceTemporary = workspaceTemporary;
     }
 }
