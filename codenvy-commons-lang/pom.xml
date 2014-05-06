@@ -32,13 +32,13 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
+            <version>${org.slf4j.version}</version>
         </dependency>
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
+            <version>${org.testng.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
