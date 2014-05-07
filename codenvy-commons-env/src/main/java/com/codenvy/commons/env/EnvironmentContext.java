@@ -103,7 +103,7 @@ public class EnvironmentContext {
 
     private String workspaceId;
 
-    private Boolean workspaceTemporary;
+    private boolean workspaceTemporary;
 
     private String accountId;
 
