@@ -164,11 +164,11 @@ public class EnvironmentContext {
         this.accountId = accountId;
     }
 
-    public Boolean isWorkspaceTemporary() {
+    public boolean isWorkspaceTemporary() {
         return workspaceTemporary;
     }
 
-    public void setWorkspaceTemporary(Boolean workspaceTemporary) {
+    public void setWorkspaceTemporary(boolean workspaceTemporary) {
         this.workspaceTemporary = workspaceTemporary;
     }
 }
