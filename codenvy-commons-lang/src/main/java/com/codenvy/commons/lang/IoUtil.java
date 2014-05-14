@@ -163,7 +163,12 @@ public class IoUtil {
                 }
             }
         }
-        return !fileOrDirectory.exists() || fileOrDirectory.delete();
+        if (!fileOrDirectory.delete()) {
+            if (fileOrDirectory.exists()) {
+               return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -192,7 +197,12 @@ public class IoUtil {
                 }
             }
         }
-        return !fileOrDirectory.exists() || fileOrDirectory.delete();
+        if (!fileOrDirectory.delete()) {
+            if (fileOrDirectory.exists()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
