@@ -19,6 +19,29 @@ package com.codenvy.commons.user;
 
 /** @author andrew00x */
 public interface User {
+    /** Unidentified user */
+    User ANONYMOUS = new User() {
+        @Override
+        public String getName() {
+            return "Anonymous";
+        }
+
+        @Override
+        public boolean isMemberOf(String role) {
+            return false;
+        }
+
+        @Override
+        public String getToken() {
+            return null;
+        }
+
+        @Override
+        public String getId() {
+            return "0000-00-0000";
+        }
+    };
+
     /** Get user name. */
     String getName();
 
