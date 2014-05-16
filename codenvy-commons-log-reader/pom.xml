@@ -23,7 +23,7 @@
     <parent>
         <artifactId>codenvy-commons-parent</artifactId>
         <groupId>com.codenvy.commons</groupId>
-        <version>0.21.1</version>
+        <version>0.21.2-SNAPSHOT</version>
     </parent>
     <artifactId>codenvy-commons-log-reader</artifactId>
     <packaging>jar</packaging>
