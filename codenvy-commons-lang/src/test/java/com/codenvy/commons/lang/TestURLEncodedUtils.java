@@ -159,7 +159,7 @@ public class TestURLEncodedUtils {
 
         //when
         Map<String, Set<String>> parameters = URLEncodedUtils.parse(
-                URI.create("http://hc.apache.org/params?russian=" + ru_hello + "&swiss=" + ch_hello));
+                URI.create("http://hc.apache.org/params?russian=" + ru_hello + "&swiss=" + ch_hello), false);
         //then
         assertNameValuePair(parameters, "russian", ru_hello);
         assertNameValuePair(parameters, "swiss", ch_hello);
