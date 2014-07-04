@@ -10,21 +10,34 @@
  *******************************************************************************/
 package com.codenvy.inject;
 
-import com.codenvy.commons.lang.Strings;
+import com.codenvy.commons.lang.Pair;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeConverter;
 
 /** @author andrew00x */
-public class StringArrayConverter extends AbstractModule implements TypeConverter {
+public class PairConverter extends AbstractModule implements TypeConverter {
     @Override
     public Object convert(String value, TypeLiteral<?> toType) {
-        return Strings.split(value, ',');
+        return fromString(value);
+    }
+
+    static Pair<String, String> fromString(String value) {
+        final int p = value.indexOf('=');
+        if (p < 0) {
+            return Pair.of(value, null);
+        }
+        final int length = value.length();
+        if (p == length) {
+            return Pair.of(value.substring(0, p), "");
+        }
+        return Pair.of(value.substring(0, p), value.substring(p + 1, length));
     }
 
     @Override
     protected void configure() {
-        convertToTypes(Matchers.only(TypeLiteral.get(String[].class)), this);
+        convertToTypes(Matchers.only(new TypeLiteral<Pair<String, String>>() {
+        }), this);
     }
 }

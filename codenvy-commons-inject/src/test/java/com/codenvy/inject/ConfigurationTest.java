@@ -10,6 +10,7 @@
  *******************************************************************************/
 package com.codenvy.inject;
 
+import com.codenvy.commons.lang.Pair;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -48,6 +49,10 @@ public class ConfigurationTest {
         props.put("test_url", "http://localhost");
         props.put("test_file", "/a/b/c");
         props.put("test_strings", "a, b, c");
+        props.put("test_pair_of_strings", "a=b");
+        props.put("test_pair_of_strings2", "a");
+        props.put("test_pair_of_strings3", "a=");
+        props.put("test_pair_array", "a=b,c=d");
         props.put("some.dir.in_tmp_dir", "${java.io.tmpdir}/some_dir");
         props.put("suffixed.PATH", "${PATH}" + java.io.File.pathSeparator + "some_path");
         props.put("nullable", "NULL");
@@ -56,6 +61,8 @@ public class ConfigurationTest {
                 new URLConverter(),
                 new FileConverter(),
                 new StringArrayConverter(),
+                new PairConverter(),
+                new PairArrayConverter(),
                 new CodenvyBootstrap.ExtConfiguration(),
                 new CodenvyBootstrap.AbstractConfigurationModule() {
                     @Override
@@ -107,6 +114,27 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testConvertPairOfStrings() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_pair, Pair.of("a", "b"));
+    }
+
+    @Test
+    public void testConvertPairOfStrings2() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_pair2, Pair.of("a", (String)null));
+    }
+
+    @Test
+    public void testConvertPairOfStrings3() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_pair3, Pair.of("a", ""));
+    }
+
+    @Test
+    public void testConvertPairArray() {
+        Assert.assertEquals(injector.getInstance(TestComponent.class).parameter_pair_array,
+                            new Pair[]{Pair.of("a", "b"), Pair.of("c", "d")});
+    }
+
+    @Test
     public void testGetSystemProperty() {
         Assert.assertEquals(injector.getInstance(TestComponent.class).tmpDir, new java.io.File(System.getProperty("java.io.tmpdir")));
     }
@@ -125,7 +153,7 @@ public class ConfigurationTest {
     @Test
     public void testInjectEnvironmentVariableInConfiguration() {
         Assert.assertEquals(injector.getInstance(TestComponent.class).suffixedPath,
-                            System.getenv("PATH") +  java.io.File.pathSeparator + "some_path");
+                            System.getenv("PATH") + java.io.File.pathSeparator + "some_path");
     }
 
     public static class MyModule implements Module {
@@ -163,6 +191,22 @@ public class ConfigurationTest {
         @Named("test_strings")
         @Inject
         String[] parameter_strings;
+
+        @Named("test_pair_of_strings")
+        @Inject
+        Pair<String, String> parameter_pair;
+
+        @Named("test_pair_of_strings2")
+        @Inject
+        Pair<String, String> parameter_pair2;
+
+        @Named("test_pair_of_strings3")
+        @Inject
+        Pair<String, String> parameter_pair3;
+
+        @Named("test_pair_array")
+        @Inject
+        Pair<String, String>[] parameter_pair_array;
 
         @Named("sys.java.io.tmpdir")
         @Inject

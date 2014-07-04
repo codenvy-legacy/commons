@@ -101,6 +101,8 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
         modules.add(new URLConverter());
         modules.add(new FileConverter());
         modules.add(new StringArrayConverter());
+        modules.add(new PairConverter());
+        modules.add(new PairArrayConverter());
         modules.addAll(ModuleScanner.findModules());
         modules.add(Modules.override(new WebInfConfiguration()).with(new ExtConfiguration()));
         return modules;

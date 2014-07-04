@@ -10,6 +10,7 @@
  *******************************************************************************/
 package com.codenvy.inject;
 
+import com.codenvy.commons.lang.Pair;
 import com.codenvy.commons.lang.Strings;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
@@ -17,14 +18,21 @@ import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeConverter;
 
 /** @author andrew00x */
-public class StringArrayConverter extends AbstractModule implements TypeConverter {
+public class PairArrayConverter extends AbstractModule implements TypeConverter {
     @Override
     public Object convert(String value, TypeLiteral<?> toType) {
-        return Strings.split(value, ',');
+        final String[] pairs = Strings.split(value, ',');
+        @SuppressWarnings("unchecked")
+        final Pair<String, String>[] result = new Pair[pairs.length];
+        for (int i = 0; i < pairs.length; i++) {
+            result[i] = PairConverter.fromString(pairs[i]);
+        }
+        return result;
     }
 
     @Override
     protected void configure() {
-        convertToTypes(Matchers.only(TypeLiteral.get(String[].class)), this);
+        convertToTypes(Matchers.only(new TypeLiteral<Pair<String, String>[]>() {
+        }), this);
     }
 }

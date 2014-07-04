@@ -10,6 +10,9 @@
  *******************************************************************************/
 package com.codenvy.commons.lang;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Utility class to work with String */
 public class Strings {
     private Strings() {
@@ -81,6 +84,19 @@ public class Strings {
         return sb.toString();
     }
 
+    /** Splits string by delimiter. */
+    public static String[] split(String raw, char ch) {
+        final List<String> list = new ArrayList<>(4);
+        int n = 0;
+        int p;
+        while ((p = raw.indexOf(ch, n)) != -1) {
+            list.add(raw.substring(n, p).trim());
+            n = p + 1;
+        }
+        list.add(raw.substring(n).trim());
+        return list.toArray(new String[list.size()]);
+    }
+
     /**
      * Search longest common prefix.
      *
@@ -89,14 +105,14 @@ public class Strings {
      * @return - longest common prefix of the input array of the string
      */
     public static String longestCommonPrefix(String... input) {
-        String prefix = new String();
+        String prefix = "";
         if (input.length > 0) {
             prefix = input[0];
         }
         for (int i = 1; i < input.length; ++i) {
             String s = input[i];
             int j = 0;
-            for (; j < Math.min(prefix.length(), s.length()); ++j) {
+            for (int length = Math.min(prefix.length(), s.length()); j < length; ++j) {
                 if (prefix.charAt(j) != s.charAt(j)) {
                     break;
                 }

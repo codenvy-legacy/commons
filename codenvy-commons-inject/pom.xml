@@ -23,6 +23,11 @@
     <name>Codenvy Commons :: Dependency Injecting Framework</name>
     <dependencies>
         <dependency>
+            <groupId>com.codenvy.commons</groupId>
+            <artifactId>codenvy-commons-lang</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>${com.google.code.guice.version}</version>
