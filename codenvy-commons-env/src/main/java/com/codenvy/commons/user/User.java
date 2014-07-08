@@ -33,6 +33,11 @@ public interface User {
         public String getId() {
             return "0000-00-0000";
         }
+
+        @Override
+        public boolean isTemporary() {
+            return false;
+        }
     };
 
     /** Get user name. */
@@ -61,4 +66,9 @@ public interface User {
      * @return - unique identifier of user.
      */
     String getId();
+
+    /**
+     * @return - true if user is temporary, false if this is a real persistent user.
+     */
+    boolean isTemporary();
 }
