@@ -92,4 +92,21 @@ public final class DispatcherServletConfiguration implements Iterable<Configurat
 
     private DispatcherServletConfiguration() {
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DispatcherServletConfiguration that = (DispatcherServletConfiguration)o;
+
+        if (configs != null ? !configs.equals(that.configs) : that.configs != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return configs != null ? configs.hashCode() : 0;
+    }
 }

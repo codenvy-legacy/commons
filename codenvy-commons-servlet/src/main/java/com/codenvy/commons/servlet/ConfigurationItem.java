@@ -118,4 +118,28 @@ public final class ConfigurationItem implements Comparable<ConfigurationItem> {
     public int compareTo(ConfigurationItem o) {
         return priority - o.priority;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ConfigurationItem that = (ConfigurationItem)o;
+
+        if (priority != that.priority) return false;
+        if (action != null ? !action.equals(that.action) : that.action != null) return false;
+        if (all != null ? !all.equals(that.all) : that.all != null) return false;
+        if (condition != null ? !condition.equals(that.condition) : that.condition != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = all != null ? all.hashCode() : 0;
+        result = 31 * result + (condition != null ? condition.hashCode() : 0);
+        result = 31 * result + (action != null ? action.hashCode() : 0);
+        result = 31 * result + priority;
+        return result;
+    }
 }
