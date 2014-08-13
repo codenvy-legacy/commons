@@ -13,24 +13,12 @@ package com.codenvy.commons.lang;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.FileChannel;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -158,7 +146,7 @@ public class IoUtil {
         }
         if (!fileOrDirectory.delete()) {
             if (fileOrDirectory.exists()) {
-               return false;
+                return false;
             }
         }
         return true;
@@ -496,8 +484,7 @@ public class IoUtil {
         try {
             fis = new FileInputStream(file);
             dis = new DigestInputStream(fis, digest);
-            while (dis.read(b) != -1) {
-            }
+            while (dis.read(b) != -1) ;
             return toHex(digest.digest());
         } finally {
             if (dis != null) {
