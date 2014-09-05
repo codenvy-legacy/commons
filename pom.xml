@@ -29,9 +29,6 @@
         <module>codenvy-commons-env</module>
         <module>codenvy-commons-servlet</module>
         <module>codenvy-commons-json</module>
-        <module>codenvy-commons-log-reader</module>
-        <module>codenvy-commons-mail-client</module>
-        <module>codenvy-commons-mail-server</module>
     </modules>
     <scm>
         <connection>scm:git:git@github.com:codenvy/commons.git</connection>
