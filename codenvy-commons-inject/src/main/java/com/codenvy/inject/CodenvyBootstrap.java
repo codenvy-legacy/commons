@@ -88,7 +88,9 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         final ServletContext ctx = sce.getServletContext();
         final Injector injector = getInjector(ctx);
-        injector.getInstance(Destroyer.class).destroy();
+        if (injector != null) {
+            injector.getInstance(Destroyer.class).destroy();
+        }
         super.contextDestroyed(sce);
     }
 
