@@ -15,18 +15,17 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 
 /**
- * Provides runtime information about parameterized type. Used for restoring {@link com.codenvy.dto.shared.JsonArray} and {@link
- * com.codenvy.dto.shared.JsonStringMap} from json.
+ * Provides runtime information about parameterized type.
  *
- * @author <a href="mailto:aparfonov@codenvy.com">Andrey Parfonov</a>
+ * @author andrew00x
  */
-final class ParameterizedTypeImpl implements ParameterizedType {
+public final class ParameterizedTypeImpl implements ParameterizedType {
 
-    static ParameterizedType newParameterizedType(Class<?> rawType, Type... typeArguments) {
+    public static ParameterizedType newParameterizedType(Class<?> rawType, Type... typeArguments) {
         return new ParameterizedTypeImpl(rawType, typeArguments);
     }
 
-    static ParameterizedType newParameterizedType(Class<?> rawType, Type typeArgument) {
+    public static ParameterizedType newParameterizedType(Class<?> rawType, Type typeArgument) {
         return new ParameterizedTypeImpl(rawType, typeArgument);
     }
 
