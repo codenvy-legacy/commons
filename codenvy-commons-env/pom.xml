@@ -27,5 +27,12 @@
             <artifactId>codenvy-commons-lang</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${org.testng.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
