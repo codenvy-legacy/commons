@@ -10,19 +10,14 @@
  *******************************************************************************/
 package com.codenvy.commons.lang;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -40,12 +35,9 @@ public class ZipUtils {
         if (filter == null) {
             filter = IoUtil.ANY_FILTER;
         }
-        FileOutputStream fos = null;
-        ZipOutputStream zipOut = null;
-        try {
-            byte[] b = new byte[8192];
-            fos = new FileOutputStream(zip);
-            zipOut = new ZipOutputStream(fos);
+        try (ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zip)))) {
+            zipOut.setLevel(0);
+            byte[] b = new byte[1024];
             LinkedList<File> q = new LinkedList<File>();
             q.add(dir);
             while (!q.isEmpty()) {
@@ -60,32 +52,24 @@ public class ZipUtils {
                         if (f.isDirectory()) {
                             q.push(f);
                             zipOut.putNextEntry(new ZipEntry(zipEntryName.endsWith("/") ? zipEntryName : (zipEntryName + '/')));
+                            zipOut.closeEntry();
                         } else {
                             zipOut.putNextEntry(new ZipEntry(zipEntryName));
-                            FileInputStream in = null;
-                            try {
-                                in = new FileInputStream(f);
+                            //FileInputStream in = null;
+                            try (InputStream in =  new BufferedInputStream(new FileInputStream(f))) {
+                                //in = new FileInputStream(f);
                                 int r;
                                 while ((r = in.read(b)) != -1) {
                                     zipOut.write(b, 0, r);
                                 }
                             } finally {
-                                if (in != null) {
-                                    in.close();
-                                }
                                 zipOut.closeEntry();
                             }
                         }
                     }
                 }
             }
-        } finally {
-            if (zipOut != null) {
-                zipOut.close();
-            }
-            if (fos != null) {
-                fos.close();
-            }
+            zipOut.finish();
         }
     }
 
