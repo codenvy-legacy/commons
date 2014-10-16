@@ -55,9 +55,7 @@ public class ZipUtils {
                             zipOut.closeEntry();
                         } else {
                             zipOut.putNextEntry(new ZipEntry(zipEntryName));
-                            //FileInputStream in = null;
                             try (InputStream in =  new BufferedInputStream(new FileInputStream(f))) {
-                                //in = new FileInputStream(f);
                                 int r;
                                 while ((r = in.read(b)) != -1) {
                                     zipOut.write(b, 0, r);
