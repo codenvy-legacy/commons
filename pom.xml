@@ -28,6 +28,7 @@
         <module>codenvy-commons-inject</module>
         <module>codenvy-commons-env</module>
         <module>codenvy-commons-json</module>
+        <module>codenvy-commons-xml</module>
     </modules>
     <scm>
         <connection>scm:git:git@github.com:codenvy/commons.git</connection>
