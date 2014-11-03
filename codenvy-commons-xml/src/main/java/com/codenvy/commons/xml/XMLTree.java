@@ -12,28 +12,28 @@ package com.codenvy.commons.xml;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.ByteArrayInputStream;
+import java.io.CharArrayReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import static com.codenvy.commons.xml.Util.ensureOnly;
-import static com.codenvy.commons.xml.Util.fetchText;
-import static java.util.Collections.emptyList;
+import static com.codenvy.commons.xml.Util.getOnly;
+import static com.codenvy.commons.xml.Util.insert;
+import static java.util.Collections.unmodifiableList;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
 /**
  * TODO: add update methods
- * use batch update of src array or one update per one operation?
+ * use batch update of xml array or one update per one operation?
  *
  * @author Eugene Voevodin
  */
@@ -45,33 +45,43 @@ public final class XMLTree {
      * Creates XMLTree from input stream.
      * Doesn't close the stream.
      */
-    public static XMLTree from(InputStream is) throws IOException {
-        return new XMLTree(ByteStreams.toByteArray(is));
+    public static XMLTree from(Reader reader) throws IOException {
+        //FIXME
+        //use this reader directly with XMLStreamReader
+        //make reader read chars only time
+        //and then get it?
+        return new XMLTree(CharStreams.toString(reader).toCharArray());
     }
 
-    /**
-     * Create XMLTree from byte array.
-     */
-    public static XMLTree from(byte[] xmlBytes) {
-        return new XMLTree(xmlBytes);
+    public static XMLTree from(char[] xml) {
+        return new XMLTree(xml);
     }
 
     private XPathLayer xPathLayer;
 
-    byte[]                     xmlBytes;
-    ListMultimap<String, Node> nodesMap;
+    char[]                        xml;
+    ListMultimap<String, Element> elements;
 
-    private XMLTree(byte[] xmlBytes) {
-        this.xmlBytes = xmlBytes;
-        nodesMap = ArrayListMultimap.create();
+    private XMLTree(char[] xml) {
+        this.xml = xml;
+        elements = ArrayListMultimap.create();
         constructTreeQuietly();
     }
 
     /**
-     * Searches for element text
+     * Searches for element eachText
      */
-    public String searchText(String query) {
-        return text(ensureOnly(nodesMap.get(query)));
+    public String singleText(String query) {
+        return getOnly(elements.get(query)).getText();
+    }
+
+    public List<String> eachText(String query) {
+        final List<Element> elements = elements(query);
+        final List<String> elementsText = new ArrayList<>(elements.size());
+        for (Element element : elements) {
+            elementsText.add(element.getText());
+        }
+        return elementsText;
     }
 
     /**
@@ -82,13 +92,8 @@ public final class XMLTree {
      *         element path
      * @return list of found elements or empty list if no elements were found
      */
-    public List<Element> searchElements(String path) {
-        final List<Node> nodes = nodesMap.get(path);
-        final List<Element> elements = new ArrayList<>(nodes.size());
-        for (Node node : nodes) {
-            elements.add(new Element(node));
-        }
-        return elements;
+    public List<Element> elements(String path) {
+        return unmodifiableList(elements.get(path));
     }
 
     public XPathLayer xpath() {
@@ -98,61 +103,106 @@ public final class XMLTree {
         return xPathLayer;
     }
 
-    //TODO: mb move to Node!?
-    public String text(Node node) {
-        if (node.text == null) {
-            node.text = node.textSegments.isEmpty() ? "" : fetchText(xmlBytes, node.textSegments);
+    //TODO make public method for update
+    void updateText(Element target) {
+        int left;
+        int right;
+        final List<Segment> segments = target.textSegments;
+        if (segments != null) {
+            left = segments.get(0).left;
+            right = segments.get(segments.size() - 1).right;
+        } else {
+            left = target.nodeStart.right + 1;
+            right = target.nodeEnd.left;
         }
-        return node.text;
+        xml = insert(xml, left, right, target.text);
+        if (xPathLayer != null) {
+            xPathLayer.updateText(target);
+        }
+    }
+
+    //methods based on string paths
+
+    public void updateText(String elementPath, String newContent) {
+        getOnly(elements.get(elementPath)).setText(newContent);
+    }
+
+    public void appendChild(String parentPath, Element newElement) {
+        throw new XMLTreeException("Not implemented");
+    }
+
+    public void insertBefore(String beforeElementPath, Element newElement) {
+        throw new XMLTreeException("Not implemented");
+    }
+
+    public void insertAfter(String afterElementPath, Element newElement) {
+        throw new XMLTreeException("Not implemented");
+    }
+
+    //FIXME do we need such method?
+    public void insertOrdered(String parentPath, Element newElement) {
+        throw new XMLTreeException("Not implemented");
+    }
+
+    public void delete(String path) {
+        throw new XMLTreeException("Not implemented");
     }
 
     private void constructTree() throws XMLStreamException {
         final XMLStreamReader reader = newXMLStreamReader();
         //TODO: rewrite with LinkedList to avoid synchronization
-        final Stack<Node> startedNodes = new Stack<>();
-        //determines end of before selected element
+        final Stack<Element> startedNodes = new Stack<>();
+        //determines right of before selected element
         //used to cover next element with segment
-        int beforeInstruction = -1;
+        int start = -1;
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case START_ELEMENT:
-                    final Node newNode = new Node();
-                    newNode.nodeStart = new Segment(beforeInstruction + 1, offset(reader));
-                    newNode.name = reader.getLocalName();
-                    newNode.attributes = fetchAttrs(reader);
+                    final Element newElement = new Element(this);
+                    newElement.nodeStart = new Segment(start, offset(reader));
+                    newElement.name = reader.getLocalName();
+                    fetchAttrs(newElement, reader);
                     //if new node is not xml root - set up relationships
                     if (!startedNodes.isEmpty()) {
-                        connect(startedNodes.peek(), newNode);
+                        newElement.setParent(startedNodes.peek());
                     }
-                    nodesMap.put(newNode.path(), newNode);
-                    startedNodes.push(newNode);
+                    elements.put(newElement.path(), newElement);
+                    startedNodes.push(newElement);
                     break;
                 case END_ELEMENT:
-                    startedNodes.pop().nodeEnd = new Segment(beforeInstruction + 1, offset(reader));
+                    startedNodes.pop().nodeEnd = new Segment(start, offset(reader));
                     break;
                 case CHARACTERS:
-                    //TODO rework with text segments
-                    final Node current = startedNodes.peek();
+                    final Element current = startedNodes.peek();
                     if (current.textSegments == null) {
-                        current.textSegments = new ArrayList<>(3);
+                        //TODO think about list size
+                        current.textSegments = new ArrayList<>();
                     }
-//                    current.textSegments.add(new Segment(beforeInstruction + 1, offset(reader)));
-                    //FIXME: when segments will be ready remove this
-                    current.text = reader.getText();
+                    current.textSegments.add(new Segment(start, offset(reader) - 1));
                     break;
             }
-            beforeInstruction = offset(reader);
+            start = offset(reader);
         }
     }
 
     //TODO
-    private List<AttrNode> fetchAttrs(XMLStreamReader reader) {
+    private void fetchAttrs(Element element, XMLStreamReader reader) {
         //There is no ability to fetch attributes like nodes
         //but each START_ELEMENT event of reader gives us ability
         //to fetch basic information about attributes such as names and values
         //so we need to provide mechanism of attributes fetching.
-        //It can be done by analyzing segment of node start!
-        return emptyList();
+        //It can be done by analyzing segment of node left!
+        int count = reader.getAttributeCount();
+        final ArrayList<Attribute> attributes = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            //TODO analyze attribute positions
+//            final Attribute newAttr = new Attribute();
+//            newAttr.name = reader.getAttributeLocalName(i);
+//            newAttr.owner = element;
+//            newAttr.value = reader.getAttributeValue(i);
+        }
+//        element.attributes = attrNodes;
+        element.attributes = attributes;
     }
 
     private void constructTreeQuietly() {
@@ -163,67 +213,31 @@ public final class XMLTree {
         }
     }
 
-    private void connect(Node parent, Node child) {
-        if (parent.children == null) {
-            parent.children = new ArrayList<>();
-        }
-        parent.children.add(child);
-        child.parent = parent;
-    }
-
     /**
-     * Returns reader offset
-     * TODO: why -2? study this
+     * TODO rewrite
+     * XMLStream reader returns nice offset for all events instead of CHARACTERS event.
+     * For characters event reader returns +1 or +2 to original offset, it depends on
+     * next event type - if next type is END_ELEMENT then reader returns +2, if
+     * next type is START_ELEMENT then reader returns +1.
+     *
+     * @param reader
+     *         reader which is going to be used to detect offset
+     * @return the right of current reader event
      */
     private int offset(XMLStreamReader reader) {
-        return reader.getLocation().getCharacterOffset() - 2;
+        final int offset = reader.getLocation().getCharacterOffset();
+        if (reader.getEventType() != CHARACTERS) {
+            return offset;
+        }
+        return xml[offset - 1] == '<' ? offset - 1 : offset - 2;
     }
 
     private XMLStreamReader newXMLStreamReader() {
         try {
-            return XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(xmlBytes), "utf-8");
+            //TODO
+            return XML_INPUT_FACTORY.createXMLStreamReader(new CharArrayReader(xml));
         } catch (XMLStreamException xmlEx) {
             throw XMLTreeException.wrap(xmlEx);
-        }
-    }
-
-    static class Node {
-        Segment       nodeStart;
-        Segment       nodeEnd;
-        List<Segment> textSegments;
-
-        String         name;
-        String         text;
-        Node           parent;
-        List<Node>     children;
-        List<AttrNode> attributes;
-
-        //TODO move from node or add such methods as text, connect here instead of XMLTree
-        String path() {
-            if (parent == null) {
-                return '/' + name;
-            }
-            return parent.path() + '/' + name;
-        }
-    }
-
-    static class AttrNode {
-        //TODO: here should be an attribute positions
-        Node   owner;
-        String name;
-        String value;
-    }
-
-    /**
-     * Used to remember positions of xml nodes and attributes.
-     */
-    static class Segment {
-        final int start;
-        final int end;
-
-        Segment(int start, int end) {
-            this.start = start;
-            this.end = end;
         }
     }
 }

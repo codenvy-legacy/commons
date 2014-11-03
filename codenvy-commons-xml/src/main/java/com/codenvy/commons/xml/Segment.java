@@ -11,8 +11,14 @@
 package com.codenvy.commons.xml;
 
 /**
- * TODO
- *
  * @author Eugene Voevodin
  */
-public final class Attribute {}
+final class Segment {
+    final int left;
+    final int right;
+
+    Segment(int left, int right) {
+        this.left = left;
+        this.right = right;
+    }
+}

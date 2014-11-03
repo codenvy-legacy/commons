@@ -10,7 +10,6 @@
  *******************************************************************************/
 package com.codenvy.commons.xml;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.System.arraycopy;
@@ -22,45 +21,27 @@ import static java.lang.System.arraycopy;
  */
 final class Util {
 
-    static <T> T argumentRequired(T obj, String argumentName) {
-        if (obj == null) {
-            throw new IllegalArgumentException(argumentName + " argument required");
-        }
-        return obj;
+    static char[] insert(char[] src, int left, int right, String content) {
+        char[] target = new char[src.length + content.length() + right - left];
+        arraycopy(src, 0, target, 0, left);
+        arraycopy(content.toCharArray(), 0, target, left, content.length());
+        arraycopy(src, right + 1, target, left + content.length(), src.length - right - 1);
+        return target;
     }
 
-    static XMLTree.Node ensureOnly(List<XMLTree.Node> target) {
+    static <T> T getOnly(List<T> target) {
         if (target.size() != 1) {
-            throw new XMLTreeException("Found more then only element");
+            throw new XMLTreeException("Required list with one element");
         }
         return target.get(0);
     }
 
-    static List<Element> asElements(List<XMLTree.Node> nodes) {
-        final ArrayList<Element> elements = new ArrayList<>(nodes.size());
-        for (XMLTree.Node node : nodes) {
-            elements.add(new Element(node));
+    static String fetchText(char[] src, List<Segment> segments) {
+        final StringBuilder sb = new StringBuilder();
+        for (Segment segment : segments) {
+            sb.append(src, segment.left, 1 + segment.right - segment.left);
         }
-        return elements;
-    }
-
-    static String fetchText(byte[] src, List<XMLTree.Segment> segments) {
-        byte[] text = new byte[capacity(segments)];
-        int copied = 0;
-        for (XMLTree.Segment segment : segments) {
-            int length = 1 + segment.end - segment.start;
-            arraycopy(src, segment.start, text, copied, length);
-            copied += length;
-        }
-        return new String(text);
-    }
-
-    static int capacity(List<XMLTree.Segment> segments) {
-        int capacity = 0;
-        for (XMLTree.Segment segment : segments) {
-            capacity += 1 + segment.end - segment.start;
-        }
-        return capacity;
+        return sb.toString();
     }
 
     private Util() {

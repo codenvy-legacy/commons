@@ -11,74 +11,104 @@
 package com.codenvy.commons.xml;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import static com.codenvy.commons.xml.Util.argumentRequired;
-import static java.util.Collections.emptyList;
+import static com.codenvy.commons.xml.Util.fetchText;
 import static java.util.Collections.unmodifiableList;
 
 /**
- * TODO
- *
  * @author Eugene Voevodin
  */
 public final class Element {
 
-    private XMLTree.Node delegate;
+    private final XMLTree owner;
 
-    Element(XMLTree.Node delegate) {
-        this.delegate = delegate;
+    Segment       nodeStart;
+    Segment       nodeEnd;
+    List<Segment> textSegments;
+
+    String          name;
+    String          text;
+    Element         parent;
+    List<Element>   children;
+    List<Attribute> attributes;
+
+    Element(XMLTree owner) {
+        this.owner = owner;
     }
 
-    public Element(String name) {
-        delegate = new XMLTree.Node();
-        delegate.name = argumentRequired(name, "Element name");
+    void setParent(Element parent) {
+        if (parent.children == null) {
+            parent.children = new ArrayList<>();
+        }
+        parent.children.add(this);
+        this.parent = parent;
+    }
+
+    public String path() {
+        return parent == null ? '/' + name : parent.path() + '/' + name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Element getParent() {
-        if (delegate.parent != null) {
-            return new Element(delegate.parent);
-        }
-        //TODO: mb return element holder? and provide method hasParent?
-        return null;
+        return parent;
     }
 
-    //FIXME: should it be first sibling? or list of siblings?
-    public Element getSibling(String name) {
-        for (XMLTree.Node child : delegate.parent.children) {
-            if (child != delegate && child.name.equals(name)) {
-                return new Element(child);
+    public Element getFirstSibling(String name) {
+        for (Element child : parent.children) {
+            if (this != child && child.name.equals(name)) {
+                return child;
             }
         }
-        throw new XMLTreeException("Sibling " + name + " doesn't exist");
+        return null; //or throw exception?
     }
 
+    public Element getFirstChild(String name) {
+        for (Element child : children) {
+            if (child.name.equals(name)) {
+                return child;
+            }
+        }
+        return null; //or throw exception
+    }
+
+
     public List<Element> getChildren() {
-        if (delegate.children == null) {
-            return emptyList();
-        }
-        final List<Element> elements = new ArrayList<>(delegate.children.size());
-        for (XMLTree.Node child : delegate.children) {
-            elements.add(new Element(child));
-        }
-        return unmodifiableList(elements);
+        return unmodifiableList(children);
     }
 
     public String getText() {
-        return delegate.text;
+        if (text == null) {
+            text = textSegments == null ? "" : fetchText(owner.xml, textSegments);
+        }
+        return text;
     }
 
     public boolean hasSibling(String name) {
-        for (XMLTree.Node child : delegate.parent.children) {
-            if (child != delegate && child.name.equals(name)) {
+        for (Element child : parent.children) {
+            if (child != this && child.name.equals(name)) {
                 return true;
             }
         }
         return false;
     }
 
+    public List<Element> getSiblings() {
+        final List<Element> siblings = new ArrayList<>(parent.children.size() - 1);
+        for (Element sibling : parent.children) {
+            if (sibling != this) {
+                siblings.add(sibling);
+            }
+        }
+        return unmodifiableList(siblings);
+    }
+
     public boolean hasChild(String name) {
-        for (XMLTree.Node child : delegate.children) {
+        for (Element child : children) {
             if (child.name.equals(name)) {
                 return true;
             }
@@ -86,7 +116,11 @@ public final class Element {
         return false;
     }
 
-    //TODO: hasParent()?
+    public Element setText(String text) {
+        this.text = text;
+        owner.updateText(this);
+        return this;
+    }
 
     //TODO
     public List<Attribute> getAttributes() {
@@ -96,12 +130,6 @@ public final class Element {
     //TODO
     public Element addAttribute(Attribute attribute) {
         throw new XMLTreeException("Not implemented");
-    }
-
-    //TODO rewrite src with this update
-    public Element setText(String text) {
-        delegate.text = text;
-        return this;
     }
 
     //TODO
@@ -117,6 +145,6 @@ public final class Element {
     //FIXME
     @Override
     public String toString() {
-        return "(name: " + delegate.name + ". text: " + delegate.text.trim() + ")";
+        return "(name: " + name + ". text:" + text + " )";
     }
 }
