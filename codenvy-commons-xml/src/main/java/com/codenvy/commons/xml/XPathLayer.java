@@ -13,6 +13,7 @@ package com.codenvy.commons.xml;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -20,8 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.CharArrayReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,30 +31,27 @@ import static org.w3c.dom.Node.DOCUMENT_NODE;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
- * TODO: provide update methods
  * Each XMLTree update should be reinvoked
  * in XPathLayer to stay in touch with real data.
  * <p/>
- * FIXME: add javadoc tags
  * What is XPathLayer?
  * One of the main requirements to XMLTree
  * is that client should have ability to use xpath syntax for querying!
  * How can it be done?
  * 1. By implementing org.w3c.dom.
- * 2. By parsing xml file with existed java parsers which support xpath.
+ * 2. By parallel document parsing to {@link XMLTree} and {@link Document}
+ * 3. By parsing xml file with existed java parsers which support xpath.
  * <p/>
  * XPath layer is 2nd variant.
  * <p/>
  * So we delegate existed parser to select information with xpath.
  * <p/>
- * 1. Each xpath request which searches for eachText - returns eachText.
+ * 1. Each xpath request which searches for getText - returns getText.
  * <p/>
  * 2. Each xpath request which searches for NodeList - returns {@code List<Element>}.
  * So we search for XMLTree.Node-s which are same to response org.w3c.don.Node-s
- * and mapping it to List of Elements.
+ * just mapped to Elements.
  * <p/>
- * 3. Each xpath request which searches for NodeList as Attributes - returns {@code List<Attribute>}
- * We do the same like with elements.
  *
  * @author Eugene Voevodin
  */
@@ -64,25 +61,19 @@ public final class XPathLayer {
     private static final XPathFactory           XPATH_FACTORY            = XPathFactory.newInstance();
 
     private final Document document;
-    private final XMLTree  owner;
+    private final XMLTree  xmlTree;
 
-    XPathLayer(XMLTree owner) {
-        this.owner = owner;
-        //TODO: do not parse tree in constructor
-        //why not?
-        //we need to have one xpath layer instance per one tree
-        //and when user doesn't need to use xpath
-        //we parsing document, but we don't need to do it
-        this.document = parseQuietly(owner.xml);
+    XPathLayer(XMLTree xmlTree) {
+        this.xmlTree = xmlTree;
+        this.document = parseQuietly(xmlTree.xml);
     }
 
-    public String singleText(String expression) {
+    public String getSingleText(String expression) {
         return evaluateQuietly(expression, STRING);
     }
 
-    public List<String> eachText(String expression) {
+    public List<String> getText(String expression) {
         final NodeList nodeList = evaluateQuietly(expression, NODESET);
-        //TODO think about list size
         final List<String> elementsText = new ArrayList<>(nodeList.getLength());
         for (int i = 0; i < nodeList.getLength(); i++) {
             elementsText.add(nodeList.item(i).getTextContent());
@@ -90,39 +81,37 @@ public final class XPathLayer {
         return elementsText;
     }
 
-    public List<Element> elements(String expression) {
+    public List<Element> getElements(String expression) {
         final NodeList nodeList = evaluateQuietly(expression, NODESET);
         //TODO think about array size
         final List<Element> requested = new ArrayList<>(nodeList.getLength());
         for (int i = 0; i < nodeList.getLength(); i++) {
             final Node current = nodeList.item(i);
             if (current.getNodeType() == ELEMENT_NODE) {
-                final String path = path(current);
-                //FIXME
-                final NodeList nodes = evaluateQuietly(path, NODESET);
-
-                final List<Element> variants = owner.elements.get(path);
-                requested.add(variants.get(nodeIndex(nodes, current)));
+                requested.add(elementFor(current));
             }
         }
         return requested;
     }
 
+    //FIXME don't use index ?
+    private int elementIndex(Element element) {
+        List<Element> related = xmlTree.elements.get(element.path());
+        for (int idx = 0; idx < related.size(); idx++) {
+            if (related.get(idx) == element) {
+                return idx;
+            }
+        }
+        throw new XMLTreeException("You should not see this message");
+    }
 
-    /**
-     * It is really bad way to do it right.
-     * We searching for element index in document and trying to select
-     * node with same index from our tree
-     * <p/>
-     * <p/>
-     * FIXME
-     */
+    //FIXME don't use index ?
     private int nodeIndex(NodeList list, Node node) {
         int idx = 0;
         for (int i = 0; i < list.getLength(); i++) {
             final Node current = list.item(i);
             if (current.getNodeType() == ELEMENT_NODE) {
-                if (list.item(i).equals(node)) {
+                if (list.item(i) == node) {
                     return idx;
                 }
                 idx++;
@@ -131,19 +120,36 @@ public final class XPathLayer {
         throw new XMLTreeException("You should not see this message");
     }
 
-    private int elementIndex(Element element) {
-        List<Element> related = owner.elements.get(element.path());
-        for (int idx = 0; idx < related.size(); idx++) {
-            if (element == related.get(idx)) {
-                return idx;
-            }
-        }
-        throw new XMLTreeException("You should not see this message");
-    }
-
-    public void updateText(Element target) {
+    void updateText(Element target) {
         final NodeList list = evaluateQuietly(target.path(), NODESET);
         list.item(elementIndex(target)).setTextContent(target.getText());
+    }
+
+    void insertAfter(Element newElement, Element refElement) {
+        final Node refNode = nodeFor(refElement);
+        final Node nextSibling = nextElementSibling(refNode);
+        if (nextSibling != null) {
+            document.getDocumentElement().insertBefore(clone(newElement), nextSibling);
+        } else {
+            refNode.getParentNode().appendChild(clone(newElement));
+        }
+    }
+
+    void insertBefore(Element newElement, Element refElement) {
+        final Node refNode = nodeFor(refElement);
+        document.getDocumentElement().insertBefore(clone(newElement), refNode);
+    }
+
+    private Node nodeFor(Element element) {
+        final NodeList nodeList = evaluateQuietly(element.path(), NODESET);
+        return nodeList.item(elementIndex(element));
+    }
+
+    private Element elementFor(Node node) {
+        final String path = path(node);
+        final List<Element> elements = xmlTree.elements.get(path);
+        final NodeList nodeList = evaluateQuietly(path, NODESET);
+        return elements.get(nodeIndex(nodeList, node));
     }
 
     private String path(Node node) {
@@ -169,14 +175,23 @@ public final class XPathLayer {
     private Document parseQuietly(char[] xml) {
         try {
             final DocumentBuilder db = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-            return db.parse(newIS(xml));
+            return db.parse(new InputSource(new CharArrayReader(xml)));
         } catch (Exception ex) {
             throw XMLTreeException.wrap(ex);
         }
     }
 
-    //TODO remove from here
-    public InputStream newIS(char[] xml) {
-        return new ByteArrayInputStream(new String(xml).getBytes());
+    private Node nextElementSibling(Node node) {
+        node = node.getNextSibling();
+        while (node != null && node.getNodeType() != ELEMENT_NODE) {
+            node = node.getNextSibling();
+        }
+        return node;
+    }
+
+    private Node clone(Element element) {
+        final Node newNode = document.createElement(element.getName());
+        newNode.setTextContent(element.getText());
+        return newNode;
     }
 }

@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.stream.XMLStreamException;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.codenvy.commons.xml.Util.getOnly;
@@ -28,56 +29,57 @@ import static org.testng.Assert.assertTrue;
  */
 public class XMLTreeTest {
 
-    private static final char[] XML_CONTENT = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                                               "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
-                                               "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
-                                               "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
-                                               "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
-                                               "    <modelVersion>4.0.0</modelVersion>\n" +
-                                               "    <parent>\n" +
-                                               "        <artifactId>test-parent</artifactId>\n" +
-                                               "        <groupId>test-parent-group-id</groupId>\n" +
-                                               "        <version>test-parent-version</version>\n" +
-                                               "    </parent>\n" +
-                                               "    <artifactId>test-artifact</artifactId>\n" +
-                                               "    <packaging>jar</packaging>\n" +
-                                               "    <name>Test</name>\n" +
-                                               "    <configuration>\n" +
-                                               "        <items combine.children=\"append\">\n" +
-                                               "            <item>parent-1</item>\n" +
-                                               "            <item>parent-2</item>\n" +
-                                               "            <item>child-1</item>\n" +
-                                               "        </items>\n" +
-                                               "        <properties combine.self=\"override\">\n" +
-                                               "            <childKey>child</childKey>\n" +
-                                               "        </properties>\n" +
-                                               "    </configuration>\n" +
-                                               "    <dependencies>\n" +
-                                               "        <dependency>\n" +
-                                               "            <groupId>com.google.guava</groupId>\n" +
-                                               "            <artifactId>guava</artifactId>\n" +
-                                               "            <version>18.0</version>\n" +
-                                               "        </dependency>\n" +
-                                               "        <dependency>\n" +
-                                               "            <groupId>org.testng</groupId>\n" +
-                                               "            <artifactId>testng</artifactId>\n" +
-                                               "            <version>6.8</version>\n" +
-                                               "            <scope>test</scope>\n" +
-                                               "        </dependency>\n" +
-                                               "        <dependency>\n" +
-                                               "            <groupId>org.mockito</groupId>\n" +
-                                               "            <artifactId>mockito-core</artifactId>\n" +
-                                               "            <version>1.10.0</version>\n" +
-                                               "            <scope>test</scope>\n" +
-                                               "        </dependency>\n" +
-                                               "    </dependencies>\n" +
-                                               "</project>\n").toCharArray();
+    private static final String XML_CONTENT = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                              "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                              "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                              "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                              "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                              "    <modelVersion>4.0.0</modelVersion>\n" +
+                                              "    <parent>\n" +
+                                              "        <artifactId>test-parent</artifactId>\n" +
+                                              "        <groupId>test-parent-group-id</groupId>\n" +
+                                              "        <version>test-parent-version</version>\n" +
+                                              "    </parent>\n" +
+                                              "    <artifactId>test-artifact</artifactId>\n" +
+                                              "    <packaging>jar</packaging>\n" +
+                                              "    <name>Test</name>\n" +
+                                              "    <configuration>\n" +
+                                              "        <items combine.children=\"append\">\n" +
+                                              "            <item>parent-1</item>\n" +
+                                              "            <item>parent-2</item>\n" +
+                                              "            <item>child-1</item>\n" +
+                                              "        </items>\n" +
+                                              "        <properties combine.self=\"override\">\n" +
+                                              "            <childKey>child</childKey>\n" +
+                                              "        </properties>\n" +
+                                              "    </configuration>\n" +
+                                              "    <dependencies>\n" +
+                                              "        <dependency>\n" +
+                                              "            <groupId>com.google.guava</groupId>\n" +
+                                              "            <artifactId>guava</artifactId>\n" +
+                                              "            <version>18.0</version>\n" +
+                                              "        </dependency>\n" +
+                                              "        <!-- Test dependencies -->\n" +
+                                              "        <dependency>\n" +
+                                              "            <groupId>org.testng</groupId>\n" +
+                                              "            <artifactId>testng</artifactId>\n" +
+                                              "            <version>6.8</version>\n" +
+                                              "            <scope>test</scope>\n" +
+                                              "        </dependency>\n" +
+                                              "        <dependency>\n" +
+                                              "            <groupId>org.mockito</groupId>\n" +
+                                              "            <artifactId>mockito-core</artifactId>\n" +
+                                              "            <version>1.10.0</version>\n" +
+                                              "            <scope>test</scope>\n" +
+                                              "        </dependency>\n" +
+                                              "    </dependencies>\n" +
+                                              "</project>\n";
 
     @Test
     public void shouldFindSingleTextUsingElementPath() throws XMLStreamException {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final String packaging = tree.singleText("/project/packaging");
+        final String packaging = tree.getSingleText("/project/packaging");
 
         assertEquals(packaging, "jar");
     }
@@ -86,7 +88,7 @@ public class XMLTreeTest {
     public void shouldFindSingleTextUsingXPath() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final String version = tree.xpath().singleText("/project/dependencies/dependency[groupId='org.testng']/version");
+        final String version = tree.xpath().getSingleText("/project/dependencies/dependency[groupId='org.testng']/version");
 
         assertEquals(version, "6.8");
     }
@@ -96,7 +98,7 @@ public class XMLTreeTest {
     public void shouldFindElementsUsingElementPath() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final List<Element> elements = tree.elements("/project/dependencies/dependency");
+        final List<Element> elements = tree.getElements("/project/dependencies/dependency");
 
         assertEquals(elements.size(), 3);
     }
@@ -105,7 +107,7 @@ public class XMLTreeTest {
     public void shouldFindElementsUsingXPath() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final List<Element> artifacts = tree.xpath().elements("/project/dependencies/dependency[scope='test']/artifactId");
+        final List<Element> artifacts = tree.xpath().getElements("/project/dependencies/dependency[scope='test']/artifactId");
 
         assertEquals(artifacts.size(), 2);
         assertEquals(asList(artifacts.get(0).getText(), artifacts.get(1).getText()), asList("testng", "mockito-core"));
@@ -115,7 +117,7 @@ public class XMLTreeTest {
     public void shouldFindEachElementTextUsingElementsPath() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final List<String> artifacts = tree.eachText("/project/dependencies/dependency/artifactId");
+        final List<String> artifacts = tree.getText("/project/dependencies/dependency/artifactId");
 
         assertEquals(artifacts, asList("guava", "testng", "mockito-core"));
     }
@@ -124,20 +126,31 @@ public class XMLTreeTest {
     public void shouldFindEachElementTextUsingXPath() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final List<String> artifacts = tree.xpath().eachText("/project/dependencies/dependency[scope='test']/artifactId");
+        final List<String> artifacts = tree.xpath().getText("/project/dependencies/dependency[scope='test']/artifactId");
 
         assertEquals(artifacts, asList("testng", "mockito-core"));
     }
 
     @Test
-    public void shouldFindAttributesTextWithXPath() {
+    public void shouldFindAttributesValuesWithXPath() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final List<String> attributes = tree.xpath().eachText("/project/configuration/properties/@combine.self");
+        final List<String> attributes = tree.xpath().getText("/project/configuration/properties/@combine.self");
 
         assertEquals(attributes, asList("override"));
     }
 
+    @Test
+    public void shouldBeAbleToGetAttributesUsingModel() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        final Element properties = getOnly(tree.xpath().getElements("/project/configuration/properties"));
+
+        assertEquals(properties.getAttributes().size(), 1);
+        final Attribute attribute = properties.getAttributes().get(0);
+        assertEquals(attribute.getName(), "combine.self");
+        assertEquals(attribute.getValue(), "override");
+    }
 
     //TODO add more tests with attributes
 
@@ -145,7 +158,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetElementParent() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.xpath().elements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
 
         assertEquals(artifactID.getParent().getName(), "dependency");
     }
@@ -154,7 +167,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToCheckElementHasSibling() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.xpath().elements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
 
         assertTrue(artifactID.hasSibling("groupId"));
         assertTrue(artifactID.hasSibling("version"));
@@ -166,19 +179,19 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetFirstSibling() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.xpath().elements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
 
-        assertEquals(artifactID.getFirstSibling("groupId").getText(), "org.testng");
-        assertEquals(artifactID.getFirstSibling("version").getText(), "6.8");
-        assertEquals(artifactID.getFirstSibling("scope").getText(), "test");
-        assertNull(artifactID.getFirstSibling("other"));
+        assertEquals(artifactID.getSibling("groupId").getText(), "org.testng");
+        assertEquals(artifactID.getSibling("version").getText(), "6.8");
+        assertEquals(artifactID.getSibling("scope").getText(), "test");
+        assertNull(artifactID.getSibling("other"));
     }
 
     @Test
     public void shouldBeAbleToGetSiblings() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.xpath().elements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
 
         assertEquals(artifactID.getSiblings().size(), 3);
     }
@@ -187,7 +200,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToCheckElementHasChild() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.xpath().elements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='guava']"));
 
         assertTrue(guavaDep.hasChild("groupId"));
         assertTrue(guavaDep.hasChild("version"));
@@ -199,31 +212,164 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetFirstChild() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.xpath().elements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='guava']"));
 
-        assertEquals(guavaDep.getFirstChild("groupId").getText(), "com.google.guava");
-        assertEquals(guavaDep.getFirstChild("version").getText(), "18.0");
-        assertEquals(guavaDep.getFirstChild("artifactId").getText(), "guava");
-        assertNull(guavaDep.getFirstChild("scope"));
+        assertEquals(guavaDep.getChild("groupId").getText(), "com.google.guava");
+        assertEquals(guavaDep.getChild("version").getText(), "18.0");
+        assertEquals(guavaDep.getChild("artifactId").getText(), "guava");
+        assertNull(guavaDep.getChild("scope"));
     }
 
     @Test
     public void shouldBeAbleToGetChildren() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.xpath().elements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='guava']"));
 
         assertEquals(guavaDep.getChildren().size(), 3);
     }
 
     @Test
-    public void shouldBeAbleToChangeElementText() {
+    public void shouldBeAbleToChangeElementTextByModel() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        tree.xpath();
+
+        final Element name = getOnly(tree.getElements("/project/name"));
+        name.setText("new name");
+
+        assertEquals(tree.getSingleText("/project/name"), "new name");
+        assertEquals(tree.xpath().getSingleText("/project/name"), "new name");
+    }
+
+    @Test
+    public void shouldBeAbleToChangeElementTextByTree() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        tree.xpath();
+
+        tree.updateText("/project/name", "new name");
+
+        assertEquals(tree.getSingleText("/project/name"), "new name");
+        assertEquals(tree.xpath().getSingleText("/project/name"), "new name");
+    }
+
+    @Test
+    public void shouldBeAbleToAppendChildByModel() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        tree.xpath();
+
+        final Element guavaDep = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='guava']"));
+        guavaDep.appendChild(tree.newElement("scope", "compile"));
+
+        assertTrue(guavaDep.hasChild("scope"));
+        assertEquals(guavaDep.getChild("scope").getText(), "compile");
+        assertEquals(tree.xpath().getSingleText("/project/dependencies/dependency[artifactId='guava']/scope"), "compile");
+    }
+
+    @Test
+    public void shouldBeAbleToInsertElementAfterExisting() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        tree.xpath();
+
+        final Element name = getOnly(tree.getElements("/project/name"));
+        name.insertAfter(tree.newElement("description", "This is test pom.xml"));
+
+        assertTrue(name.hasSibling("description"));
+        assertEquals(name.getSibling("description").getText(), "This is test pom.xml");
+        assertEquals(tree.xpath().getSingleText("/project/description"), "This is test pom.xml");
+    }
+
+    @Test
+    public void shouldBeAbleToInsertElementBeforeExisting() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element version = getOnly(tree.xpath().elements("/project/dependencies/dependency[artifactId='testng']/version"));
-        version.setText("6.0");
+        final Element name = getOnly(tree.getElements("/project/name"));
+        name.insertBefore(tree.newElement("description", "This is test pom.xml"));
 
-        assertEquals(tree.elements("/project/dependencies/dependency/version").get(1).getText(), "6.0");
-        assertEquals(tree.xpath().singleText("/project/dependencies/dependency[artifactId='testng']/version"), "6.0");
+        assertTrue(name.hasSibling("description"));
+        assertEquals(name.getSibling("description").getText(), "This is test pom.xml");
+        assertEquals(tree.xpath().getSingleText("/project/description"), "This is test pom.xml");
+    }
+
+    @Test
+    public void shouldBeAbleToInsertElementBeforeFirstExisting() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        tree.xpath();
+
+        final Element modelVersion = getOnly(tree.getElements("/project/modelVersion"));
+        modelVersion.insertBefore(tree.newElement("description", "This is test pom.xml"));
+
+        assertTrue(modelVersion.hasSibling("description"));
+        assertEquals(modelVersion.getSibling("description").getText(), "This is test pom.xml");
+        assertEquals(tree.xpath().getSingleText("/project/description"), "This is test pom.xml");
+    }
+
+    @Test
+    public void shouldNotDestroyFormattingAfterSimpleElementInsertion() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                          "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                          "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                          "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        final Element name = getOnly(tree.getElements("/project/name"));
+        name.insertAfter(tree.newElement("description", "This is test pom.xml"));
+
+        assertEquals(new String(tree.getChars()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                                  "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                                  "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                                  "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <!-- project name -->\n" +
+                                                  "    <name>Test</name>\n" +
+                                                  "    <description>This is test pom.xml</description>\n" +
+                                                  "</project>");
+    }
+
+    @Test
+    public void shouldNotDestroyFormattingAfterComplexElementInsertion() throws IOException {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                          "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                          "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                          "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.getRootElement().appendChild(tree.newElement("dependencies", tree.newElement("dependency",
+                                                                                          tree.newElement("artifactId", "test-artifact"),
+                                                                                          tree.newElement("groupId", "test-group"),
+                                                                                          tree.newElement("version", "test-version"))));
+
+        assertEquals(new String(tree.getChars()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                                  "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                                  "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                                  "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <!-- project name -->\n" +
+                                                  "    <name>Test</name>\n" +
+                                                  "    <dependencies>\n" +
+                                                  "        <dependency>\n" +
+                                                  "            <artifactId>test-artifact</artifactId>\n" +
+                                                  "            <groupId>test-group</groupId>\n" +
+                                                  "            <version>test-version</version>\n" +
+                                                  "        </dependency>\n" +
+                                                  "    </dependencies>\n" +
+                                                  "</project>");
     }
 }

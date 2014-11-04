@@ -15,4 +15,34 @@ package com.codenvy.commons.xml;
  *
  * @author Eugene Voevodin
  */
-public final class Attribute {}
+public final class Attribute {
+
+    private final String  name;
+    private final String  value;
+    private final Element container;
+
+    Segment valueSegment;
+    Segment nameSegment;
+
+    Attribute(Element container, String name, String value) {
+        this.container = container;
+        this.name = name;
+        this.value = value;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setName(String name) {
+        throw new XMLTreeException("Not implemented");
+    }
+
+    public void setValue(String value) {
+        throw new XMLTreeException("Not implemented");
+    }
+}
