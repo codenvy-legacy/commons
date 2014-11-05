@@ -367,6 +367,7 @@ public final class XMLTree {
                     break;
                 case END_ELEMENT:
                     startedNodes.pop().end = new Segment(beforeStart + 1, offset(reader));
+
                     break;
                 case CHARACTERS:
                     final Element current = startedNodes.peek();

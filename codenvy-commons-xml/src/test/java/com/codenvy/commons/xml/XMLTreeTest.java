@@ -347,6 +347,7 @@ public class XMLTreeTest {
                                           "    <!-- project name -->\n" +
                                           "    <name>Test</name>\n" +
                                           "</project>");
+        tree.xpath();
 
         tree.getRootElement().appendChild(tree.newElement("dependencies", tree.newElement("dependency",
                                                                                           tree.newElement("artifactId", "test-artifact"),
@@ -371,5 +372,6 @@ public class XMLTreeTest {
                                                   "        </dependency>\n" +
                                                   "    </dependencies>\n" +
                                                   "</project>");
+        assertEquals(tree.xpath().getSingleText("/project/dependencies/dependency/artifactId"), "test-artifact");
     }
 }

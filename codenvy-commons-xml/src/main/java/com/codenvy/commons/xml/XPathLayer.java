@@ -192,6 +192,9 @@ public final class XPathLayer {
     private Node clone(Element element) {
         final Node newNode = document.createElement(element.getName());
         newNode.setTextContent(element.getText());
+        for (Element child : element.getChildren()) {
+            newNode.appendChild(clone(child));
+        }
         return newNode;
     }
 }
