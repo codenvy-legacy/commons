@@ -21,6 +21,8 @@ import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 
 /**
+ * Tests for {@link Util}
+ *
  * @author Eugene Voevodin
  */
 public class UtilTest {

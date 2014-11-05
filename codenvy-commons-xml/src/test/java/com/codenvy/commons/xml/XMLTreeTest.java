@@ -12,8 +12,6 @@ package com.codenvy.commons.xml;
 
 import org.testng.annotations.Test;
 
-import javax.xml.stream.XMLStreamException;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -76,66 +74,38 @@ public class XMLTreeTest {
                                               "</project>\n";
 
     @Test
-    public void shouldFindSingleTextUsingElementPath() throws XMLStreamException {
+    public void shouldFindSingleText() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final String packaging = tree.getSingleText("/project/packaging");
-
-        assertEquals(packaging, "jar");
-    }
-
-    @Test
-    public void shouldFindSingleTextUsingXPath() {
-        final XMLTree tree = XMLTree.from(XML_CONTENT);
-
-        final String version = tree.xpath().getSingleText("/project/dependencies/dependency[groupId='org.testng']/version");
+        final String version = tree.getSingleText("/project/dependencies/dependency[groupId='org.testng']/version");
 
         assertEquals(version, "6.8");
     }
 
-    //todo add more assertions
     @Test
-    public void shouldFindElementsUsingElementPath() {
+    public void shouldFindEachElementText() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final List<Element> elements = tree.getElements("/project/dependencies/dependency");
+        final List<String> artifacts = tree.getText("/project/dependencies/dependency[scope='test']/artifactId");
 
-        assertEquals(elements.size(), 3);
+        assertEquals(artifacts, asList("testng", "mockito-core"));
     }
 
     @Test
-    public void shouldFindElementsUsingXPath() {
+    public void shouldFindElements() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final List<Element> artifacts = tree.xpath().getElements("/project/dependencies/dependency[scope='test']/artifactId");
+        final List<Element> artifacts = tree.getElements("/project/dependencies/dependency[scope='test']/artifactId");
 
         assertEquals(artifacts.size(), 2);
         assertEquals(asList(artifacts.get(0).getText(), artifacts.get(1).getText()), asList("testng", "mockito-core"));
     }
 
     @Test
-    public void shouldFindEachElementTextUsingElementsPath() {
+    public void shouldFindAttributeValues() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final List<String> artifacts = tree.getText("/project/dependencies/dependency/artifactId");
-
-        assertEquals(artifacts, asList("guava", "testng", "mockito-core"));
-    }
-
-    @Test
-    public void shouldFindEachElementTextUsingXPath() {
-        final XMLTree tree = XMLTree.from(XML_CONTENT);
-
-        final List<String> artifacts = tree.xpath().getText("/project/dependencies/dependency[scope='test']/artifactId");
-
-        assertEquals(artifacts, asList("testng", "mockito-core"));
-    }
-
-    @Test
-    public void shouldFindAttributesValuesWithXPath() {
-        final XMLTree tree = XMLTree.from(XML_CONTENT);
-
-        final List<String> attributes = tree.xpath().getText("/project/configuration/properties/@combine.self");
+        final List<String> attributes = tree.getText("/project/configuration/properties/@combine.self");
 
         assertEquals(attributes, asList("override"));
     }
@@ -144,7 +114,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetAttributesUsingModel() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element properties = getOnly(tree.xpath().getElements("/project/configuration/properties"));
+        final Element properties = getOnly(tree.getElements("/project/configuration/properties"));
 
         assertEquals(properties.getAttributes().size(), 1);
         final Attribute attribute = properties.getAttributes().get(0);
@@ -158,7 +128,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetElementParent() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
 
         assertEquals(artifactID.getParent().getName(), "dependency");
     }
@@ -167,7 +137,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToCheckElementHasSibling() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
 
         assertTrue(artifactID.hasSibling("groupId"));
         assertTrue(artifactID.hasSibling("version"));
@@ -179,7 +149,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetFirstSibling() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
 
         assertEquals(artifactID.getSibling("groupId").getText(), "org.testng");
         assertEquals(artifactID.getSibling("version").getText(), "6.8");
@@ -191,7 +161,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetSiblings() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
 
         assertEquals(artifactID.getSiblings().size(), 3);
     }
@@ -200,7 +170,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToCheckElementHasChild() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']"));
 
         assertTrue(guavaDep.hasChild("groupId"));
         assertTrue(guavaDep.hasChild("version"));
@@ -212,7 +182,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetFirstChild() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']"));
 
         assertEquals(guavaDep.getChild("groupId").getText(), "com.google.guava");
         assertEquals(guavaDep.getChild("version").getText(), "18.0");
@@ -224,7 +194,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetChildren() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']"));
 
         assertEquals(guavaDep.getChildren().size(), 3);
     }
@@ -232,50 +202,44 @@ public class XMLTreeTest {
     @Test
     public void shouldBeAbleToChangeElementTextByModel() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
-        tree.xpath();
 
-        final Element name = getOnly(tree.getElements("/project/name"));
-        name.setText("new name");
+        final Element name = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']/version"));
+        name.setText("new version");
 
-        assertEquals(tree.getSingleText("/project/name"), "new name");
-        assertEquals(tree.xpath().getSingleText("/project/name"), "new name");
+        assertEquals(tree.getSingleText("/project/dependencies/dependency[artifactId='guava']/version"), "new version");
     }
 
     @Test
     public void shouldBeAbleToChangeElementTextByTree() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
-        tree.xpath();
 
         tree.updateText("/project/name", "new name");
 
         assertEquals(tree.getSingleText("/project/name"), "new name");
-        assertEquals(tree.xpath().getSingleText("/project/name"), "new name");
     }
 
     @Test
     public void shouldBeAbleToAppendChildByModel() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
-        tree.xpath();
 
-        final Element guavaDep = getOnly(tree.xpath().getElements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']"));
         guavaDep.appendChild(tree.newElement("scope", "compile"));
 
         assertTrue(guavaDep.hasChild("scope"));
         assertEquals(guavaDep.getChild("scope").getText(), "compile");
-        assertEquals(tree.xpath().getSingleText("/project/dependencies/dependency[artifactId='guava']/scope"), "compile");
+        assertEquals(tree.getSingleText("/project/dependencies/dependency[artifactId='guava']/scope"), "compile");
     }
 
     @Test
     public void shouldBeAbleToInsertElementAfterExisting() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
-        tree.xpath();
 
         final Element name = getOnly(tree.getElements("/project/name"));
         name.insertAfter(tree.newElement("description", "This is test pom.xml"));
 
         assertTrue(name.hasSibling("description"));
         assertEquals(name.getSibling("description").getText(), "This is test pom.xml");
-        assertEquals(tree.xpath().getSingleText("/project/description"), "This is test pom.xml");
+        assertEquals(tree.getSingleText("/project/description"), "This is test pom.xml");
     }
 
     @Test
@@ -287,20 +251,19 @@ public class XMLTreeTest {
 
         assertTrue(name.hasSibling("description"));
         assertEquals(name.getSibling("description").getText(), "This is test pom.xml");
-        assertEquals(tree.xpath().getSingleText("/project/description"), "This is test pom.xml");
+        assertEquals(tree.getSingleText("/project/description"), "This is test pom.xml");
     }
 
     @Test
     public void shouldBeAbleToInsertElementBeforeFirstExisting() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
-        tree.xpath();
 
         final Element modelVersion = getOnly(tree.getElements("/project/modelVersion"));
         modelVersion.insertBefore(tree.newElement("description", "This is test pom.xml"));
 
         assertTrue(modelVersion.hasSibling("description"));
         assertEquals(modelVersion.getSibling("description").getText(), "This is test pom.xml");
-        assertEquals(tree.xpath().getSingleText("/project/description"), "This is test pom.xml");
+        assertEquals(tree.getSingleText("/project/description"), "This is test pom.xml");
     }
 
     @Test
@@ -347,7 +310,6 @@ public class XMLTreeTest {
                                           "    <!-- project name -->\n" +
                                           "    <name>Test</name>\n" +
                                           "</project>");
-        tree.xpath();
 
         tree.getRootElement().appendChild(tree.newElement("dependencies", tree.newElement("dependency",
                                                                                           tree.newElement("artifactId", "test-artifact"),
@@ -372,6 +334,6 @@ public class XMLTreeTest {
                                                   "        </dependency>\n" +
                                                   "    </dependencies>\n" +
                                                   "</project>");
-        assertEquals(tree.xpath().getSingleText("/project/dependencies/dependency/artifactId"), "test-artifact");
+        assertEquals(tree.getSingleText("/project/dependencies/dependency/artifactId"), "test-artifact");
     }
 }

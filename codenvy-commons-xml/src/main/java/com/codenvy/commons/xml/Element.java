@@ -197,8 +197,8 @@ public final class Element {
     }
 
     public Element insertBefore(Element newElement) {
-        xmlTree.insertBefore(newElement, this);
         newElement.setParent(parent);
+        xmlTree.insertBefore(newElement, this);
         return this;
     }
 
@@ -212,8 +212,8 @@ public final class Element {
     }
 
     public Element insertAfter(Element newElement) {
-        xmlTree.insertAfter(newElement, this);
         newElement.setParent(parent);
+        xmlTree.insertAfter(newElement, this);
         return this;
     }
 
