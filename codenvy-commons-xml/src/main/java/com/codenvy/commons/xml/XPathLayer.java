@@ -21,6 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -172,10 +173,10 @@ public final class XPathLayer {
         }
     }
 
-    private Document parseQuietly(char[] xml) {
+    private Document parseQuietly(byte[] xml) {
         try {
             final DocumentBuilder db = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-            return db.parse(new InputSource(new CharArrayReader(xml)));
+            return db.parse(new ByteArrayInputStream(xml));
         } catch (Exception ex) {
             throw XMLTreeException.wrap(ex);
         }

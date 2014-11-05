@@ -13,28 +13,22 @@ package com.codenvy.commons.xml;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.io.CharStreams;
+import com.google.common.io.ByteStreams;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.BufferedWriter;
-import java.io.CharArrayReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
+import static com.codenvy.commons.xml.Util.UTF_8;
 import static com.codenvy.commons.xml.Util.getOnly;
-import static com.codenvy.commons.xml.Util.insert;
 import static com.codenvy.commons.xml.Util.getLevel;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.nio.file.Files.readAllBytes;
@@ -61,19 +55,11 @@ public final class XMLTree {
     private static final XMLInputFactory XML_INPUT_FACTORY = XMLInputFactory.newFactory();
 
     /**
-     * Creates XMLTree from reader.
-     * Doesn't close the reader
-     */
-    public static XMLTree from(Reader reader) throws IOException {
-        return new XMLTree(CharStreams.toString(reader).toCharArray());
-    }
-
-    /**
      * Creates XMLTree from input stream.
      * Doesn't close the stream
      */
     public static XMLTree from(InputStream is) throws IOException {
-        return from(new InputStreamReader(is));
+        return new XMLTree(ByteStreams.toByteArray(is));
     }
 
     /**
@@ -84,26 +70,26 @@ public final class XMLTree {
     }
 
     /**
-     * Creates XMLTree from file
+     * Creates XMLTree from path
      */
     public static XMLTree from(Path path) throws IOException {
-        return from(new String(readAllBytes(path), Charset.forName("utf-8")));
+        return new XMLTree(readAllBytes(path));
     }
 
     /**
-     * Creates XMLTree from String
+     * Creates XMLTree from string
      */
     public static XMLTree from(String xml) {
-        return new XMLTree(xml.toCharArray());
+        return new XMLTree(xml.getBytes(UTF_8));
     }
 
     private Element    root;
     private XPathLayer xPathLayer;
 
-    char[]                        xml;
+    byte[]                        xml;
     ListMultimap<String, Element> elements;
 
-    private XMLTree(char[] xml) {
+    private XMLTree(byte[] xml) {
         this.xml = xml;
         elements = ArrayListMultimap.create();
         constructTreeQuietly();
@@ -312,30 +298,6 @@ public final class XMLTree {
     }
 
     /**
-     * Writes xml source to writer.
-     * Doesn't close the writer.
-     */
-    public void writeTo(Writer writer) throws IOException {
-        writer.write(xml);
-    }
-
-    /**
-     * Writes xml source to file
-     */
-    public void writeTo(java.io.File file) throws IOException {
-        writeTo(file.toPath());
-    }
-
-    /**
-     * Writes xml source to file
-     */
-    public void writeTo(Path path) throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("utf-8"))) {
-            writer.write(xml);
-        }
-    }
-
-    /**
      * Uses {@link XMLStreamReader} to construct xml tree.
      * Tree stores each parsed element to {@link #elements} multi map.
      * It gives us ability to fetch elements very fast.
@@ -367,7 +329,6 @@ public final class XMLTree {
                     break;
                 case END_ELEMENT:
                     startedNodes.pop().end = new Segment(beforeStart + 1, offset(reader));
-
                     break;
                 case CHARACTERS:
                     final Element current = startedNodes.peek();
@@ -375,6 +336,8 @@ public final class XMLTree {
                         //TODO think about list size
                         current.textSegments = new ArrayList<>();
                     }
+                    //TODO REMOVE THIS
+                    current.text = reader.getText();
                     current.textSegments.add(new Segment(beforeStart + 1, offset(reader)));
                     break;
             }
@@ -383,7 +346,7 @@ public final class XMLTree {
     }
 
     //TODO do we need this method?
-    public char[] getChars() {
+    public byte[] getBytes() {
         return Arrays.copyOf(xml, xml.length);
     }
 
@@ -405,7 +368,7 @@ public final class XMLTree {
     private XMLStreamReader newXMLStreamReader() {
         try {
             //TODO
-            return XML_INPUT_FACTORY.createXMLStreamReader(new CharArrayReader(xml));
+            return XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(xml));
         } catch (XMLStreamException xmlEx) {
             throw XMLTreeException.wrap(xmlEx);
         }
@@ -430,7 +393,7 @@ public final class XMLTree {
             right = target.end.left - 1;
         }
         //insert new content into existed sources
-        xml = insert(xml, left, right, target.text);
+        xml = Util.insertBetween(xml, left, right, target.text);
         //if xpath layer was initialized update it
         if (xPathLayer != null) {
             xPathLayer.updateText(target);
@@ -446,7 +409,7 @@ public final class XMLTree {
             insertAfter(newElement, refAfter);
         } else {
             //inserting after parent
-            xml = Util.insert(xml, refElement.parent.start.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
+            xml = Util.insertInto(xml, refElement.parent.start.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
             if (xPathLayer != null) {
                 xPathLayer.insertBefore(newElement, refElement);
             }
@@ -457,7 +420,7 @@ public final class XMLTree {
      * Inserts element after referenced one
      */
     void insertAfter(Element newElement, Element refElement) {
-        xml = Util.insert(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
+        xml = Util.insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
         if (xPathLayer != null) {
             xPathLayer.insertAfter(newElement, refElement);
         }

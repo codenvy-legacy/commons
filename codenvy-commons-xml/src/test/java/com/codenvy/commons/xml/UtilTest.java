@@ -12,8 +12,10 @@ package com.codenvy.commons.xml;
 
 import org.testng.annotations.Test;
 
+import static com.codenvy.commons.xml.Util.fetchText;
 import static com.codenvy.commons.xml.Util.getOnly;
-import static com.codenvy.commons.xml.Util.insert;
+import static com.codenvy.commons.xml.Util.insertBetween;
+import static com.codenvy.commons.xml.Util.insertInto;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -48,21 +50,32 @@ public class UtilTest {
     }
 
     @Test
-    public void shouldInsertContentToCharArrayBetweenTwoAnchors() {
+    public void shouldInsertContentBetweenTwoAnchors() {
         //                        6     12
-        final String src = "<name>content</name>";
+        final byte[] src = "<name>content</name>".getBytes();
 
-        final char[] newSrc = insert(src.toCharArray(), 6, 12, "new content");
+        final byte[] newSrc = insertBetween(src, 6, 12, "new content");
 
-        assertEquals(new String(newSrc), "<name>new content</name>");
+        assertEquals(newSrc, "<name>new content</name>".getBytes());
     }
 
     @Test
     public void shouldInsertContentToCharArrayInSelectedPlace() {
-        final String src = "<name></name>";
+        //                        6
+        final byte[] src = "<name></name>".getBytes();
 
-        final char[] newSrc = Util.insert(src.toCharArray(), 6, "new content");
+        final byte[] newSrc = insertInto(src, 6, "new content");
 
-        assertEquals(new String(newSrc), "<name>new content</name>");
+        assertEquals(new String(newSrc).intern(), "<name>new content</name>");
+    }
+
+    @Test
+    public void shouldFetchText() {
+        //                       5    10    16  20
+        final byte[] src = "12345hello 12345world".getBytes();
+
+        final String text = fetchText(src, asList(new Segment(5, 10), new Segment(16, 20)));
+
+        assertEquals(text, "hello world");
     }
 }

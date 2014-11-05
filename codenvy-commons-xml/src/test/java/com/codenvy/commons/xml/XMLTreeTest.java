@@ -320,7 +320,7 @@ public class XMLTreeTest {
         final Element name = getOnly(tree.getElements("/project/name"));
         name.insertAfter(tree.newElement("description", "This is test pom.xml"));
 
-        assertEquals(new String(tree.getChars()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                                   "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
                                                   "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                                                   "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
@@ -354,7 +354,7 @@ public class XMLTreeTest {
                                                                                           tree.newElement("groupId", "test-group"),
                                                                                           tree.newElement("version", "test-version"))));
 
-        assertEquals(new String(tree.getChars()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                                   "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
                                                   "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                                                   "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +

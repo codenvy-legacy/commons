@@ -10,8 +10,10 @@
  *******************************************************************************/
 package com.codenvy.commons.xml;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
+import static java.lang.System.arraycopy;
 import static java.util.Arrays.fill;
 
 /**
@@ -21,11 +23,12 @@ import static java.util.Arrays.fill;
  */
 public final class Util {
 
+    public static final Charset UTF_8 = Charset.forName("utf-8");
+
     private static final int SPACES_IN_TAB = 4;
 
     /**
-     * Creates new char array from given char array
-     * source and string content
+     * TODO: write doc
      * <pre>
      * New content schema:
      *
@@ -42,40 +45,43 @@ public final class Util {
      *         content which will be inserted between left and right
      * @return new content
      */
-    public static char[] insert(char[] src, int left, int right, String content) {
-        final String newSrc = String.valueOf(src, 0, left)
-                              + content
-                              + String.valueOf(src, right + 1, src.length - right - 1);
-        return newSrc.toCharArray();
+    public static byte[] insertBetween(byte[] src, int left, int right, String content) {
+        final byte[] contentSrc = content.getBytes(UTF_8);
+        final byte[] newSrc = new byte[left + src.length - right + contentSrc.length - 1];
+        arraycopy(src, 0, newSrc, 0, left);
+        arraycopy(contentSrc, 0, newSrc, left, contentSrc.length);
+        arraycopy(src, right + 1, newSrc, left + contentSrc.length, src.length - right - 1);
+        return newSrc;
     }
 
     /**
-     * Creates new char array from given char array source
-     * and string content
+     * TODO write doc
      * <pre>
      * New content schema:
      *
-     * [0 - anchor) + content + [anchor, src.length)
+     * [0 - pos) + content + [pos, src.length)
      * </pre>
      *
      * @param src
      *         source array
-     * @param anchor
+     * @param pos
      *         start position for content insertion
      * @param content
      *         content which will be inserted from {@param anchor}
      * @return new content
      */
-    public static char[] insert(char[] src, int anchor, String content) {
-        final String newSrc = String.valueOf(src, 0, anchor)
-                              + content
-                              + String.valueOf(src, anchor, src.length - anchor);
-        return newSrc.toCharArray();
+    public static byte[] insertInto(byte[] src, int pos, String content) {
+        final byte[] contentSrc = content.getBytes(UTF_8);
+        final byte[] newSrc = new byte[src.length + contentSrc.length];
+        arraycopy(src, 0, newSrc, 0, pos);
+        arraycopy(contentSrc, 0, newSrc, pos, contentSrc.length);
+        arraycopy(src, pos, newSrc, pos + contentSrc.length, src.length - pos);
+        return newSrc;
     }
 
     /**
      * Check given list contains only element and return it.
-     * If list size is not 1 exception will be thrown.
+     * If list size is not 1 {@link XMLTreeException} will be thrown.
      *
      * @param target
      *         list to check
@@ -99,12 +105,16 @@ public final class Util {
      *         text bounds
      * @return fetched text
      */
-    public static String fetchText(char[] src, List<Segment> segments) {
-        final StringBuilder sb = new StringBuilder();
+    public static String fetchText(byte[] src, List<Segment> segments) {
+        final byte[] text = new byte[capacity(segments)];
+        int copied = 0;
         for (Segment segment : segments) {
-            sb.append(src, segment.left, 1 + segment.right - segment.left);
+            int len = segment.right - segment.left + 1;
+            arraycopy(src, segment.left, text, copied, len);
+            copied += len;
         }
-        return sb.toString();
+        //TODO should it be interned?
+        return new String(text);
     }
 
     /**
@@ -146,6 +156,14 @@ public final class Util {
         builder.append(tabs)
                .append(lines[lines.length - 1]);
         return builder.toString();
+    }
+
+    private static int capacity(List<Segment> segments) {
+        int capacity = 0;
+        for (Segment segment : segments) {
+            capacity += segment.right - segment.left + 1;
+        }
+        return capacity;
     }
 
     private Util() {}
