@@ -15,11 +15,9 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.util.List;
 
-import static com.codenvy.commons.xml.Util.getOnly;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
@@ -115,7 +113,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetAttributesUsingModel() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element properties = getOnly(tree.getElements("/project/configuration/properties"));
+        final Element properties = tree.getElement("/project/configuration/properties");
 
         assertEquals(properties.getAttributes().size(), 1);
         final Attribute attribute = properties.getAttributes().get(0);
@@ -129,7 +127,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetElementParent() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = tree.getElement("/project/dependencies/dependency[artifactId='testng']/artifactId");
 
         assertEquals(artifactID.getParent().getName(), "dependency");
     }
@@ -138,7 +136,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToCheckElementHasSibling() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = tree.getElement("/project/dependencies/dependency[artifactId='testng']/artifactId");
 
         assertTrue(artifactID.hasSibling("groupId"));
         assertTrue(artifactID.hasSibling("version"));
@@ -150,7 +148,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetFirstSibling() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = tree.getElement("/project/dependencies/dependency[artifactId='testng']/artifactId");
 
         assertEquals(artifactID.getSibling("groupId").getText(), "org.testng");
         assertEquals(artifactID.getSibling("version").getText(), "6.8");
@@ -162,7 +160,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetSiblings() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element artifactID = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='testng']/artifactId"));
+        final Element artifactID = tree.getElement("/project/dependencies/dependency[artifactId='testng']/artifactId");
 
         assertEquals(artifactID.getSiblings().size(), 3);
     }
@@ -171,7 +169,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToCheckElementHasChild() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = tree.getElement("/project/dependencies/dependency[artifactId='guava']");
 
         assertTrue(guavaDep.hasChild("groupId"));
         assertTrue(guavaDep.hasChild("version"));
@@ -183,7 +181,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetFirstChild() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = tree.getElement("/project/dependencies/dependency[artifactId='guava']");
 
         assertEquals(guavaDep.getChild("groupId").getText(), "com.google.guava");
         assertEquals(guavaDep.getChild("version").getText(), "18.0");
@@ -195,7 +193,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToGetChildren() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = tree.getElement("/project/dependencies/dependency[artifactId='guava']");
 
         assertEquals(guavaDep.getChildren().size(), 3);
     }
@@ -204,7 +202,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToChangeElementTextByModel() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element name = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']/version"));
+        final Element name = tree.getElement("/project/dependencies/dependency[artifactId='guava']/version");
         name.setText("new version");
 
         assertEquals(tree.getSingleText("/project/dependencies/dependency[artifactId='guava']/version"), "new version");
@@ -223,7 +221,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToAppendChildByModel() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element guavaDep = getOnly(tree.getElements("/project/dependencies/dependency[artifactId='guava']"));
+        final Element guavaDep = tree.getElement("/project/dependencies/dependency[artifactId='guava']");
         guavaDep.appendChild(tree.newElement("scope", "compile"));
 
         assertTrue(guavaDep.hasChild("scope"));
@@ -235,7 +233,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToInsertElementAfterExisting() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element name = getOnly(tree.getElements("/project/name"));
+        final Element name = tree.getElement("/project/name");
         name.insertAfter(tree.newElement("description", "This is test pom.xml"));
 
         assertTrue(name.hasSibling("description"));
@@ -247,7 +245,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToInsertElementBeforeExisting() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element name = getOnly(tree.getElements("/project/name"));
+        final Element name = tree.getElement("/project/name");
         name.insertBefore(tree.newElement("description", "This is test pom.xml"));
 
         assertTrue(name.hasSibling("description"));
@@ -259,7 +257,7 @@ public class XMLTreeTest {
     public void shouldBeAbleToInsertElementBeforeFirstExisting() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
-        final Element modelVersion = getOnly(tree.getElements("/project/modelVersion"));
+        final Element modelVersion = tree.getElement("/project/modelVersion");
         modelVersion.insertBefore(tree.newElement("description", "This is test pom.xml"));
 
         assertTrue(modelVersion.hasSibling("description"));
@@ -270,7 +268,7 @@ public class XMLTreeTest {
     @Test
     public void shouldBeAbleToRemoveElementByTree() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
-        assertEquals(tree.getSingleText("/project/dependencies/dependency[artifactId='testng']/scope"), "test");
+        assertTrue(tree.getElement("/project/dependencies/dependency[artifactId='testng']").hasChild("scope"));
 
         tree.remove("/project/dependencies/dependency[artifactId='testng']/scope");
 
@@ -291,7 +289,7 @@ public class XMLTreeTest {
                                           "    <name>Test</name>\n" +
                                           "</project>");
 
-        final Element name = getOnly(tree.getElements("/project/name"));
+        final Element name = tree.getElement("/project/name");
         name.insertAfter(tree.newElement("description", "This is test pom.xml"));
 
         assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -389,6 +387,43 @@ public class XMLTreeTest {
                                                   "            <version>test-version</version>\n" +
                                                   "        </dependency>\n" +
                                                   "    </dependencies>\n" +
+                                                  "</project>");
+    }
+
+    @Test
+    public void shouldNotDestroyFormattingAfterRemovingElementWithChildren() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                          "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                          "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                          "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "    <dependencies>\n" +
+                                          "        <dependency>\n" +
+                                          "            <artifactId>test-artifact</artifactId>\n" +
+                                          "            <groupId>test-group</groupId>\n" +
+                                          "            <version>test-version</version>\n" +
+                                          "            <scope>compile</scope>\n" +
+                                          "        </dependency>\n" +
+                                          "    </dependencies>\n" +
+                                          "</project>");
+
+        tree.remove("/project/dependencies");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                                  "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                                  "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                                  "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <!-- project name -->\n" +
+                                                  "    <name>Test</name>\n" +
                                                   "</project>");
     }
 }
