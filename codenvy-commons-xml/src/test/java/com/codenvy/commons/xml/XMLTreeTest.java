@@ -19,6 +19,7 @@ import static com.codenvy.commons.xml.Util.getOnly;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
@@ -267,6 +268,16 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void shouldBeAbleToRemoveElementByTree() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        assertEquals(tree.getSingleText("/project/dependencies/dependency[artifactId='testng']/scope"), "test");
+
+        tree.remove("/project/dependencies/dependency[artifactId='testng']/scope");
+
+        assertFalse(tree.getElement("/project/dependencies/dependency[artifactId='testng']").hasChild("scope"));
+    }
+
+    @Test
     public void shouldNotDestroyFormattingAfterSimpleElementInsertion() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
@@ -335,5 +346,49 @@ public class XMLTreeTest {
                                                   "    </dependencies>\n" +
                                                   "</project>");
         assertEquals(tree.getSingleText("/project/dependencies/dependency/artifactId"), "test-artifact");
+    }
+
+    @Test
+    public void shouldNotDestroyFormattingAfterRemovingElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                          "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                          "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                          "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "    <dependencies>\n" +
+                                          "        <dependency>\n" +
+                                          "            <artifactId>test-artifact</artifactId>\n" +
+                                          "            <groupId>test-group</groupId>\n" +
+                                          "            <version>test-version</version>\n" +
+                                          "            <scope>compile</scope>\n" +
+                                          "        </dependency>\n" +
+                                          "    </dependencies>\n" +
+                                          "</project>");
+
+        tree.remove("/project/dependencies/dependency[1]/scope");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                                  "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                                  "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                                  "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <!-- project name -->\n" +
+                                                  "    <name>Test</name>\n" +
+                                                  "    <dependencies>\n" +
+                                                  "        <dependency>\n" +
+                                                  "            <artifactId>test-artifact</artifactId>\n" +
+                                                  "            <groupId>test-group</groupId>\n" +
+                                                  "            <version>test-version</version>\n" +
+                                                  "        </dependency>\n" +
+                                                  "    </dependencies>\n" +
+                                                  "</project>");
     }
 }

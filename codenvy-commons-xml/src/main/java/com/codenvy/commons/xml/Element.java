@@ -173,7 +173,8 @@ public final class Element {
 
     //TODO
     public void remove() {
-        throw new XMLTreeException("Not implemented");
+        xmlTree.dropElement(this);
+        parent.children.remove(this);
     }
 
     public Element addAttribute(String name, String value) {

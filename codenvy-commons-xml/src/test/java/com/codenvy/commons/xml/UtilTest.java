@@ -16,6 +16,7 @@ import static com.codenvy.commons.xml.Util.fetchText;
 import static com.codenvy.commons.xml.Util.getOnly;
 import static com.codenvy.commons.xml.Util.insertBetween;
 import static com.codenvy.commons.xml.Util.insertInto;
+import static com.codenvy.commons.xml.Util.nearestLeftIndexOf;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -79,5 +80,14 @@ public class UtilTest {
         final String text = fetchText(src, asList(new Segment(5, 10), new Segment(16, 20)));
 
         assertEquals(text, "hello world");
+    }
+
+    @Test
+    public void shouldBeAbleToFindNearestLeftIndexOf() {
+        //                             11        20      28
+        final byte[] src = "...</before>\n       <current>...".getBytes();
+
+        assertEquals(nearestLeftIndexOf(src, '>', 20), 11);
+        assertEquals(nearestLeftIndexOf(src, '>', src.length - 1), 28);
     }
 }

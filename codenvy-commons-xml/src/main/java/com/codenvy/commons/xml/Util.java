@@ -94,6 +94,14 @@ public final class Util {
         return target.get(0);
     }
 
+    //TODO
+    public static int nearestLeftIndexOf(byte[] src, char c, int idx) {
+        while (idx > 0 && src[idx] != c) {
+            idx--;
+        }
+        return idx;
+    }
+
     /**
      * Fetch text from source based on given segments.
      * Uses each segment to fetch text from source array.

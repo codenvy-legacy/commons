@@ -41,6 +41,9 @@ import java.util.regex.Pattern;
 import static com.codenvy.commons.xml.Util.UTF_8;
 import static com.codenvy.commons.xml.Util.getOnly;
 import static com.codenvy.commons.xml.Util.getLevel;
+import static com.codenvy.commons.xml.Util.insertBetween;
+import static com.codenvy.commons.xml.Util.insertInto;
+import static com.codenvy.commons.xml.Util.nearestLeftIndexOf;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Arrays.asList;
@@ -158,6 +161,10 @@ public final class XMLTree {
      */
     public Element getRootElement() {
         return root;
+    }
+
+    public Element getElement(String expression) {
+        return getOnly(getElements(expression));
     }
 
     /**
@@ -294,17 +301,26 @@ public final class XMLTree {
 
     /**
      * TODO
-     * Removes element with given path from tree.
      * <p/>
      * Path should be unique, if is not so {@link XMLTreeException} will
      * be thrown. If wanted element hasn't unique path you
      * should use {@link Element#remove()} instead.
      *
-     * @param refElementPath
+     * @param expression
      *         path to element
      */
-    public void remove(String refElementPath) {
-        throw new XMLTreeException("Not implemented");
+    public void remove(String expression) {
+        getOnly(getElements(expression)).remove();
+    }
+
+    void dropElement(Element element) {
+        final int left = nearestLeftIndexOf(xml, '>', element.start.left) + 1;
+        xml = insertBetween(xml, left, element.end.right, "");
+        if (document != null) {
+            Node child = nodeFor(element);
+            child.getParentNode().removeChild(child);
+        }
+        elements.get(element.path()).remove(element);
     }
 
     /**
@@ -326,7 +342,7 @@ public final class XMLTree {
             right = target.end.left - 1;
         }
         //insert new content into existed sources
-        xml = Util.insertBetween(xml, left, right, target.text);
+        xml = insertBetween(xml, left, right, target.text);
         //if xpath layer was initialized update it
         if (document != null) {
             updateDocumentText(target);
@@ -533,7 +549,7 @@ public final class XMLTree {
             insertAfter(newElement, refAfter);
         } else {
             //inserting after parent
-            xml = Util.insertInto(xml, refElement.parent.start.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
+            xml = insertInto(xml, refElement.parent.start.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
             putElement(newElement);
         }
         if (document != null) {
@@ -545,7 +561,7 @@ public final class XMLTree {
      * Inserts element after referenced one
      */
     void insertAfter(Element newElement, Element refElement) {
-        xml = Util.insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
+        xml = insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
         if (document != null) {
             documentInsertAfter(newElement, refElement);
         }
