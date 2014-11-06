@@ -13,7 +13,7 @@ package com.codenvy.commons.xml;
 import org.testng.annotations.Test;
 
 import static com.codenvy.commons.xml.Util.fetchText;
-import static com.codenvy.commons.xml.Util.getOnly;
+import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.insertBetween;
 import static com.codenvy.commons.xml.Util.insertInto;
 import static com.codenvy.commons.xml.Util.nearestLeftIndexOf;
@@ -44,12 +44,12 @@ public class UtilTest {
 
     @Test
     public void shouldReturnFirstElement() {
-        assertEquals(getOnly(asList("first")), "first");
+        assertEquals(single(asList("first")), "first");
     }
 
     @Test(expectedExceptions = XMLTreeException.class)
     public void shouldThrowExceptionWhenListContainsNotOnlyElement() {
-        getOnly(asList("first", "second"));
+        single(asList("first", "second"));
     }
 
     @Test

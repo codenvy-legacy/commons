@@ -87,7 +87,7 @@ public final class Util {
      *         list to check
      * @return list only element
      */
-    public static <T> T getOnly(List<T> target) {
+    public static <T> T single(List<T> target) {
         if (target.size() != 1) {
             throw new XMLTreeException("Required list with one element");
         }

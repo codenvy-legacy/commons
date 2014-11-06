@@ -12,6 +12,7 @@ package com.codenvy.commons.xml;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import static com.codenvy.commons.xml.Util.fetchText;
@@ -58,29 +59,43 @@ public final class Element {
         return parent;
     }
 
-    public Element getSibling(String name) {
-        for (Element child : parent.children) {
-            if (this != child && child.name.equals(name)) {
-                return child;
+    public Element getSingleSibling(String name) {
+        Element target = null;
+        for (Element sibling : parent.children) {
+            if (this != sibling && sibling.name.equals(name)) {
+                if (target != null) {
+                    throw new XMLTreeException("Element " + name + " has more then only sibling with name " + name);
+                }
+                target = sibling;
             }
         }
-        return null; //or throw exception?
+        return target;
     }
 
-    public Element getChild(String name) {
+    public Element getSingleChild(String name) {
         for (Element child : children) {
             if (child.name.equals(name)) {
+                if (child.hasSibling(name)) {
+                    throw new XMLTreeException("Element " + name + " has more then only child with name " + name + " found");
+                }
                 return child;
             }
         }
-        return null; //or throw exception?
+        return null;
     }
 
     public Element getLastChild() {
         if (children != null) {
             return children.get(children.size() - 1);
         }
-        return null; // or throw exception?
+        return null;
+    }
+
+    public Element getFirstChild() {
+        if (children != null) {
+            return children.get(0);
+        }
+        return null;
     }
 
     public List<Element> getChildren() {
@@ -161,20 +176,48 @@ public final class Element {
         if (!newText.equals(text)) {
             text = newText;
             xmlTree.updateText(this);
+            //fixme its not true - if element contains any child then first child left - 1 should
+            //be used instead
             textSegments = singletonList(new Segment(start.right + 1, end.left - 1));
         }
         return this;
     }
 
-    //TODO
+    /**
+     * Removes single element child.
+     * If child does not exist nothing will be done
+     *
+     * @param name
+     *         child name to removeElement
+     */
     public void removeChild(String name) {
-        throw new XMLTreeException("Not implemented");
+        final Element child = getSingleChild(name);
+        if (child != null) {
+            child.remove();
+        }
     }
 
-    //TODO
+    /**
+     * Removes current element
+     */
     public void remove() {
+        //TODO throw exception if its newly created element
         xmlTree.dropElement(this);
         parent.children.remove(this);
+    }
+
+    public void removeChildren(String name) {
+        final List<Element> matching = new LinkedList<>();
+        for (Element child : children) {
+            if (name.equals(child.name)) {
+                //we cant remove child right now cause it affects list which we
+                //are iterating so ConcurrentModificationException will be thrown
+                matching.add(child);
+            }
+        }
+        for (Element element : matching) {
+            element.remove();
+        }
     }
 
     public Element addAttribute(String name, String value) {
@@ -203,15 +246,6 @@ public final class Element {
         return this;
     }
 
-    void setParent(Element parent) {
-        if (parent.children == null) {
-            //fixme what about size?
-            parent.children = new ArrayList<>();
-        }
-        parent.children.add(this);
-        this.parent = parent;
-    }
-
     public Element insertAfter(Element newElement) {
         newElement.setParent(parent);
         xmlTree.insertAfter(newElement, this);
@@ -238,6 +272,16 @@ public final class Element {
                .append('>');
         return builder.toString();
     }
+
+    void setParent(Element parent) {
+        if (parent.children == null) {
+            //fixme what about size?
+            parent.children = new ArrayList<>();
+        }
+        parent.children.add(this);
+        this.parent = parent;
+    }
+
 
     @Override
     public String toString() {

@@ -14,11 +14,16 @@ package com.codenvy.commons.xml;
  * @author Eugene Voevodin
  */
 final class Segment {
-    final int left;
-    final int right;
+    int left;
+    int right;
 
     Segment(int left, int right) {
         this.left = left;
         this.right = right;
+    }
+
+    void shift(int offset) {
+        left += offset;
+        right += offset;
     }
 }

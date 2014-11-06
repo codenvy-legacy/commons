@@ -35,11 +35,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
 import static com.codenvy.commons.xml.Util.UTF_8;
-import static com.codenvy.commons.xml.Util.getOnly;
+import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.getLevel;
 import static com.codenvy.commons.xml.Util.insertBetween;
 import static com.codenvy.commons.xml.Util.insertInto;
@@ -121,7 +122,7 @@ public final class XMLTree {
      */
     public String getSingleText(String expression) {
         if (isTreeCompatible(expression)) {
-            return getOnly(elements.get(expression)).getText();
+            return getSingleElement(expression).getText();
         }
         return evaluateXPath(expression, STRING);
     }
@@ -159,12 +160,12 @@ public final class XMLTree {
     /**
      * Returns root element for tree
      */
-    public Element getRootElement() {
+    public Element getRoot() {
         return root;
     }
 
-    public Element getElement(String expression) {
-        return getOnly(getElements(expression));
+    public Element getSingleElement(String expression) {
+        return single(getElements(expression));
     }
 
     /**
@@ -225,7 +226,7 @@ public final class XMLTree {
      *         new text content
      */
     public void updateText(String refElementPath, String newContent) {
-        getOnly(elements.get(refElementPath)).setText(newContent);
+        single(elements.get(refElementPath)).setText(newContent);
     }
 
     /**
@@ -241,7 +242,7 @@ public final class XMLTree {
      *         element to add
      */
     public void appendChild(String refParentPath, Element newElement) {
-        getOnly(getElements(refParentPath)).appendChild(newElement);
+        single(getElements(refParentPath)).appendChild(newElement);
     }
 
     /**
@@ -259,7 +260,7 @@ public final class XMLTree {
      *         element to insert
      */
     public void insertBefore(String refElementPath, Element newElement) {
-        getOnly(getElements(refElementPath)).insertBefore(newElement);
+        single(getElements(refElementPath)).insertBefore(newElement);
     }
 
     /**
@@ -277,26 +278,7 @@ public final class XMLTree {
      *         element to insert
      */
     public void insertAfter(String refElementPath, Element newElement) {
-        getOnly(getElements(refElementPath)).insertAfter(newElement);
-    }
-
-    /**
-     * TODO
-     * Removes child with given name from referenced element.
-     * If more then only child with the same name exists
-     * {@link XMLTreeException} will be thrown.
-     * <p/>
-     * Path should be unique, if is not so {@link XMLTreeException} will
-     * be thrown. If wanted element hasn't unique path you
-     * should use {@link Element#removeChild(String)} instead.
-     *
-     * @param refParentPath
-     *         path to parent element
-     * @param childName
-     *         name of child which should be removed
-     */
-    public void removeChild(String refParentPath, String childName) {
-        throw new XMLTreeException("Not implemented");
+        single(getElements(refElementPath)).insertAfter(newElement);
     }
 
     /**
@@ -309,18 +291,39 @@ public final class XMLTree {
      * @param expression
      *         path to element
      */
-    public void remove(String expression) {
-        getOnly(getElements(expression)).remove();
+    public void removeElement(String expression) {
+        single(getElements(expression)).remove();
     }
 
+    //TODO reindex existed elements
     void dropElement(Element element) {
         final int left = nearestLeftIndexOf(xml, '>', element.start.left) + 1;
         xml = insertBetween(xml, left, element.end.right, "");
+        shiftLeft(left, element.end.right - left);
         if (document != null) {
             Node child = nodeFor(element);
             child.getParentNode().removeChild(child);
         }
         elements.get(element.path()).remove(element);
+    }
+
+    //after remove
+    //TODO change existed elements positions
+    private void shiftLeft(int idx, int offset) {
+//        for (Map.Entry<String, Element> entry : elements.entries()) {
+//            Element element = entry.getValue();
+//            element.start.shift(offset);
+//        }
+    }
+
+    private void shiftSegment() {
+
+    }
+
+    //after update
+    //TODO change existed elements positions
+    private void shiftRight(int idx, int offset) {
+
     }
 
     /**
@@ -405,13 +408,13 @@ public final class XMLTree {
         for (int i = 0; i < nodeList.getLength(); i++) {
             final Node current = nodeList.item(i);
             if (current.getNodeType() == ELEMENT_NODE) {
-                requested.add(clone(current));
+                requested.add(findElement(current));
             }
         }
         return requested;
     }
 
-    private Element clone(Node node) {
+    private Element findElement(Node node) {
         final String path = path(node);
         final List<Element> requested = elements.get(path);
         final NodeList nodeList = evaluateXPath(path, NODESET);
@@ -516,9 +519,6 @@ public final class XMLTree {
         return Arrays.copyOf(xml, xml.length);
     }
 
-    /**
-     * Puts element and all of children to tree
-     */
     private void putElement(Element element) {
         elements.put(element.path(), element);
         if (element.children != null) {
@@ -541,19 +541,24 @@ public final class XMLTree {
     }
 
     /**
-     * Inserts element before referenced one
+     * Its is important to let all related to
+     * {@param refElement} comments or what ever
+     * on their places, so to avoid deformation
+     * we inserting new element after
+     * previous sibling or after element parent
+     * if element doesn't have previous sibling
      */
     void insertBefore(Element newElement, Element refElement) {
-        final Element refAfter = refElement.getPreviousSibling();
-        if (refAfter != null) {
-            insertAfter(newElement, refAfter);
+        final Element refPrevious = refElement.getPreviousSibling();
+        if (refPrevious != null) {
+            insertAfter(newElement, refPrevious);
         } else {
             //inserting after parent
             xml = insertInto(xml, refElement.parent.start.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
             putElement(newElement);
-        }
-        if (document != null) {
-            documentInsertBefore(newElement, refElement);
+            if (document != null) {
+                documentInsertBefore(newElement, refElement);
+            }
         }
     }
 
@@ -566,6 +571,14 @@ public final class XMLTree {
             documentInsertAfter(newElement, refElement);
         }
         putElement(newElement);
+    }
+
+    private Node nexElementSibling(Node node) {
+        node = node.getNextSibling();
+        while (node != null && node.getNodeType() != ELEMENT_NODE) {
+            node = node.getNextSibling();
+        }
+        return node;
     }
 
     private void updateDocumentText(Element target) {
@@ -584,32 +597,28 @@ public final class XMLTree {
         throw new XMLTreeException("You should not see this message");
     }
 
+    /**
+     * Inserting new node before next sibling
+     * appending new child if refElement doesn't have
+     */
     private void documentInsertAfter(Element newElement, Element refElement) {
         final Node refNode = nodeFor(refElement);
-        final Node nextSibling = nextNodeElementSibling(refNode);
+        final Node nextSibling = nexElementSibling(refNode);
         if (nextSibling != null) {
-            document.getDocumentElement().insertBefore(clone(newElement), nextSibling);
+            nextSibling.getParentNode().insertBefore(clone(newElement), nextSibling);
         } else {
-            refNode.getParentNode().appendChild(clone(newElement));
+            nodeFor(refElement).getParentNode().appendChild(clone(newElement));
         }
     }
 
     private void documentInsertBefore(Element newElement, Element refElement) {
         final Node refNode = nodeFor(refElement);
-        document.getDocumentElement().insertBefore(clone(newElement), refNode);
+        refNode.getParentNode().insertBefore(clone(newElement), refNode);
     }
 
     private Node nodeFor(Element element) {
         final NodeList nodeList = evaluateXPath(element.path(), NODESET);
         return nodeList.item(elementIndex(element));
-    }
-
-    private Node nextNodeElementSibling(Node node) {
-        node = node.getNextSibling();
-        while (node != null && node.getNodeType() != ELEMENT_NODE) {
-            node = node.getNextSibling();
-        }
-        return node;
     }
 
     /**
