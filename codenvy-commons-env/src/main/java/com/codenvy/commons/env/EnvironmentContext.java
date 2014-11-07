@@ -25,74 +25,6 @@ import java.util.Map;
  * thread to the executor thread.</p>
  */
 public class EnvironmentContext {
-    /** Host name of current environment. */
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public final static String MASTERHOST_NAME = "com.codenvy.masterhost.name";
-
-    /** Server port used for current environment. */
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public final static String MASTERHOST_PORT = "com.codenvy.masterhost.port";
-
-    /** URL to master host including protocol and port */
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public final static String MASTERHOST_URL = "com.codenvy.masterhost.url";
-
-    /** URL to current workspace host including protocol and port */
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public final static String WORKSPACE_URL = "com.codenvy.workspace.url";
-
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public final static String VFS_ROOT_DIR = "com.codenvy.vfs.rootdir";
-
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public final static String VFS_INDEX_DIR = "com.codenvy.vfs.indexdir";
-
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public final static String TMP_DIR = "com.codenvy.tmpdir";
-
-    /** Name of web application that gives access to source files over Git. */
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public final static String GIT_SERVER = "com.codenvy.git.server.application";
 
     /** ThreadLocal keeper for EnvironmentContext. */
     private static ThreadLocal<EnvironmentContext> current = new ThreadLocal<EnvironmentContext>() {
@@ -119,8 +51,6 @@ public class EnvironmentContext {
     }
 
 
-    private Map<String, Object> environment;
-
     private User user;
 
     private String workspaceName;
@@ -132,11 +62,9 @@ public class EnvironmentContext {
     private String accountId;
 
     public EnvironmentContext() {
-        environment = new HashMap<>();
     }
 
     public EnvironmentContext(EnvironmentContext other) {
-        environment = new HashMap<>(other.environment);
         setUser(other.getUser());
         setWorkspaceName(other.getWorkspaceName());
         setWorkspaceId(other.getWorkspaceId());
@@ -144,25 +72,6 @@ public class EnvironmentContext {
         setWorkspaceTemporary(other.isWorkspaceTemporary());
     }
 
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    void setVariable(String name, Object value) {
-        environment.put(name, value);
-    }
-
-    /**
-     * Only for IDE2 support
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public Object getVariable(String name) {
-        return environment.get(name);
-    }
 
     public User getUser() {
         return user;
