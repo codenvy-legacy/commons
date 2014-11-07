@@ -11,8 +11,6 @@
 package com.codenvy.commons.xml;
 
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.io.ByteStreams;
 
 import org.w3c.dom.Document;
@@ -34,47 +32,58 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
-import java.util.regex.Pattern;
 
+import static com.codenvy.commons.xml.Util.SPACES_IN_TAB;
 import static com.codenvy.commons.xml.Util.UTF_8;
+import static com.codenvy.commons.xml.Util.asElement;
+import static com.codenvy.commons.xml.Util.closeTagLength;
+import static com.codenvy.commons.xml.Util.nextElementSibling;
 import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.getLevel;
 import static com.codenvy.commons.xml.Util.insertBetween;
 import static com.codenvy.commons.xml.Util.insertInto;
 import static com.codenvy.commons.xml.Util.nearestLeftIndexOf;
+import static com.codenvy.commons.xml.Util.openTagLength;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
+import static javax.xml.stream.XMLStreamConstants.COMMENT;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.STRING;
-import static org.w3c.dom.Node.DOCUMENT_NODE;
+import static org.w3c.dom.Node.COMMENT_NODE;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
+ * TODO:
+ * add support for attributes
+ * add support for one line elements
+ * add support for deep indexing newly added elements
+ * add checks e.g. "should not be able to remove root"
+ * text update should use only segment and remove others
+ * test segments positions after batch updates
+ * <p/>
  * XML tool which provides abilities to modify and search
  * information in xml document without
  * affecting of existing formatting, comments.
  * <p/>
- * XMLTree uses {@link XMLStreamReader} to parse xml document
- * and {@link ListMultimap} to store parsed elements.
- * It is important to keep references on parsed elements in multimap!
- * It gives us ability to search and insert information very quick.
  *
  * @author Eugene Voevodin
  */
 public final class XMLTree {
 
-    private static final XMLInputFactory        XML_INPUT_FACTORY          = XMLInputFactory.newFactory();
-    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY   = DocumentBuilderFactory.newInstance();
-    private static final XPathFactory           XPATH_FACTORY              = XPathFactory.newInstance();
-    private static final Pattern                TREE_COMPATIBLE_EXPRESSION = Pattern.compile("(/\\w+)+");
+    private static final XMLInputFactory        XML_INPUT_FACTORY        = XMLInputFactory.newFactory();
+    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+    private static final XPathFactory           XPATH_FACTORY            = XPathFactory.newInstance();
 
     /**
      * Creates XMLTree from input stream.
@@ -105,15 +114,18 @@ public final class XMLTree {
         return new XMLTree(xml.getBytes(UTF_8));
     }
 
-    private Element                       root;
-    private Document                      document;
-    private ListMultimap<String, Element> elements;
+    public static XMLTree from(byte[] xml) {
+        return new XMLTree(xml);
+    }
 
-    byte[] xml;
+    private Document     document;
+    private Set<Element> elements;
+    private byte[]       xml;
 
     private XMLTree(byte[] xml) {
         this.xml = xml;
-        elements = ArrayListMultimap.create();
+        elements = new HashSet<>();
+        document = parseQuietly(xml);
         constructTreeQuietly();
     }
 
@@ -121,9 +133,6 @@ public final class XMLTree {
      * Searches for element text.
      */
     public String getSingleText(String expression) {
-        if (isTreeCompatible(expression)) {
-            return getSingleElement(expression).getText();
-        }
         return evaluateXPath(expression, STRING);
     }
 
@@ -136,10 +145,7 @@ public final class XMLTree {
      * @return list of elements text or
      */
     public List<String> getText(String expression) {
-        if (isTreeCompatible(expression)) {
-            return retrieveText(elements.get(expression));
-        }
-        return retrieveTextFromDocument(expression);
+        return retrieveText(expression);
     }
 
 
@@ -151,17 +157,14 @@ public final class XMLTree {
      * @return list of found elements or empty list if no elements were found
      */
     public List<Element> getElements(String expression) {
-        if (isTreeCompatible(expression)) {
-            return unmodifiableList(elements.get(expression));
-        }
-        return unmodifiableList(retrieveElementsFromDocument(expression));
+        return unmodifiableList(retrieveElements(expression));
     }
 
     /**
      * Returns root element for tree
      */
     public Element getRoot() {
-        return root;
+        return asElement(document.getDocumentElement());
     }
 
     public Element getSingleElement(String expression) {
@@ -207,9 +210,6 @@ public final class XMLTree {
         final Element newElement = new Element(this);
         newElement.name = name;
         newElement.children = new ArrayList<>(asList(children));
-        for (Element child : newElement.children) {
-            child.parent = newElement;
-        }
         return newElement;
     }
 
@@ -220,13 +220,13 @@ public final class XMLTree {
      * be thrown. If wanted element hasn't unique path you
      * should use {@link Element#setText(String)}} instead.
      *
-     * @param refElementPath
+     * @param expression
      *         path to text container
      * @param newContent
      *         new text content
      */
-    public void updateText(String refElementPath, String newContent) {
-        single(elements.get(refElementPath)).setText(newContent);
+    public void updateText(String expression, String newContent) {
+        getSingleElement(expression).setText(newContent);
     }
 
     /**
@@ -295,35 +295,56 @@ public final class XMLTree {
         single(getElements(expression)).remove();
     }
 
-    //TODO reindex existed elements
+    public byte[] getBytes() {
+        return Arrays.copyOf(xml, xml.length);
+    }
+
     void dropElement(Element element) {
         final int left = nearestLeftIndexOf(xml, '>', element.start.left) + 1;
-        xml = insertBetween(xml, left, element.end.right, "");
-        shiftLeft(left, element.end.right - left);
-        if (document != null) {
-            Node child = nodeFor(element);
-            child.getParentNode().removeChild(child);
+        final int len = xml.length;
+        if (left != element.start.left - 1) {
+            removeTextSegment(element.getParent(), left);
         }
-        elements.get(element.path()).remove(element);
+        xml = insertBetween(xml, left, element.end.right, "");
+        dropNodeFromDocument(element);
+        elements.remove(element);
+        //shift all elements which are right from element
+        shiftElements(element.end.right, -len + xml.length);
     }
 
-    //after remove
-    //TODO change existed elements positions
-    private void shiftLeft(int idx, int offset) {
-//        for (Map.Entry<String, Element> entry : elements.entries()) {
-//            Element element = entry.getValue();
-//            element.start.shift(offset);
-//        }
+    private void dropNodeFromDocument(Element element) {
+        element.delegate.getParentNode().removeChild(element.delegate);
     }
 
-    private void shiftSegment() {
-
+    private void removeTextSegment(Element element, int left) {
+        for (Iterator<Segment> segIt = element.textSegments.iterator(); segIt.hasNext(); ) {
+            if (segIt.next().left == left) {
+                segIt.remove();
+                break;
+            }
+        }
     }
 
-    //after update
-    //TODO change existed elements positions
-    private void shiftRight(int idx, int offset) {
+    private void shiftElements(int fromIdx, int offset) {
+        for (Element element : elements) {
+            if (element.end.left > fromIdx) {
+                shiftSegment(element.start, fromIdx, offset);
+                shiftSegment(element.end, fromIdx, offset);
+                if (element.textSegments != null) {
+                    for (Segment textSegment : element.textSegments) {
+                        shiftSegment(textSegment, fromIdx, offset);
+                    }
+                }
+                //TODO shift attributes
+            }
+        }
+    }
 
+    void shiftSegment(Segment segment, int idx, int offset) {
+        if (segment.left > idx) {
+            segment.left += offset;
+            segment.right += offset;
+        }
     }
 
     /**
@@ -345,32 +366,17 @@ public final class XMLTree {
             right = target.end.left - 1;
         }
         //insert new content into existed sources
-        xml = insertBetween(xml, left, right, target.text);
-        //if xpath layer was initialized update it
-        if (document != null) {
-            updateDocumentText(target);
-        }
+        xml = insertBetween(xml, left, right, target.getText());
     }
 
     @SuppressWarnings("unchecked")
     private <T> T evaluateXPath(String expression, QName returnType) {
         final XPath xpath = XPATH_FACTORY.newXPath();
         try {
-            return (T)xpath.evaluate(expression, getDocument(), returnType);
+            return (T)xpath.evaluate(expression, document, returnType);
         } catch (XPathExpressionException xpathEx) {
             throw XMLTreeException.wrap(xpathEx);
         }
-    }
-
-    private boolean isTreeCompatible(String expression) {
-        return TREE_COMPATIBLE_EXPRESSION.matcher(expression).matches();
-    }
-
-    private Document getDocument() {
-        if (document == null) {
-            document = parseQuietly(xml);
-        }
-        return document;
     }
 
     private Document parseQuietly(byte[] xml) {
@@ -382,16 +388,8 @@ public final class XMLTree {
         }
     }
 
-    private List<String> retrieveText(List<Element> elements) {
-        final List<String> elementsText = new ArrayList<>(elements.size());
-        for (Element element : elements) {
-            elementsText.add(element.getText());
-        }
-        return elementsText;
-    }
-
     //TODO find better name
-    private List<String> retrieveTextFromDocument(String expression) {
+    private List<String> retrieveText(String expression) {
         final NodeList nodeList = evaluateXPath(expression, NODESET);
         final List<String> elementsText = new ArrayList<>(nodeList.getLength());
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -400,68 +398,34 @@ public final class XMLTree {
         return elementsText;
     }
 
-    //TODO find better name
-    private List<Element> retrieveElementsFromDocument(String expression) {
+    private List<Element> retrieveElements(String expression) {
         final NodeList nodeList = evaluateXPath(expression, NODESET);
-        //TODO think about array size
         final List<Element> requested = new ArrayList<>(nodeList.getLength());
         for (int i = 0; i < nodeList.getLength(); i++) {
             final Node current = nodeList.item(i);
             if (current.getNodeType() == ELEMENT_NODE) {
-                requested.add(findElement(current));
+                requested.add((Element)current.getUserData("element"));
             }
         }
         return requested;
     }
 
-    private Element findElement(Node node) {
-        final String path = path(node);
-        final List<Element> requested = elements.get(path);
-        final NodeList nodeList = evaluateXPath(path, NODESET);
-        return requested.get(nodeIndex(nodeList, node));
-    }
-
-    private Node clone(Element element) {
+    private Node createNode(Element element) {
         final Node newNode = document.createElement(element.getName());
         newNode.setTextContent(element.getText());
-        for (Element child : element.getChildren()) {
-            newNode.appendChild(clone(child));
+        newNode.setUserData("element", element, null);
+        element.delegate = newNode;
+        if (element.children != null) {
+            for (Element child : element.children) {
+                newNode.appendChild(createNode(child));
+            }
         }
         return newNode;
     }
 
-    private String path(Node node) {
-        final StringBuilder path = new StringBuilder();
-        while (node.getNodeType() != DOCUMENT_NODE) {
-            path.insert(0, '/')
-                .insert(1, node.getNodeName());
-            node = node.getParentNode();
-        }
-        return path.toString();
-    }
-
-    private int nodeIndex(NodeList list, Node node) {
-        int idx = 0;
-        for (int i = 0; i < list.getLength(); i++) {
-            final Node current = list.item(i);
-            if (current.getNodeType() == ELEMENT_NODE) {
-                if (list.item(i) == node) {
-                    return idx;
-                }
-                idx++;
-            }
-        }
-        throw new XMLTreeException("You should not see this message");
-    }
-
-    /**
-     * Uses {@link XMLStreamReader} to construct xml tree.
-     * Tree stores each parsed element to {@link #elements} multi map.
-     * It gives us ability to fetch elements very fast.
-     * Each element contains start, end segments which are described
-     * element positions in source array.
-     */
     private void constructTree() throws XMLStreamException {
+        Node node = document.getDocumentElement();
+
         final XMLStreamReader reader = newXMLStreamReader();
         //TODO: rewrite with LinkedList to avoid synchronization
         final Stack<Element> startedNodes = new Stack<>();
@@ -477,29 +441,47 @@ public final class XMLTree {
                     fetchAttrs(newElement, reader);
                     //if new node is not xml root - set up relationships
                     if (!startedNodes.isEmpty()) {
-                        newElement.setParent(startedNodes.peek());
-                    } else {
-                        root = newElement;
+                        node = deepNext(node, true);
                     }
-                    elements.put(newElement.path(), newElement);
                     startedNodes.push(newElement);
+                    node.setUserData("element", newElement, null);
+                    newElement.delegate = node;
                     break;
                 case END_ELEMENT:
-                    startedNodes.pop().end = new Segment(beforeStart + 1, offset(reader));
+                    final Element element = startedNodes.pop();
+                    element.end = new Segment(beforeStart + 1, offset(reader));
+                    elements.add(element);
+                    break;
+                case COMMENT_NODE:
+                case COMMENT:
+                    node = deepNext(node, true);
                     break;
                 case CHARACTERS:
+                    node = deepNext(node, true);
                     final Element current = startedNodes.peek();
                     if (current.textSegments == null) {
                         //TODO think about list size
                         current.textSegments = new ArrayList<>();
                     }
                     //TODO REMOVE THIS
-                    current.text = reader.getText();
                     current.textSegments.add(new Segment(beforeStart + 1, offset(reader)));
                     break;
             }
             beforeStart = offset(reader);
         }
+    }
+
+    private Node deepNext(Node node, boolean deep) {
+        if (deep && node.getChildNodes().getLength() != 0) {
+            return node.getFirstChild();
+        }
+        final Node next = node.getNextSibling();
+        if (next != null) {
+            return next;
+        } else if (node == document.getDocumentElement()) {
+            return node;
+        }
+        return deepNext(node.getParentNode(), false);
     }
 
     /**
@@ -511,20 +493,6 @@ public final class XMLTree {
             constructTree();
         } catch (XMLStreamException xmlEx) {
             throw XMLTreeException.wrap(xmlEx);
-        }
-    }
-
-    //TODO do we need this method?
-    public byte[] getBytes() {
-        return Arrays.copyOf(xml, xml.length);
-    }
-
-    private void putElement(Element element) {
-        elements.put(element.path(), element);
-        if (element.children != null) {
-            for (Element child : element.children) {
-                putElement(child);
-            }
         }
     }
 
@@ -541,10 +509,9 @@ public final class XMLTree {
     }
 
     /**
-     * Its is important to let all related to
-     * {@param refElement} comments or what ever
-     * on their places, so to avoid deformation
-     * we inserting new element after
+     * It is important to let all related to
+     * {@param refElement} comments on their places,
+     * so to avoid deformation we inserting new element after
      * previous sibling or after element parent
      * if element doesn't have previous sibling
      */
@@ -554,11 +521,8 @@ public final class XMLTree {
             insertAfter(newElement, refPrevious);
         } else {
             //inserting after parent
-            xml = insertInto(xml, refElement.parent.start.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
-            putElement(newElement);
-            if (document != null) {
-                documentInsertBefore(newElement, refElement);
-            }
+            xml = insertInto(xml, refElement.getParent().start.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
+            documentInsertBefore(newElement, refElement);
         }
     }
 
@@ -566,59 +530,49 @@ public final class XMLTree {
      * Inserts element after referenced one
      */
     void insertAfter(Element newElement, Element refElement) {
-        xml = insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
-        if (document != null) {
-            documentInsertAfter(newElement, refElement);
-        }
-        putElement(newElement);
+        int level = getLevel(refElement);
+        int len = xml.length;
+        xml = insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), level));
+
+        index(newElement, refElement.end.right, level, refElement.getParent().textSegments);
+        shiftElements(refElement.end.right, xml.length - len);
+
+        insertAfterNode(newElement, refElement);
     }
 
-    private Node nexElementSibling(Node node) {
-        node = node.getNextSibling();
-        while (node != null && node.getNodeType() != ELEMENT_NODE) {
-            node = node.getNextSibling();
+    /**
+     * TODO for children
+     */
+    void index(Element element, int startIdx, int level, List<Segment> textAccumulator) {
+        int textLength = level + SPACES_IN_TAB;
+        int beforeStart = startIdx + textLength;
+        int right = beforeStart + openTagLength(element);
+        element.start = new Segment(beforeStart + 1, right);
+        if (element.children != null) {
+            //TODO
+        } else {
+            int beforeEnd = right + element.getText().length();
+            element.textSegments = singletonList(new Segment(right + 1, beforeEnd));
+            element.end = new Segment(beforeEnd + 1, beforeEnd + closeTagLength(element));
         }
-        return node;
-    }
-
-    private void updateDocumentText(Element target) {
-        final NodeList list = evaluateXPath(target.path(), NODESET);
-        list.item(elementIndex(target)).setTextContent(target.getText());
-    }
-
-    //FIXME don't use index ?
-    private int elementIndex(Element element) {
-        final List<Element> related = elements.get(element.path());
-        for (int idx = 0; idx < related.size(); idx++) {
-            if (related.get(idx) == element) {
-                return idx;
-            }
-        }
-        throw new XMLTreeException("You should not see this message");
     }
 
     /**
      * Inserting new node before next sibling
      * appending new child if refElement doesn't have
      */
-    private void documentInsertAfter(Element newElement, Element refElement) {
-        final Node refNode = nodeFor(refElement);
-        final Node nextSibling = nexElementSibling(refNode);
+    private void insertAfterNode(Element newElement, Element refElement) {
+        final Node nextSibling = nextElementSibling(refElement.delegate);
         if (nextSibling != null) {
-            nextSibling.getParentNode().insertBefore(clone(newElement), nextSibling);
+            nextSibling.getParentNode().insertBefore(createNode(newElement), nextSibling);
         } else {
-            nodeFor(refElement).getParentNode().appendChild(clone(newElement));
+            refElement.delegate.getParentNode().appendChild(createNode(newElement));
         }
     }
 
     private void documentInsertBefore(Element newElement, Element refElement) {
-        final Node refNode = nodeFor(refElement);
-        refNode.getParentNode().insertBefore(clone(newElement), refNode);
-    }
-
-    private Node nodeFor(Element element) {
-        final NodeList nodeList = evaluateXPath(element.path(), NODESET);
-        return nodeList.item(elementIndex(element));
+        final Node refNode = refElement.delegate;
+        refNode.getParentNode().insertBefore(createNode(newElement), refNode);
     }
 
     /**
@@ -657,5 +611,37 @@ public final class XMLTree {
             return offset - 1;
         }
         return xml[offset - 1] == '<' ? offset - 2 : offset - 3;
+    }
+
+    static class Segment {
+        int left;
+        int right;
+
+        Segment(int left, int right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof Segment)) {
+                return false;
+            }
+            final Segment other = (Segment)obj;
+            return other.left == left && other.right == right;
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * left ^ 31 * right;
+        }
+
+        @Override
+        public String toString() {
+            return "left: " + left + ", right: " + right;
+        }
     }
 }

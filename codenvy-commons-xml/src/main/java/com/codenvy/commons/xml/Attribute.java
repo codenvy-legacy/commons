@@ -21,9 +21,6 @@ public final class Attribute {
     private final String  value;
     private final Element container;
 
-    Segment valueSegment;
-    Segment nameSegment;
-
     Attribute(Element container, String name, String value) {
         this.container = container;
         this.name = name;

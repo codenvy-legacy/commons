@@ -10,13 +10,17 @@
  *******************************************************************************/
 package com.codenvy.commons.xml;
 
+import com.codenvy.commons.xml.XMLTree.Segment;
+
 import org.testng.annotations.Test;
 
+import static com.codenvy.commons.xml.Util.closeTagLength;
 import static com.codenvy.commons.xml.Util.fetchText;
 import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.insertBetween;
 import static com.codenvy.commons.xml.Util.insertInto;
 import static com.codenvy.commons.xml.Util.nearestLeftIndexOf;
+import static com.codenvy.commons.xml.Util.openTagLength;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -89,5 +93,26 @@ public class UtilTest {
 
         assertEquals(nearestLeftIndexOf(src, '>', 20), 11);
         assertEquals(nearestLeftIndexOf(src, '>', src.length - 1), 28);
+    }
+
+    //TODO add attributes
+    @Test
+    public void shouldBeAbleToGetElementOpenTagLength() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project></project>");
+
+        //<test>test</test>
+        final Element newElement = tree.newElement("test", "test");
+
+        assertEquals(openTagLength(newElement), 6);
+    }
+
+    @Test
+    public void shouldBeAbleToGetElementCloseTagLength() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project></project>");
+
+        //<test>test</test>
+        final Element newElement = tree.newElement("test", "test");
+
+        assertEquals(closeTagLength(newElement), 7);
     }
 }

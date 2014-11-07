@@ -10,11 +10,19 @@
  *******************************************************************************/
 package com.codenvy.commons.xml;
 
+import com.codenvy.commons.xml.XMLTree.Segment;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.System.arraycopy;
 import static java.util.Arrays.fill;
+import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
  * Utils for xml tree
@@ -23,9 +31,8 @@ import static java.util.Arrays.fill;
  */
 public final class Util {
 
-    public static final Charset UTF_8 = Charset.forName("utf-8");
-
-    private static final int SPACES_IN_TAB = 4;
+    public static final Charset UTF_8         = Charset.forName("utf-8");
+    public static final int     SPACES_IN_TAB = 4;
 
     /**
      * TODO: write doc
@@ -136,10 +143,29 @@ public final class Util {
     public static int getLevel(Element element) {
         int level = 0;
         while (element.hasParent()) {
-            element = element.parent;
+            element = element.getParent();
             level++;
         }
         return level;
+    }
+
+
+    public static int openTagLength(Element element) {
+        int len = 2; // '<' + '>'
+        len += element.name.length();// 'name'
+        for (Attribute attribute : element.getAttributes()) {
+            len += 1 + attributeLength(attribute); // ' ' + 'attribute="value"'
+        }
+        return len;
+    }
+
+    public static int closeTagLength(Element element) {
+        return 3 + element.name.length(); // '<' + '/' + 'name' + '>'
+    }
+
+    //TODO
+    public static int attributeLength(Attribute attribute) {
+        return 0;
     }
 
     /**
@@ -164,6 +190,39 @@ public final class Util {
         builder.append(tabs)
                .append(lines[lines.length - 1]);
         return builder.toString();
+    }
+
+    public static Element asElement(Node node) {
+        if (node == null) {
+            return null;
+        }
+        return (Element)node.getUserData("element");
+    }
+
+    public static List<Element> asElements(NodeList list) {
+        final List<Element> elements = new ArrayList<>(list.getLength());
+        for (int i = 0; i < list.getLength(); i++) {
+            if (list.item(i).getNodeType() == ELEMENT_NODE) {
+                elements.add(asElement(list.item(i)));
+            }
+        }
+        return elements;
+    }
+
+    public static Node nextElementSibling(Node node) {
+        node = node.getNextSibling();
+        while (node != null && node.getNodeType() != ELEMENT_NODE) {
+            node = node.getNextSibling();
+        }
+        return node;
+    }
+
+    public static Node previousElementSibling(Node node) {
+        node = node.getPreviousSibling();
+        while (node != null && node.getNodeType() != ELEMENT_NODE) {
+            node = node.getPreviousSibling();
+        }
+        return node;
     }
 
     private static int capacity(List<Segment> segments) {

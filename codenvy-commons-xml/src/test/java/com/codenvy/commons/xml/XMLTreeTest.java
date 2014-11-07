@@ -30,8 +30,7 @@ public class XMLTreeTest {
                                               "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
                                               "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                                               "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
-                                              "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
-                                              "    <modelVersion>4.0.0</modelVersion>\n" +
+                                              "http://maven.apache.org/xsd/maven-4.0.0.xsd\"><modelVersion>4.0.0</modelVersion>\n" +
                                               "    <parent>\n" +
                                               "        <artifactId>test-parent</artifactId>\n" +
                                               "        <groupId>test-parent-group-id</groupId>\n" +
@@ -362,8 +361,7 @@ public class XMLTreeTest {
         assertFalse(dependency.hasChild("version"));
     }
 
-    //TODO
-    @Test(enabled = false)
+    @Test
     public void shouldBeAbleToRemoveChildren() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
@@ -373,15 +371,57 @@ public class XMLTreeTest {
         assertTrue(dependencies.getChildren().isEmpty());
     }
 
-    //TODO
-    @Test(enabled = false)
-    public void resultOfChainRemovingAndBatchRemovingShouldProduceSameTreeBytes() {
+    @Test
+    public void chainRemovingAndBatchRemovingShouldProduceSameTreeBytes() {
         final XMLTree tree1 = XMLTree.from(XML_CONTENT);
         final XMLTree tree2 = XMLTree.from(XML_CONTENT);
+
+        //removing dependencies from first tree
+        tree1.removeElement("/project/dependencies/dependency[3]");
+        tree1.removeElement("/project/dependencies/dependency[2]");
+        tree1.removeElement("/project/dependencies/dependency[1]");
+        //removing dependencies from second tree
+        tree2.getSingleElement("//dependencies").removeChildren("dependency");
+
+        assertEquals(tree1.getBytes(), tree2.getBytes());
     }
 
     @Test
+    public void removeInsertedElementShouldProduceSameTreeBytes() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        final byte[] before = tree.getBytes();
 
+        final Element description = tree.getRoot()
+                                        .getLastChild()
+                                        .insertBefore(tree.newElement("description", "description"))
+                                        .getSingleSibling("description");
+        description.remove();
+
+        assertEquals(tree.getBytes(), before);
+    }
+
+    //We need to know that all elements
+    //and text segments were indexed correct after insertion of
+    //new element to do so we need to change any of content
+    //which position follows inserted element position
+    @Test
+    public void shouldBeAbleToChangeInsertedElementText() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        tree.getRoot()
+            .getLastChild()
+            .insertBefore(tree.newElement("description", "description"));
+        //all elements after description should be indexed again
+        //we can check element text bounds by inserting new content
+        tree.updateText("/project/dependencies/dependency[artifactId='guava']/version", "new version");
+
+        //TODO add better assertion
+        //create new tree to be sure that text was inserted in correct place
+        final XMLTree tree2 = XMLTree.from(new String(tree.getBytes()));
+        assertEquals(tree2.getSingleText("/project/dependencies/dependency[artifactId='guava']/version"), "new version");
+    }
+
+    @Test
     public void shouldNotDestroyFormattingAfterSimpleElementInsertion() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
@@ -533,5 +573,5 @@ public class XMLTreeTest {
                                                   "</project>");
     }
 
-    //TODO add batch update tests
+//    TODO add batch update tests
 }
