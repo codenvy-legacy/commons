@@ -739,17 +739,36 @@ public class XMLTreeTest {
 
         assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                                   "<root>text-after</root>");
-
     }
 
     @Test
     public void commentBeforeElementShouldNotBeRemovedWithElement() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                                          "<root><!--text-before--><test>text-inside</test>text-after</root>");
+                                          "<root><!--comment--><test>text-inside</test>text-after</root>");
 
         tree.removeElement("//test");
 
         assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                                                  "<root><!--text-before-->text-after</root>");
+                                                  "<root><!--comment-->text-after</root>");
+    }
+
+    @Test
+    public void textUpdateShouldNotRemoveElements() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<root>" +
+                                          "text-before" +
+                                          "<!--comment-->" +
+                                          "<test>text-inside</test>" +
+                                          "text-after" +
+                                          "</root>");
+
+        tree.getRoot().setText("new text");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<root>" +
+                                                  "new text" +
+                                                  "<!--comment-->" +
+                                                  "<test>text-inside</test>" +
+                                                  "</root>");
     }
 }

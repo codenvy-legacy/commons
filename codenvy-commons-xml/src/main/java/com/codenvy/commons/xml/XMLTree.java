@@ -64,18 +64,48 @@ import static javax.xml.xpath.XPathConstants.STRING;
 import static org.w3c.dom.Node.COMMENT_NODE;
 
 /**
- * TODO:
- * add support for attributes
- * add support for one line elements
- * add support for deep indexing newly added elements
- * add checks e.g. "should not be able to remove root"
- * text update should use only segment and remove others
- * test segments positions after batch updates
- * <p/>
  * XML tool which provides abilities to modify and search
- * information in xml document without
- * affecting of existing formatting, comments.
+ * information in xml document without affecting of
+ * existing formatting, comments.
  * <p/>
+ * XMLTree delegates out of the box implementation of
+ * org.w3c.dom and provides a lot of functionality
+ * such as XPath selection.
+ * How does the XMLTree lets content in required state?
+ * The main idea is simple: know XML elements positions!
+ * If we know elements positions and source bytes we
+ * can easily manipulate content as we want.
+ * So each time when client updates tree,
+ * tree rewrites source bytes with new information,
+ * indexes new elements, updates delegated document,
+ * shifts needed existed elements positions.
+ * As you may see there are a lot of data manipulations
+ * when update is going, so <b>you should not use this tool for
+ * parsing huge xml documents or for often complex updates.</b>
+ * <p/>
+ * XPath is embedded to XMLTree so each query to tree
+ * is xpath query. You will be able to select/update
+ * content provided with XMLTree elements or attributes
+ * without working with xpath directly.
+ * <p/>
+ * XMLTree provides methods which do the same
+ * as model methods but sometimes they are
+ * more convenient, you can use tree
+ * methods as well as model methods.
+ * <pre>
+ *     For example:
+ *
+ *     XMLTree tree = XMLTree.from(...)
+ *
+ *     //tree call
+ *     tree.updateText("/project/name", "new name");
+ *
+ *     //model call
+ *     tree.getSingleElement("/project/name")
+ *         .setText("new name");
+ *
+ * </pre>
+ * <b>NOTE: XMLTree is not thread-safe!</b>
  *
  * @author Eugene Voevodin
  */
@@ -114,6 +144,9 @@ public final class XMLTree {
         return new XMLTree(xml.getBytes(UTF_8));
     }
 
+    /**
+     * Creates XMLTree from byte array
+     */
     public static XMLTree from(byte[] xml) {
         return new XMLTree(xml);
     }
@@ -130,7 +163,14 @@ public final class XMLTree {
     }
 
     /**
-     * Searches for element text.
+     * Searches for requested element text.
+     * If there are more then only element were found
+     * {@link XMLTreeException} will be thrown
+     *
+     * @param expression
+     *         xpath expression to search element
+     * @return requested element text
+     * @see Element#getText()
      */
     public String getSingleText(String expression) {
         return evaluateXPath(expression, STRING);
@@ -138,22 +178,28 @@ public final class XMLTree {
 
     /**
      * Searches for requested elements text.
-     * If matched elements where not found empty list will be returned.
+     * If there are no elements was found
+     * empty list will be returned.
+     * <p/>
+     * You can use this method to request
+     * not only elements text but for selecting
+     * attributes values or whatever text information
+     * which is able to be selected with xpath
      *
      * @param expression
-     *         elements path
-     * @return list of elements text or
+     *         xpath expression to search elements
+     * @return list of elements text or empty list if nothing found
      */
     public List<String> getText(String expression) {
         return retrieveText(expression);
     }
 
     /**
-     * Searches for elements by path
+     * Searches for requested elements.
      *
      * @param expression
-     *         element path
-     * @return list of found elements or empty list if no elements were found
+     *         xpath expression to search elements
+     * @return list of found elements or empty list if elements were not found
      */
     public List<Element> getElements(String expression) {
         final NodeList nodes = evaluateXPath(expression, NODESET);
@@ -161,12 +207,21 @@ public final class XMLTree {
     }
 
     /**
-     * Returns root element for tree
+     * Returns root tree element
      */
     public Element getRoot() {
         return asElement(document.getDocumentElement());
     }
 
+    /**
+     * If there are more then only element
+     * or nothing were found
+     * {@link XMLTreeException} will be thrown
+     *
+     * @param expression
+     *         xpath expression to search element
+     * @return found element
+     */
     public Element getSingleElement(String expression) {
         return single(getElements(expression));
     }
@@ -177,12 +232,16 @@ public final class XMLTree {
      * Newly created element will not be added to tree,
      * you should use exited elements update methods
      * or tree update methods to do so.
+     * <p/>
+     * Created element related to tree instance,
+     * so it is not able to update other tree instance
+     * with it.
      *
      * @param name
      *         element name
      * @param text
      *         element text
-     * @return created element
+     * @return created element with given name and text content
      */
     public Element newElement(String name, String text) {
         final Element newElement = new Element(this);
@@ -197,14 +256,18 @@ public final class XMLTree {
      * Newly created element will not be added to tree,
      * you should use exited elements update methods
      * or tree update methods to do so.
-     * After update each element child going to be added
-     * to tree as well.
+     * Each tree update method will add related to
+     * element children as well as itself.
+     * <p/>
+     * Created element related to tree instance,
+     * so it is not able to update other tree instance
+     * with it.
      *
      * @param name
      *         element name
      * @param children
      *         element children
-     * @return created element
+     * @return created element with given name and children
      */
     public Element newElement(String name, Element... children) {
         final Element newElement = new Element(this);
@@ -214,89 +277,105 @@ public final class XMLTree {
     }
 
     /**
-     * Updates text for element with given path.
+     * Updates requested element text.
+     * XPath expression should be used only
+     * for element not for attribute or something else.
      * </p>
-     * Path should be unique, if is not so {@link XMLTreeException} will
-     * be thrown. If wanted element hasn't unique path you
-     * should use {@link Element#setText(String)}} instead.
+     * If there are more then only element were found
+     * {@link XMLTreeException} will be thrown
      *
      * @param expression
-     *         path to text container
+     *         xpath expression to search element
      * @param newContent
-     *         new text content
+     *         new element text content
+     * @see Element#setText(String)
      */
     public void updateText(String expression, String newContent) {
         getSingleElement(expression).setText(newContent);
     }
 
     /**
-     * Adds element to the end of the list of existed children.
+     * Adds element to the end of the list
+     * of existed children or adds it as only children.
      * <p/>
-     * Parent path should be unique, if is not so {@link XMLTreeException} will
-     * be thrown. If wanted element hasn't unique path you
-     * should use {@link Element#appendChild(Element)}} instead.
+     * If there are more then only parent elements
+     * were found {@link XMLTreeException} will be thrown
      *
-     * @param refParentPath
-     *         path to parent element
+     * @param expression
+     *         xpath expression to search parent
      * @param newElement
-     *         element to add
+     *         new element which will be inserted.
+     *         It should be created with same tree instance
      */
-    public void appendChild(String refParentPath, Element newElement) {
-        single(getElements(refParentPath)).appendChild(newElement);
+    public void appendChild(String expression, Element newElement) {
+        single(getElements(expression)).appendChild(newElement);
     }
 
     /**
      * Inserts element before referenced one.
-     * After insert all commends related to referenced element
-     * going to have the same order and position as it was before insert.
+     * All comments related before referenced element
+     * going to have same positions like they had before.
      * <p/>
-     * Path should be unique, if is not so {@link XMLTreeException} will
-     * be thrown. If wanted element hasn't unique path you
-     * should use {@link Element#insertBefore(Element)} instead.
+     * If there are more then only referenced elements
+     * were found {@link XMLTreeException} will be thrown
      *
-     * @param refElementPath
-     *         path to element which will go after inserted element
+     * @param expression
+     *         xpath expression to search referenced element
      * @param newElement
-     *         element to insert
+     *         new element which will be inserted.
+     *         It should be created with same tree instance
      */
-    public void insertBefore(String refElementPath, Element newElement) {
-        single(getElements(refElementPath)).insertBefore(newElement);
+    public void insertBefore(String expression, Element newElement) {
+        single(getElements(expression)).insertBefore(newElement);
     }
 
     /**
      * Inserts element after referenced one.
-     * After insert, all commends related to referenced element
-     * going to have the same positions as it had before insert.
      * <p/>
-     * Path should be unique, if is not so {@link XMLTreeException} will
-     * be thrown. If wanted element hasn't unique path you
-     * should use {@link Element#insertAfter(Element)} instead.
+     * If there are more then only referenced elements
+     * were found {@link XMLTreeException} will be thrown
      *
-     * @param refElementPath
-     *         path to element which going to be  before inserted element
+     * @param expression
+     *         xpath expression to search referenced element
      * @param newElement
-     *         element to insert
+     *         new element which will be inserted.
+     *         It should be created with same tree instance
      */
-    public void insertAfter(String refElementPath, Element newElement) {
-        single(getElements(refElementPath)).insertAfter(newElement);
+    public void insertAfter(String expression, Element newElement) {
+        single(getElements(expression)).insertAfter(newElement);
     }
 
     /**
-     * TODO
+     * Removes requested element.
+     * If there are was any <b>text</b> before removal
+     * element it will be removed as well.
+     * It is important when we need to keep formatting
+     * pretty if it was pretty. It is really strange
+     * situation when parent element contains
+     * not only whitespaces but another text content.
      * <p/>
-     * Path should be unique, if is not so {@link XMLTreeException} will
-     * be thrown. If wanted element hasn't unique path you
-     * should use {@link Element#remove()} instead.
+     * If there are more then only referenced element
+     * were found {@link XMLTreeException} will be thrown
      *
      * @param expression
-     *         path to element
+     *         xpath expression to remove element
      */
     public void removeElement(String expression) {
         single(getElements(expression)).remove();
     }
 
+    /**
+     * Returns copy of tree bytes.
+     */
     public byte[] getBytes() {
         return Arrays.copyOf(xml, xml.length);
+    }
+
+    private void shiftSegment(Segment segment, int idx, int offset) {
+        if (segment.left > idx) {
+            segment.left += offset;
+            segment.right += offset;
+        }
     }
 
     private void removeTextSegment(Element element, int left) {
@@ -321,47 +400,6 @@ public final class XMLTree {
                 //TODO shift attributes
             }
         }
-    }
-
-    private void shiftSegment(Segment segment, int idx, int offset) {
-        if (segment.left > idx) {
-            segment.left += offset;
-            segment.right += offset;
-        }
-    }
-
-    void dropElement(Element element) {
-        final int left = lastIndexOf(xml, '>', element.start.left) + 1;
-        final int len = xml.length;
-        if (left != element.start.left - 1) {
-            removeTextSegment(element.getParent(), left);
-        }
-        xml = insertBetween(xml, left, element.end.right, "");
-        elements.remove(element);
-        //shift all elements which are right from element
-        shiftSegments(element.end.right, xml.length - len);
-    }
-
-    /**
-     * Updates text of given element.
-     * It is based on element text positions.
-     * TODO: describe behaviour
-     */
-    //FIXME should work correctly when element contains other elements
-    void updateText(Element target) {
-        final int left;
-        final int right;
-        final List<Segment> segments = target.textSegments;
-        //initialize borders
-        if (segments != null) {
-            left = segments.get(0).left;
-            right = segments.get(segments.size() - 1).right;
-        } else {
-            left = target.start.right + 1;
-            right = target.end.left - 1;
-        }
-        //insert new content into existed sources
-        xml = insertBetween(xml, left, right, target.getText());
     }
 
     @SuppressWarnings("unchecked")
@@ -484,7 +522,6 @@ public final class XMLTree {
      */
     private XMLStreamReader newXMLStreamReader() {
         try {
-            //TODO
             return XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(xml));
         } catch (XMLStreamException xmlEx) {
             throw XMLTreeException.wrap(xmlEx);
@@ -492,6 +529,69 @@ public final class XMLTree {
     }
 
     /**
+     * Removes element from tree.
+     * <p/>
+     * It is important to save xml tree pretty view,
+     * so element should be removed without of destroying
+     * style of xml document.
+     * <pre>
+     *      e.g.
+     *
+     *      {@literal <level1>}
+     *          {@literal <level2>} {@literal <level2>+\n}
+     *          {@literal <level2>} {@literal <level2+>\n}
+     *      {@literal <level1>}
+     *
+     *      first + is before left border
+     *      last + is before right border
+     *
+     *      segment [first, last] - will be removed
+     * </pre>
+     * So after removing formatting will be the same.
+     * We can't remove just element from start to end
+     * because it will produce not pretty formatting for
+     * good and pretty formatted before document.
+     */
+    void dropElement(Element element) {
+        final int left = lastIndexOf(xml, '>', element.start.left) + 1;
+        final int len = xml.length;
+        if (left != element.start.left - 1) {
+            removeTextSegment(element.getParent(), left);
+        }
+        xml = insertBetween(xml, left, element.end.right, "");
+        elements.remove(element);
+        //shift all elements which are right from element
+        shiftSegments(element.end.right, xml.length - len);
+    }
+
+    /**
+     * Updates text of given element.
+     * It is based on element text positions.
+     * If element has more then one text segment
+     * only first will be used for update, other
+     * will be removed. Only text segment will have the same left bound as it
+     * has before and right bound equal to left bound + new text length
+     */
+    void updateText(Element target) {
+        if (target.textSegments != null) {
+            final Iterator<Segment> segIt = target.textSegments.iterator();
+            final Segment first = segIt.next();
+            //removing all segments instead of first
+            while (segIt.hasNext()) {
+                final Segment segment = segIt.next();
+                segIt.remove();
+                xml = insertBetween(xml, segment.left, segment.right, "");
+            }
+            //update new text content
+            xml = insertBetween(xml, first.left, first.right, target.getText());
+            first.right = first.left + target.getText().length();
+        } else {
+            xml = insertBetween(xml, target.start.right + 1, target.end.left - 1, target.getText());
+        }
+    }
+
+    /**
+     * Inserts element before referenced one.
      * It is important to let all related to
      * {@param refElement} comments on their places,
      * so to avoid deformation we inserting new element after
@@ -519,10 +619,10 @@ public final class XMLTree {
      * Inserts element after referenced one
      */
     void insertAfter(Element newElement, Element refElement) {
-        int level = level(refElement);
-        int len = xml.length;
-        xml = insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), level));
+        final int level = level(refElement);
+        final int len = xml.length;
 
+        xml = insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), level));
         //TODO: write explanation! +1 cause of \n
         index(newElement, refElement.end.right + 1, level, refElement.getParent());
         shiftSegments(refElement.end.right, xml.length - len);
@@ -530,6 +630,9 @@ public final class XMLTree {
         insertAfterNode(newElement, refElement);
     }
 
+    /**
+     * Adds new element to the end of children list with given parent.
+     */
     void appendChild(Element newElement, Element parent) {
         final int level = level(parent) + 1;
         final int len = xml.length;
@@ -543,7 +646,7 @@ public final class XMLTree {
     }
 
     /**
-     * TODO for children
+     * Creates segments for newly created element and related children
      */
     private int index(Element element, int beforeText, int level, Element parent) {
         //text length before element
@@ -647,6 +750,10 @@ public final class XMLTree {
         return xml[offset - 1] == '<' ? offset - 2 : offset - 3;
     }
 
+    /**
+     * Describes element, attribute or text position in
+     * the source array of bytes.
+     */
     static class Segment {
         int left;
         int right;
