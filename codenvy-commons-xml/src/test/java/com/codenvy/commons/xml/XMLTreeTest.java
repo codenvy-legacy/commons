@@ -30,7 +30,8 @@ public class XMLTreeTest {
                                               "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
                                               "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                                               "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
-                                              "http://maven.apache.org/xsd/maven-4.0.0.xsd\"><modelVersion>4.0.0</modelVersion>\n" +
+                                              "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                              "    <modelVersion>4.0.0</modelVersion>\n" +
                                               "    <parent>\n" +
                                               "        <artifactId>test-parent</artifactId>\n" +
                                               "        <groupId>test-parent-group-id</groupId>\n" +
@@ -677,5 +678,78 @@ public class XMLTreeTest {
                                                   "</project>");
     }
 
-//    TODO add batch update tests
+    @Test
+    public void batchUpdateShouldProduceExpectedContent() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        //removing parent
+        tree.removeElement("//parent");
+        //removing configuration
+        tree.getSingleElement("//configuration").remove();
+        //adding groupId before artifactId and version after
+        tree.getSingleElement("/project/artifactId")
+            .insertBefore(tree.newElement("groupId", "test-group"))
+            .insertAfter(tree.newElement("version", "test-version"));
+        //delete all test dependencies
+        for (Element element : tree.getElements("//dependency[scope='test']")) {
+            element.remove();
+        }
+        //adding junit dependency to the end of dependencies list
+        tree.getSingleElement("//dependencies")
+            .appendChild(tree.newElement("dependency",
+                                         tree.newElement("artifactId", "junit"),
+                                         tree.newElement("groupId", "junit"),
+                                         tree.newElement("version", "4.0")));
+        //change junit version
+        tree.updateText("//dependency[artifactId='junit']/version", "4.1");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                                  "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                                  "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                                  "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <groupId>test-group</groupId>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <version>test-version</version>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <name>Test</name>\n" +
+                                                  "    <dependencies>\n" +
+                                                  "        <dependency>\n" +
+                                                  "            <groupId>com.google.guava</groupId>\n" +
+                                                  "            <artifactId>guava</artifactId>\n" +
+                                                  "            <version>18.0</version>\n" +
+                                                  "        </dependency>\n" +
+                                                  "        <!-- Test dependencies -->\n" +
+                                                  "        <dependency>\n" +
+                                                  "            <artifactId>junit</artifactId>\n" +
+                                                  "            <groupId>junit</groupId>\n" +
+                                                  "            <version>4.1</version>\n" +
+                                                  "        </dependency>\n" +
+                                                  "    </dependencies>\n" +
+                                                  "</project>\n");
+    }
+
+    @Test
+    public void textBeforeElementShouldBeRemovedWithElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<root>text-before<test>text-inside</test>text-after</root>");
+
+        tree.removeElement("//test");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<root>text-after</root>");
+
+    }
+
+    @Test
+    public void commentBeforeElementShouldNotBeRemovedWithElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<root><!--text-before--><test>text-inside</test>text-after</root>");
+
+        tree.removeElement("//test");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<root><!--text-before-->text-after</root>");
+    }
 }

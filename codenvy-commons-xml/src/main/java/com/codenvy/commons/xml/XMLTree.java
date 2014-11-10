@@ -299,18 +299,6 @@ public final class XMLTree {
         return Arrays.copyOf(xml, xml.length);
     }
 
-    void dropElement(Element element) {
-        final int left = lastIndexOf(xml, '>', element.start.left) + 1;
-        final int len = xml.length;
-        if (left != element.start.left - 1) {
-            removeTextSegment(element.getParent(), left);
-        }
-        xml = insertBetween(xml, left, element.end.right, "");
-        elements.remove(element);
-        //shift all elements which are right from element
-        shiftSegments(element.end.right, -len + xml.length);
-    }
-
     private void removeTextSegment(Element element, int left) {
         for (Iterator<Segment> segIt = element.textSegments.iterator(); segIt.hasNext(); ) {
             if (segIt.next().left == left) {
@@ -340,6 +328,18 @@ public final class XMLTree {
             segment.left += offset;
             segment.right += offset;
         }
+    }
+
+    void dropElement(Element element) {
+        final int left = lastIndexOf(xml, '>', element.start.left) + 1;
+        final int len = xml.length;
+        if (left != element.start.left - 1) {
+            removeTextSegment(element.getParent(), left);
+        }
+        xml = insertBetween(xml, left, element.end.right, "");
+        elements.remove(element);
+        //shift all elements which are right from element
+        shiftSegments(element.end.right, xml.length - len);
     }
 
     /**
@@ -383,7 +383,6 @@ public final class XMLTree {
         }
     }
 
-    //TODO find better name
     private List<String> retrieveText(String expression) {
         final NodeList nodeList = evaluateXPath(expression, NODESET);
         final List<String> elementsText = new ArrayList<>(nodeList.getLength());
@@ -512,7 +511,7 @@ public final class XMLTree {
             index(newElement, parent.start.right + 1, level(refElement), parent);
             shiftSegments(parent.start.right, xml.length - len);
 
-            insertNodeBefore(newElement, refElement);
+            insertBeforeNode(newElement, refElement);
         }
     }
 
@@ -544,7 +543,6 @@ public final class XMLTree {
     }
 
     /**
-     * fuck this method
      * TODO for children
      */
     private int index(Element element, int beforeText, int level, Element parent) {
@@ -588,7 +586,6 @@ public final class XMLTree {
         //<parent>\n    <child>text</child>
 
         int beforeEnd = beforeTextForChild + element.getText().length();
-//        element.textSegments = new LinkedList<>();
         element.textSegments.add(new Segment(startRight + 1, beforeEnd));
         element.end = new Segment(beforeEnd + 1, beforeEnd + closeTagLength(element));
         return element.end.right;
@@ -607,7 +604,7 @@ public final class XMLTree {
         }
     }
 
-    private void insertNodeBefore(Element newElement, Element refElement) {
+    private void insertBeforeNode(Element newElement, Element refElement) {
         final Node refNode = refElement.delegate;
         refNode.getParentNode().insertBefore(createNode(newElement), refNode);
     }
