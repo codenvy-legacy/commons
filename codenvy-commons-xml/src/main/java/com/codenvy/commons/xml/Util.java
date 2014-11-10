@@ -12,7 +12,6 @@ package com.codenvy.commons.xml;
 
 import com.codenvy.commons.xml.XMLTree.Segment;
 
-import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -20,6 +19,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Math.min;
 import static java.lang.System.arraycopy;
 import static java.util.Arrays.fill;
 import static org.w3c.dom.Node.ELEMENT_NODE;
@@ -39,7 +39,7 @@ public final class Util {
      * <pre>
      * New content schema:
      *
-     * [0 - left) + content + (right, src.length)
+     * [0 - left) + content + (right, src.elementLength)
      * </pre>
      *
      * @param src
@@ -66,7 +66,7 @@ public final class Util {
      * <pre>
      * New content schema:
      *
-     * [0 - pos) + content + [pos, src.length)
+     * [0 - pos) + content + [pos, src.elementLength)
      * </pre>
      *
      * @param src
@@ -102,34 +102,13 @@ public final class Util {
     }
 
     //TODO
-    public static int nearestLeftIndexOf(byte[] src, char c, int idx) {
-        while (idx > 0 && src[idx] != c) {
-            idx--;
+    public static int lastIndexOf(byte[] src, char c, int fromIdx) {
+        for (int i = min(fromIdx, src.length - 1); i >= 0; i--) {
+            if (src[i] == c) {
+                return i;
+            }
         }
-        return idx;
-    }
-
-    /**
-     * Fetch text from source based on given segments.
-     * Uses each segment to fetch text from source array.
-     * It should be used with Element#getText().
-     *
-     * @param src
-     *         source array
-     * @param segments
-     *         text bounds
-     * @return fetched text
-     */
-    public static String fetchText(byte[] src, List<Segment> segments) {
-        final byte[] text = new byte[capacity(segments)];
-        int copied = 0;
-        for (Segment segment : segments) {
-            int len = segment.right - segment.left + 1;
-            arraycopy(src, segment.left, text, copied, len);
-            copied += len;
-        }
-        //TODO should it be interned?
-        return new String(text);
+        return -1;
     }
 
     /**
@@ -140,7 +119,7 @@ public final class Util {
      *         target element
      * @return how deep is the element
      */
-    public static int getLevel(Element element) {
+    public static int level(Element element) {
         int level = 0;
         while (element.hasParent()) {
             element = element.getParent();

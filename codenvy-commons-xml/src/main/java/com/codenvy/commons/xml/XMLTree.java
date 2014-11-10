@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -41,18 +42,18 @@ import java.util.Stack;
 import static com.codenvy.commons.xml.Util.SPACES_IN_TAB;
 import static com.codenvy.commons.xml.Util.UTF_8;
 import static com.codenvy.commons.xml.Util.asElement;
+import static com.codenvy.commons.xml.Util.asElements;
 import static com.codenvy.commons.xml.Util.closeTagLength;
 import static com.codenvy.commons.xml.Util.nextElementSibling;
 import static com.codenvy.commons.xml.Util.single;
-import static com.codenvy.commons.xml.Util.getLevel;
+import static com.codenvy.commons.xml.Util.level;
 import static com.codenvy.commons.xml.Util.insertBetween;
 import static com.codenvy.commons.xml.Util.insertInto;
-import static com.codenvy.commons.xml.Util.nearestLeftIndexOf;
+import static com.codenvy.commons.xml.Util.lastIndexOf;
 import static com.codenvy.commons.xml.Util.openTagLength;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.COMMENT;
@@ -61,7 +62,6 @@ import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.STRING;
 import static org.w3c.dom.Node.COMMENT_NODE;
-import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
  * TODO:
@@ -148,7 +148,6 @@ public final class XMLTree {
         return retrieveText(expression);
     }
 
-
     /**
      * Searches for elements by path
      *
@@ -157,7 +156,8 @@ public final class XMLTree {
      * @return list of found elements or empty list if no elements were found
      */
     public List<Element> getElements(String expression) {
-        return unmodifiableList(retrieveElements(expression));
+        final NodeList nodes = evaluateXPath(expression, NODESET);
+        return unmodifiableList(asElements(nodes));
     }
 
     /**
@@ -300,20 +300,15 @@ public final class XMLTree {
     }
 
     void dropElement(Element element) {
-        final int left = nearestLeftIndexOf(xml, '>', element.start.left) + 1;
+        final int left = lastIndexOf(xml, '>', element.start.left) + 1;
         final int len = xml.length;
         if (left != element.start.left - 1) {
             removeTextSegment(element.getParent(), left);
         }
         xml = insertBetween(xml, left, element.end.right, "");
-        dropNodeFromDocument(element);
         elements.remove(element);
         //shift all elements which are right from element
-        shiftElements(element.end.right, -len + xml.length);
-    }
-
-    private void dropNodeFromDocument(Element element) {
-        element.delegate.getParentNode().removeChild(element.delegate);
+        shiftSegments(element.end.right, -len + xml.length);
     }
 
     private void removeTextSegment(Element element, int left) {
@@ -325,7 +320,7 @@ public final class XMLTree {
         }
     }
 
-    private void shiftElements(int fromIdx, int offset) {
+    private void shiftSegments(int fromIdx, int offset) {
         for (Element element : elements) {
             if (element.end.left > fromIdx) {
                 shiftSegment(element.start, fromIdx, offset);
@@ -340,7 +335,7 @@ public final class XMLTree {
         }
     }
 
-    void shiftSegment(Segment segment, int idx, int offset) {
+    private void shiftSegment(Segment segment, int idx, int offset) {
         if (segment.left > idx) {
             segment.left += offset;
             segment.right += offset;
@@ -398,18 +393,7 @@ public final class XMLTree {
         return elementsText;
     }
 
-    private List<Element> retrieveElements(String expression) {
-        final NodeList nodeList = evaluateXPath(expression, NODESET);
-        final List<Element> requested = new ArrayList<>(nodeList.getLength());
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            final Node current = nodeList.item(i);
-            if (current.getNodeType() == ELEMENT_NODE) {
-                requested.add((Element)current.getUserData("element"));
-            }
-        }
-        return requested;
-    }
-
+    //TODO add attributes
     private Node createNode(Element element) {
         final Node newNode = document.createElement(element.getName());
         newNode.setTextContent(element.getText());
@@ -431,7 +415,8 @@ public final class XMLTree {
         final Stack<Element> startedNodes = new Stack<>();
         //determines right of before selected element
         //used to cover next element with segment
-        int beforeStart = -1;
+        //TODO change this value
+        int beforeStart = 38;
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case START_ELEMENT:
@@ -452,19 +437,18 @@ public final class XMLTree {
                     element.end = new Segment(beforeStart + 1, offset(reader));
                     elements.add(element);
                     break;
-                case COMMENT_NODE:
-                case COMMENT:
-                    node = deepNext(node, true);
-                    break;
                 case CHARACTERS:
-                    node = deepNext(node, true);
                     final Element current = startedNodes.peek();
                     if (current.textSegments == null) {
                         //TODO think about list size
-                        current.textSegments = new ArrayList<>();
+                        current.textSegments = new LinkedList<>();
                     }
                     //TODO REMOVE THIS
                     current.textSegments.add(new Segment(beforeStart + 1, offset(reader)));
+                case COMMENT_NODE:
+                    //TODO add CDATA?!
+                case COMMENT:
+                    node = deepNext(node, true);
                     break;
             }
             beforeStart = offset(reader);
@@ -520,9 +504,15 @@ public final class XMLTree {
         if (refPrevious != null) {
             insertAfter(newElement, refPrevious);
         } else {
+            int len = xml.length;
             //inserting after parent
-            xml = insertInto(xml, refElement.getParent().start.right + 1, '\n' + tabulate(newElement.asString(), getLevel(refElement)));
-            documentInsertBefore(newElement, refElement);
+            final Element parent = refElement.getParent();
+
+            xml = insertInto(xml, parent.start.right + 1, '\n' + tabulate(newElement.asString(), level(refElement)));
+            index(newElement, parent.start.right + 1, level(refElement), parent);
+            shiftSegments(parent.start.right, xml.length - len);
+
+            insertNodeBefore(newElement, refElement);
         }
     }
 
@@ -530,31 +520,78 @@ public final class XMLTree {
      * Inserts element after referenced one
      */
     void insertAfter(Element newElement, Element refElement) {
-        int level = getLevel(refElement);
+        int level = level(refElement);
         int len = xml.length;
         xml = insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), level));
 
-        index(newElement, refElement.end.right, level, refElement.getParent().textSegments);
-        shiftElements(refElement.end.right, xml.length - len);
+        //TODO: write explanation! +1 cause of \n
+        index(newElement, refElement.end.right + 1, level, refElement.getParent());
+        shiftSegments(refElement.end.right, xml.length - len);
 
         insertAfterNode(newElement, refElement);
     }
 
+    void appendChild(Element newElement, Element parent) {
+        final int level = level(parent) + 1;
+        final int len = xml.length;
+        final int pos = lastIndexOf(xml, '>', parent.end.left) + 1;
+
+        xml = insertInto(xml, pos, '\n' + tabulate(newElement.asString(), level));
+        index(newElement, pos, level, parent);
+        shiftSegments(parent.end.right, xml.length - len);
+
+        parent.delegate.appendChild(createNode(newElement));
+    }
+
     /**
+     * fuck this method
      * TODO for children
      */
-    void index(Element element, int startIdx, int level, List<Segment> textAccumulator) {
-        int textLength = level + SPACES_IN_TAB;
-        int beforeStart = startIdx + textLength;
-        int right = beforeStart + openTagLength(element);
-        element.start = new Segment(beforeStart + 1, right);
-        if (element.children != null) {
-            //TODO
-        } else {
-            int beforeEnd = right + element.getText().length();
-            element.textSegments = singletonList(new Segment(right + 1, beforeEnd));
-            element.end = new Segment(beforeEnd + 1, beforeEnd + closeTagLength(element));
+    private int index(Element element, int beforeText, int level, Element parent) {
+        //text length before element
+        // child - element, '+' - text before element
+        //        ++++++
+        //<parent>\n    <child>...
+        final int lineTextLength = level * SPACES_IN_TAB;
+
+        //before element open tag pos
+        //             +
+        //<parent>\n    <child>...
+        final int beforeStart = beforeText + lineTextLength;
+
+        //we should add text segment which
+        //is before given element to parent
+        if (parent.textSegments == null) {
+            parent.textSegments = new LinkedList<>();
         }
+        parent.textSegments.add(new Segment(beforeText, beforeStart));
+
+        //pos of open tag right '>'
+        int startRight = beforeStart + openTagLength(element);
+
+        element.start = new Segment(beforeStart + 1, startRight);
+        //if element has children it doesn't have text instead of
+        //whitespaces, so all what we need - detect element close tag segment
+        //to do so we need to index element children first
+        int beforeTextForChild = startRight;// 1 - \n
+        if (element.children != null) {
+            for (Element child : element.children) {
+                beforeTextForChild = index(child, beforeTextForChild + 1, level + 1, element);
+            }
+            //after last element we need to add 1 more text segment
+            beforeTextForChild += 1 + lineTextLength;
+        } else {
+            element.textSegments = new LinkedList<>();
+        }
+        //before element close tag pos
+        //                        +
+        //<parent>\n    <child>text</child>
+
+        int beforeEnd = beforeTextForChild + element.getText().length();
+//        element.textSegments = new LinkedList<>();
+        element.textSegments.add(new Segment(startRight + 1, beforeEnd));
+        element.end = new Segment(beforeEnd + 1, beforeEnd + closeTagLength(element));
+        return element.end.right;
     }
 
     /**
@@ -570,7 +607,7 @@ public final class XMLTree {
         }
     }
 
-    private void documentInsertBefore(Element newElement, Element refElement) {
+    private void insertNodeBefore(Element newElement, Element refElement) {
         final Node refNode = refElement.delegate;
         refNode.getParentNode().insertBefore(createNode(newElement), refNode);
     }

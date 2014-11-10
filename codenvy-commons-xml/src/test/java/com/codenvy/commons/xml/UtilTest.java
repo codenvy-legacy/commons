@@ -10,16 +10,15 @@
  *******************************************************************************/
 package com.codenvy.commons.xml;
 
-import com.codenvy.commons.xml.XMLTree.Segment;
 
 import org.testng.annotations.Test;
 
+
 import static com.codenvy.commons.xml.Util.closeTagLength;
-import static com.codenvy.commons.xml.Util.fetchText;
 import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.insertBetween;
 import static com.codenvy.commons.xml.Util.insertInto;
-import static com.codenvy.commons.xml.Util.nearestLeftIndexOf;
+import static com.codenvy.commons.xml.Util.lastIndexOf;
 import static com.codenvy.commons.xml.Util.openTagLength;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.util.Arrays.asList;
@@ -77,22 +76,12 @@ public class UtilTest {
     }
 
     @Test
-    public void shouldFetchText() {
-        //                       5    10    16  20
-        final byte[] src = "12345hello 12345world".getBytes();
-
-        final String text = fetchText(src, asList(new Segment(5, 10), new Segment(16, 20)));
-
-        assertEquals(text, "hello world");
-    }
-
-    @Test
-    public void shouldBeAbleToFindNearestLeftIndexOf() {
+    public void shouldBeAbleToFindLastIndexOf() {
         //                             11        20      28
         final byte[] src = "...</before>\n       <current>...".getBytes();
 
-        assertEquals(nearestLeftIndexOf(src, '>', 20), 11);
-        assertEquals(nearestLeftIndexOf(src, '>', src.length - 1), 28);
+        assertEquals(lastIndexOf(src, '>', 20), 11);
+        assertEquals(lastIndexOf(src, '>', src.length - 1), 28);
     }
 
     //TODO add attributes

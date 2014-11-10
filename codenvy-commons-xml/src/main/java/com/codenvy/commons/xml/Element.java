@@ -93,15 +93,19 @@ public final class Element {
     }
 
     public Element getLastChild() {
-        Node lastChild = delegate.getLastChild();
-        if (lastChild.getNodeType() != ELEMENT_NODE) {
-            lastChild = previousElementSibling(lastChild);
+        final Node lastChild = delegate.getLastChild();
+        if (lastChild != null && lastChild.getNodeType() != ELEMENT_NODE) {
+            return asElement(previousElementSibling(lastChild));
         }
         return asElement(lastChild);
     }
 
     public Element getFirstChild() {
-        return asElement(delegate.getFirstChild());
+        final Node firstChild = delegate.getFirstChild();
+        if (firstChild.getNodeType() != ELEMENT_NODE) {
+            return asElement(nextElementSibling(firstChild));
+        }
+        return asElement(firstChild);
     }
 
     //FIXME
@@ -194,6 +198,7 @@ public final class Element {
     public void remove() {
         //TODO throw exception if its newly created element
         xmlTree.dropElement(this);
+        delegate.getParentNode().removeChild(delegate);
     }
 
     public void removeChildren(String name) {
@@ -225,7 +230,7 @@ public final class Element {
 
     //TODO
     public Element appendChild(Element newElement) {
-        getLastChild().insertAfter(newElement);
+        xmlTree.appendChild(newElement, this);
         return this;
     }
 

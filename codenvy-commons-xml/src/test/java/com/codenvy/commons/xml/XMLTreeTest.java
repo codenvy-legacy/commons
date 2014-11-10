@@ -383,13 +383,13 @@ public class XMLTreeTest {
         //removing dependencies from second tree
         tree2.getSingleElement("//dependencies").removeChildren("dependency");
 
-        assertEquals(tree1.getBytes(), tree2.getBytes());
+        //use strings for assertion to quick review difference if assertion failed
+        assertEquals(new String(tree1.getBytes()), new String(tree2.getBytes()));
     }
 
     @Test
     public void removeInsertedElementShouldProduceSameTreeBytes() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
-        final byte[] before = tree.getBytes();
 
         final Element description = tree.getRoot()
                                         .getLastChild()
@@ -397,7 +397,71 @@ public class XMLTreeTest {
                                         .getSingleSibling("description");
         description.remove();
 
-        assertEquals(tree.getBytes(), before);
+        assertEquals(new String(tree.getBytes()), XML_CONTENT);
+    }
+
+    @Test
+    public void removeInsertedAfterElementWithChildrenShouldProduceSameTreeBytes() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        tree.getSingleElement("//dependencies")
+            .getFirstChild()
+            .insertAfter(tree.newElement("dependency",
+                                         tree.newElement("artifactId", "test-artifact"),
+                                         tree.newElement("groupId", "test-group"),
+                                         tree.newElement("version", "test-version")))
+            .getNextSibling()
+            .remove();
+
+        assertEquals(new String(tree.getBytes()), XML_CONTENT);
+    }
+
+    @Test
+    public void removeAppendedElementWithChildrenShouldProduceSameTreeBytes() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        tree.getSingleElement("//dependencies")
+            .appendChild(tree.newElement("dependency",
+                                         tree.newElement("artifactId", "test-artifact"),
+                                         tree.newElement("groupId", "test-group"),
+                                         tree.newElement("version", "test-version")))
+            .getLastChild()
+            .remove();
+
+        //use strings for assertion to quick review difference if assertion failed
+        assertEquals(new String(tree.getBytes()), XML_CONTENT);
+    }
+
+    @Test
+    public void removeInsertedBeforeElementWithChildrenShouldProduceSameTreeBytes() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        tree.getSingleElement("//dependencies")
+            .getFirstChild()
+            .insertBefore(tree.newElement("dependency",
+                                          tree.newElement("artifactId", "test-artifact"),
+                                          tree.newElement("groupId", "test-group"),
+                                          tree.newElement("version", "test-version")))
+            .getPreviousSibling()
+            .remove();
+
+        //use strings for assertion to quick review difference if assertion failed
+        assertEquals(new String(tree.getBytes()), XML_CONTENT);
+    }
+
+    @Test
+    public void shouldBeAbleToChangeTextOfNewlyInsertedElement() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        tree.getSingleElement("//dependencies")
+            .getFirstChild()
+            .insertBefore(tree.newElement("dependency",
+                                          tree.newElement("artifactId", "test-artifact"),
+                                          tree.newElement("groupId", "test-group"),
+                                          tree.newElement("version", "test-version")));
+        tree.updateText("//dependencies/dependency[artifactId='test-artifact']/version", "test-version");
+
+        assertEquals(tree.getSingleText("//dependencies/dependency[artifactId='test-artifact']/version"), "test-version");
     }
 
     //We need to know that all elements
@@ -419,6 +483,46 @@ public class XMLTreeTest {
         //create new tree to be sure that text was inserted in correct place
         final XMLTree tree2 = XMLTree.from(new String(tree.getBytes()));
         assertEquals(tree2.getSingleText("/project/dependencies/dependency[artifactId='guava']/version"), "new version");
+    }
+
+    @Test
+    public void shouldBeAbleToAppendChildToEmptyElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                          "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                          "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                          "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "    <dependencies></dependencies>\n" +
+                                          "</project>");
+
+        tree.getSingleElement("//dependencies")
+            .appendChild(tree.newElement("dependency",
+                                         tree.newElement("artifactId", "test-artifact"),
+                                         tree.newElement("groupId", "test-group"),
+                                         tree.newElement("version", "test-version")));
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                                  "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                                  "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                                  "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <!-- project name -->\n" +
+                                                  "    <name>Test</name>\n" +
+                                                  "    <dependencies>\n" +
+                                                  "        <dependency>\n" +
+                                                  "            <artifactId>test-artifact</artifactId>\n" +
+                                                  "            <groupId>test-group</groupId>\n" +
+                                                  "            <version>test-version</version>\n" +
+                                                  "        </dependency></dependencies>\n" +
+                                                  "</project>");
     }
 
     @Test
