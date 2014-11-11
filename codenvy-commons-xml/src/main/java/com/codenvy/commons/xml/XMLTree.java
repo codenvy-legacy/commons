@@ -77,7 +77,7 @@ import static org.w3c.dom.Node.COMMENT_NODE;
  * XMLTree delegates out of the box implementation of
  * org.w3c.dom and provides a lot of functionality
  * such as XPath selection.
- * How does the XMLTree lets content in required state?
+ * How does the XMLTree let content in required state?
  * The main idea is simple: know XML elements positions!
  * If we know elements positions and source bytes we
  * can easily manipulate content as we want.
@@ -95,9 +95,8 @@ import static org.w3c.dom.Node.COMMENT_NODE;
  * without working with xpath directly.
  * <p/>
  * XMLTree provides methods which do the same
- * as model methods but sometimes they are
- * more convenient, you can use tree
- * methods as well as model methods.
+ * as model methods but sometimes they are more convenient, 
+ * you can use tree methods as well as model methods.
  * <pre>
  *     For example:
  *
@@ -193,7 +192,7 @@ public final class XMLTree {
 
     /**
      * Searches for requested elements text.
-     * If there are no elements was found
+     * If there are no elements were found
      * empty list will be returned.
      * <p/>
      * You can use this method to request
@@ -230,8 +229,7 @@ public final class XMLTree {
 
     /**
      * If there are more then only element
-     * or nothing were found
-     * {@link XMLTreeException} will be thrown
+     * or nothing were found {@link XMLTreeException} will be thrown
      *
      * @param expression
      *         xpath expression to search element
@@ -272,7 +270,7 @@ public final class XMLTree {
      * you should use exited elements update methods
      * or tree update methods to do so.
      * Each tree update method will add related to
-     * element children as well as itself.
+     * element children as well as element itselft.
      * <p/>
      * Created element related to tree instance,
      * so it is not able to update other tree instance
@@ -292,9 +290,9 @@ public final class XMLTree {
     }
 
     /**
-     * Creates <b>Void</b> element related to current tree
-     * based on given name, it is not possible to
-     * append children to void element, it is just able to
+     * Creates <b>void</b> element related to current tree
+     * based on given name. It is not possible to
+     * append children to void element, it is only able to
      * add attributes
      * <p/>
      * Created element related to tree instance,
@@ -331,9 +329,9 @@ public final class XMLTree {
 
     /**
      * Adds element to the end of the list
-     * of existed children or adds it as only children.
+     * of existed children or adds it as only child.
      * <p/>
-     * If there are more then only parent elements
+     * If there are more then only parent element
      * were found {@link XMLTreeException} will be thrown
      *
      * @param expression
@@ -351,7 +349,7 @@ public final class XMLTree {
      * All comments related before referenced element
      * going to have same positions like they had before.
      * <p/>
-     * If there are more then only referenced elements
+     * If there are more then only referenced element
      * were found {@link XMLTreeException} will be thrown
      *
      * @param expression
@@ -385,9 +383,9 @@ public final class XMLTree {
      * If there are was any <b>text</b> before removal
      * element it will be removed as well.
      * It is important when we need to keep formatting
-     * pretty if it was pretty. It is really strange
-     * situation when parent element contains
-     * not only whitespaces but another text content.
+     * pretty - if it was pretty. It is really strange
+     * when parent element contains not only whitespaces 
+     * but another text content.
      * <p/>
      * If there are more then only referenced element
      * were found {@link XMLTreeException} will be thrown
@@ -400,7 +398,7 @@ public final class XMLTree {
     }
 
     /**
-     * Returns copy of tree bytes.
+     * Returns copy of source bytes.
      */
     public byte[] getBytes() {
         return Arrays.copyOf(xml, xml.length);
