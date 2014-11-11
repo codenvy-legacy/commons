@@ -13,6 +13,7 @@ package com.codenvy.commons.xml;
 
 import com.google.common.io.ByteStreams;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -44,6 +45,7 @@ import static com.codenvy.commons.xml.Util.UTF_8;
 import static com.codenvy.commons.xml.Util.asElement;
 import static com.codenvy.commons.xml.Util.asElements;
 import static com.codenvy.commons.xml.Util.closeTagLength;
+import static com.codenvy.commons.xml.Util.indexOf;
 import static com.codenvy.commons.xml.Util.nextElementSibling;
 import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.level;
@@ -374,6 +376,8 @@ public final class XMLTree {
     private void shiftSegment(Segment segment, int idx, int offset) {
         if (segment.left > idx) {
             segment.left += offset;
+        }
+        if (segment.right > idx) {
             segment.right += offset;
         }
     }
@@ -449,7 +453,7 @@ public final class XMLTree {
 
         final XMLStreamReader reader = newXMLStreamReader();
         //TODO: rewrite with LinkedList to avoid synchronization
-        final Stack<Element> startedNodes = new Stack<>();
+        final Stack<Element> startedElements = new Stack<>();
         //determines right of before selected element
         //used to cover next element with segment
         //TODO change this value
@@ -460,22 +464,21 @@ public final class XMLTree {
                     final Element newElement = new Element(this);
                     newElement.start = new Segment(beforeStart + 1, offset(reader));
                     newElement.name = reader.getLocalName();
-                    fetchAttrs(newElement, reader);
                     //if new node is not xml root - set up relationships
-                    if (!startedNodes.isEmpty()) {
+                    if (!startedElements.isEmpty()) {
                         node = deepNext(node, true);
                     }
-                    startedNodes.push(newElement);
+                    startedElements.push(newElement);
                     node.setUserData("element", newElement, null);
                     newElement.delegate = node;
                     break;
                 case END_ELEMENT:
-                    final Element element = startedNodes.pop();
+                    final Element element = startedElements.pop();
                     element.end = new Segment(beforeStart + 1, offset(reader));
                     elements.add(element);
                     break;
                 case CHARACTERS:
-                    final Element current = startedNodes.peek();
+                    final Element current = startedElements.peek();
                     if (current.textSegments == null) {
                         //TODO think about list size
                         current.textSegments = new LinkedList<>();
@@ -630,6 +633,16 @@ public final class XMLTree {
         insertAfterNode(newElement, refElement);
     }
 
+    void updateAttribute(Attribute attribute, String oldValue) {
+        final Element element = attribute.getElement();
+        final Segment segment = valueSegment(attribute, oldValue);
+        final int len = xml.length;
+
+        xml = insertBetween(xml, segment.left, segment.right, attribute.getValue());
+        //shift segments
+        shiftSegments(element.start.left, len - xml.length);
+    }
+
     /**
      * Adds new element to the end of children list with given parent.
      */
@@ -643,6 +656,44 @@ public final class XMLTree {
         shiftSegments(parent.end.right, xml.length - len);
 
         parent.delegate.appendChild(createNode(newElement));
+    }
+
+    void removeAttribute(Attribute attribute) {
+        final Element element = attribute.getElement();
+        final int len = xml.length;
+        final Segment segment = attributeSegment(attribute);
+
+        xml = insertBetween(xml, segment.left - 1, segment.right, "");
+        //TODO shift elements
+        shiftSegments(element.start.left, len - xml.length);
+
+        //remove attribute from document
+        element.delegate.getAttributes()
+                        .removeNamedItem(attribute.getName());
+    }
+
+    private Segment attributeSegment(Attribute attribute) {
+        final Element owner = attribute.getElement();
+
+        final byte[] name = attribute.getName().getBytes();
+        final byte[] value = attribute.getValue().getBytes();
+
+        final int start = indexOf(xml, name, owner.start.left + owner.getName().length());
+        final int valueStart = indexOf(xml, value, start + name.length);
+
+        return new Segment(start, valueStart + value.length);
+    }
+
+    private Segment valueSegment(Attribute attribute, String oldValue) {
+        final Element owner = attribute.getElement();
+
+        final byte[] name = attribute.getName().getBytes();
+        final byte[] value = oldValue.getBytes();
+
+        final int start = indexOf(xml, name, owner.start.left + owner.getName().length());
+        final int valueStart = indexOf(xml, value, start + name.length);
+
+        return new Segment(valueStart, valueStart + value.length - 1);
     }
 
     /**
@@ -712,21 +763,34 @@ public final class XMLTree {
         refNode.getParentNode().insertBefore(createNode(newElement), refNode);
     }
 
-    /**
-     * Fetches attributes from reader and inserts it to given element
-     */
-    private void fetchAttrs(Element element, XMLStreamReader reader) {
-        //There is no ability to fetch attributes like nodes
-        //but each START_ELEMENT event of reader gives us ability
-        //to fetch basic information about attributes such as names and values
-        //so we need to provide mechanism of attributes fetching.
-        //It can be done by analyzing node start segment!
-        int size = reader.getAttributeCount();
-        for (int i = 0; i < size; i++) {
-            //TODO analyze attribute positions
-            element.addAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
-        }
-    }
+//    /**
+//     * Fetches attributes from reader and inserts it to given element
+//     */
+//    private void fetchAttributes(Element element, XMLStreamReader reader) {
+//        //There is no ability to fetch attributes like nodes
+//        //but each START_ELEMENT event of reader gives us ability
+//        //to fetch basic information about attributes such as names and values
+//        //so we need to provide mechanism of attributes fetching.
+//        //It can be done by analyzing node start segment!
+//        int size = reader.getAttributeCount();
+//        for (int i = 0; i < size; i++) {
+//            final String name = reader.getAttributeLocalName(i);
+//            final String value = reader.getAttributeValue(i);
+//            //segments
+//            final int start = indexOf(xml, name.getBytes(), element.start.left + element.getName().length());
+//            final int valueStart = indexOf(xml, value.getBytes(), start + name.length());
+//            final int end = valueStart + value.length();
+//            final int valueEnd = end - 1;
+//            //creating attribute
+//            final Attribute attribute = new Attribute(element, name, value);
+//            attribute.segment = new Segment(start, end);
+//            attribute.valueSegment = new Segment(valueStart, valueEnd);
+//            if (element.attributes == null) {
+//                element.attributes = new LinkedList<>();
+//            }
+//            element.attributes.add(attribute);
+//        }
+//}
 
     /**
      * TODO rewrite

@@ -17,9 +17,9 @@ package com.codenvy.commons.xml;
  */
 public final class Attribute {
 
-    private final String  name;
-    private final String  value;
     private final Element container;
+    private       String  name;
+    private       String  value;
 
     Attribute(Element container, String name, String value) {
         this.container = container;
@@ -35,11 +35,17 @@ public final class Attribute {
         return value;
     }
 
-    public void setName(String name) {
-        throw new XMLTreeException("Not implemented");
+    public Element getElement() {
+        return container;
     }
 
-    public void setValue(String value) {
-        throw new XMLTreeException("Not implemented");
+    public void remove() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public Attribute setValue(String value) {
+        this.value = value;
+        container.setAttributeValue(this);
+        return this;
     }
 }

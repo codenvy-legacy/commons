@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 
 import static com.codenvy.commons.xml.Util.closeTagLength;
+import static com.codenvy.commons.xml.Util.indexOf;
 import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.insertBetween;
 import static com.codenvy.commons.xml.Util.insertInto;
@@ -103,5 +104,15 @@ public class UtilTest {
         final Element newElement = tree.newElement("test", "test");
 
         assertEquals(closeTagLength(newElement), 7);
+    }
+
+    @Test
+    public void shouldBeAbleToGetIndexOf() {
+        final String src = "<element attribute1=\"value1\" attribute2=\"value2\" attribute3=\"value3\">text</element>";
+        final byte[] byteSrc = "<element attribute1=\"value1\" attribute2=\"value2\" attribute3=\"value3\">text</element>".getBytes();
+
+        assertEquals(indexOf(byteSrc, "attribute1".getBytes(), 0), src.indexOf("attribute1"));
+        assertEquals(indexOf(byteSrc, "attribute2".getBytes(), 0), src.indexOf("attribute2"));
+        assertEquals(indexOf(byteSrc, "attribute3".getBytes(), 0), src.indexOf("attribute3"));
     }
 }

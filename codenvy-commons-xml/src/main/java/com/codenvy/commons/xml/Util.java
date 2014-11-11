@@ -10,8 +10,6 @@
  *******************************************************************************/
 package com.codenvy.commons.xml;
 
-import com.codenvy.commons.xml.XMLTree.Segment;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -19,6 +17,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Character.isWhitespace;
 import static java.lang.Math.min;
 import static java.lang.System.arraycopy;
 import static java.util.Arrays.fill;
@@ -204,12 +203,25 @@ public final class Util {
         return node;
     }
 
-    private static int capacity(List<Segment> segments) {
-        int capacity = 0;
-        for (Segment segment : segments) {
-            capacity += segment.right - segment.left + 1;
+    public static int indexOf(byte[] src, byte[] target, int fromIdx) {
+        for (int i = fromIdx; i < src.length ; i++) {
+            if (src[i] == target[0]) {
+                boolean equals = true;
+                for (int j = 1, k = i + 1; j < target.length && equals; j++, k++) {
+                    if (src[k] != target[j]) {
+                        equals = false;
+                    }
+                }
+                if (equals && isValueEnd(src[i + target.length])) {
+                    return i;
+                }
+            }
         }
-        return capacity;
+        return -1;
+    }
+
+    private static boolean isValueEnd(byte b) {
+        return isWhitespace(b) || '=' == b || '"' == b;
     }
 
     private Util() {}

@@ -12,6 +12,7 @@ package com.codenvy.commons.xml;
 
 import com.codenvy.commons.xml.XMLTree.Segment;
 
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -21,10 +22,12 @@ import java.util.List;
 
 import static com.codenvy.commons.xml.Util.asElement;
 import static com.codenvy.commons.xml.Util.asElements;
+import static com.codenvy.commons.xml.Util.attributeLength;
 import static com.codenvy.commons.xml.Util.nextElementSibling;
 import static com.codenvy.commons.xml.Util.previousElementSibling;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.max;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
@@ -45,12 +48,12 @@ public final class Element {
     List<Segment> textSegments;
 
     //TODO remove used for update
-    String        name;
-    String        text;
-    List<Element> children;
-
+    String          name;
+    String          text;
+    List<Element>   children;
     List<Attribute> attributes;
-    Node            delegate;
+
+    Node delegate;
 
     Element(XMLTree xmlTree) {
         this.xmlTree = xmlTree;
@@ -142,10 +145,14 @@ public final class Element {
         return asElement(nextElementSibling(delegate));
     }
 
-    //TODO delegate by node attributes?
     public List<Attribute> getAttributes() {
-        if (attributes != null) {
-            return unmodifiableList(attributes);
+        if (delegate != null && delegate.hasAttributes()) {
+            final NamedNodeMap attributes = delegate.getAttributes();
+            final List<Attribute> copy = new ArrayList<>();
+            for (int i = 0; i < attributes.getLength(); i++) {
+                copy.add(new Attribute(this, attributes.item(i).getNodeName(), attributes.item(i).getNodeValue()));
+            }
+            return unmodifiableList(copy);
         }
         return emptyList();
     }
@@ -214,21 +221,47 @@ public final class Element {
         }
     }
 
-    public Element addAttribute(String name, String value) {
-        if (attributes == null) {
-            //todo size?
-            attributes = new ArrayList<>();
+    //FIXME
+//    public Element addAttribute(Attribute attribute) {
+//        if (attributes == null) {
+//            attributes = new LinkedList<>();
+//        }
+//        attributes.add(attribute);
+//        return this;
+//    }
+
+    public Element removeAttribute(String name) {
+        final Attribute attribute = getAttribute(name);
+        if (attribute != null) {
+            xmlTree.removeAttribute(attribute);
         }
-        attributes.add(new Attribute(this, name, value));
         return this;
     }
 
-    //TODO
-    public Element removeAttribute(String name) {
-        throw new XMLTreeException("Not implemented");
+    private Node getAttributeNode(String name) {
+        final NamedNodeMap attributes = delegate.getAttributes();
+        for (int i = 0; i < attributes.getLength(); i++) {
+            if (attributes.item(i).getNodeName().equals(name)) {
+                return attributes.item(i);
+            }
+        }
+        return null;
     }
 
-    //TODO
+    public Attribute getAttribute(String name) {
+        if (delegate.hasAttributes()) {
+            return asAttribute(getAttributeNode(name));
+        }
+        return null;
+    }
+
+    private Attribute asAttribute(Node node) {
+        if (node == null) {
+            return null;
+        }
+        return new Attribute(this, node.getNodeName(), node.getNodeValue());
+    }
+
     public Element appendChild(Element newElement) {
         xmlTree.appendChild(newElement, this);
         return this;
@@ -242,6 +275,12 @@ public final class Element {
     public Element insertAfter(Element newElement) {
         xmlTree.insertAfter(newElement, this);
         return this;
+    }
+
+    void setAttributeValue(Attribute attribute) {
+        final Node attributeNode = getAttributeNode(attribute.getName());
+        xmlTree.updateAttribute(attribute, attributeNode.getNodeValue());
+        getAttributeNode(attribute.getName()).setNodeValue(attribute.getValue());
     }
 
     //TODO add support for one line tags <option attr="value" />

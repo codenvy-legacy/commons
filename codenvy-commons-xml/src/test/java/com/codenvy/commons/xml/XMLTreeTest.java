@@ -487,6 +487,39 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void shouldBeAbleToRemoveAttribute() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<root>\n" +
+                                          "    <level1 attribute=\"value\">text</level1>\n" +
+                                          "</root>");
+
+        tree.getSingleElement("//level1")
+            .removeAttribute("attribute");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<root>\n" +
+                                                  "    <level1>text</level1>\n" +
+                                                  "</root>");
+    }
+
+    @Test
+    public void shouldBeAbleToChangeAttributeValue() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<root>\n" +
+                                          "    <level1 longer=\"value\" long=\"value\">text</level1>\n" +
+                                          "</root>");
+
+        tree.getSingleElement("//level1")
+            .getAttribute("long")
+            .setValue("new value");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<root>\n" +
+                                                  "    <level1 longer=\"value\" long=\"new value\">text</level1>\n" +
+                                                  "</root>");
+    }
+
+    @Test
     public void shouldBeAbleToAppendChildToEmptyElement() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
