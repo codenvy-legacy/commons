@@ -18,7 +18,7 @@ package com.codenvy.commons.xml;
 public final class Attribute {
 
     private final Element container;
-    private       String  name;
+    private final String  name;
     private       String  value;
 
     Attribute(Element container, String name, String value) {
@@ -40,12 +40,21 @@ public final class Attribute {
     }
 
     public void remove() {
-        throw new RuntimeException("Not implemented");
+        container.removeAttribute(name);
     }
 
     public Attribute setValue(String value) {
         this.value = value;
         container.setAttributeValue(this);
         return this;
+    }
+
+    public String asString() {
+        return name + "=\"" + value + '\"';
+    }
+
+    @Override
+    public String toString() {
+        return asString();
     }
 }

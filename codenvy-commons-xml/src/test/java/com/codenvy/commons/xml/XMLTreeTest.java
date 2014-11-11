@@ -520,6 +520,98 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void shouldBeAbleToAddAttributeToExistedElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.getRoot().addAttribute("xlmns", "http://maven.apache.org/POM/4.0.0");
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project xlmns=\"http://maven.apache.org/POM/4.0.0\">\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <!-- project name -->\n" +
+                                                  "    <name>Test</name>\n" +
+                                                  "</project>");
+    }
+
+    @Test
+    public void shouldBeAbleToAddAttributeToNewElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "    <dependencies>\n" +
+                                          "    </dependencies>\n" +
+                                          "</project>");
+
+        tree.getSingleElement("//dependencies")
+            .appendChild(tree.newElement("dependency",
+                                         tree.newElement("artifactId", "test-artifact"),
+                                         tree.newElement("groupId", "test-group"),
+                                         tree.newElement("version", "test-version")
+                                             .addAttribute("attribute1", "value1"))
+                             .addAttribute("attribute1", "value1")
+                             .addAttribute("attribute2", "value2")
+                             .addAttribute("attribute3", "value3"));
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project>\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <!-- project name -->\n" +
+                                                  "    <name>Test</name>\n" +
+                                                  "    <dependencies>\n" +
+                                                  "        <dependency attribute1=\"value1\" attribute2=\"value2\" attribute3=\"value3\">\n" +
+                                                  "            <artifactId>test-artifact</artifactId>\n" +
+                                                  "            <groupId>test-group</groupId>\n" +
+                                                  "            <version attribute1=\"value1\">test-version</version>\n" +
+                                                  "        </dependency>\n" +
+                                                  "    </dependencies>\n" +
+                                                  "</project>");
+    }
+
+    @Test
+    public void shouldBeAbleToRemoveAttributes() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                          "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                          "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                          "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        for (Attribute attribute : tree.getRoot().getAttributes()) {
+            attribute.remove();
+        }
+
+        assertEquals(new String(tree.getBytes()), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                  "<project>\n" +
+                                                  "    <modelVersion>4.0.0</modelVersion>\n" +
+                                                  "    <artifactId>test-artifact</artifactId>\n" +
+                                                  "    <packaging>jar</packaging>\n" +
+                                                  "    <!-- project name -->\n" +
+                                                  "    <name>Test</name>\n" +
+                                                  "</project>");
+        assertTrue(tree.getRoot().getAttributes().isEmpty());
+    }
+
+    @Test
     public void shouldBeAbleToAppendChildToEmptyElement() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +

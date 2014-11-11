@@ -11,6 +11,7 @@
 package com.codenvy.commons.xml;
 
 
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 
 import org.w3c.dom.Attr;
@@ -159,7 +160,7 @@ public final class XMLTree {
 
     private XMLTree(byte[] xml) {
         this.xml = xml;
-        elements = new HashSet<>();
+        elements = Sets.newIdentityHashSet();
         document = parseQuietly(xml);
         constructTreeQuietly();
     }
@@ -376,8 +377,6 @@ public final class XMLTree {
     private void shiftSegment(Segment segment, int idx, int offset) {
         if (segment.left > idx) {
             segment.left += offset;
-        }
-        if (segment.right > idx) {
             segment.right += offset;
         }
     }
@@ -401,7 +400,6 @@ public final class XMLTree {
                         shiftSegment(textSegment, fromIdx, offset);
                     }
                 }
-                //TODO shift attributes
             }
         }
     }
@@ -434,7 +432,6 @@ public final class XMLTree {
         return elementsText;
     }
 
-    //TODO add attributes
     private Node createNode(Element element) {
         final Node newNode = document.createElement(element.getName());
         newNode.setTextContent(element.getText());
@@ -445,7 +442,18 @@ public final class XMLTree {
                 newNode.appendChild(createNode(child));
             }
         }
+        if (element.attributes != null) {
+            for (Attribute attribute : element.attributes) {
+                newNode.getAttributes().setNamedItem(asAttributeNode(attribute));
+            }
+        }
         return newNode;
+    }
+
+    private Attr asAttributeNode(Attribute attribute) {
+        final Attr attr = document.createAttribute(attribute.getName());
+        attr.setValue(attribute.getName());
+        return attr;
     }
 
     private void constructTree() throws XMLStreamException {
@@ -483,7 +491,6 @@ public final class XMLTree {
                         //TODO think about list size
                         current.textSegments = new LinkedList<>();
                     }
-                    //TODO REMOVE THIS
                     current.textSegments.add(new Segment(beforeStart + 1, offset(reader)));
                 case COMMENT_NODE:
                     //TODO add CDATA?!
@@ -658,6 +665,16 @@ public final class XMLTree {
         parent.delegate.appendChild(createNode(newElement));
     }
 
+    void insertAttribute(Attribute attribute) {
+        final Element element = attribute.getElement();
+        final int len = xml.length;
+
+        xml = insertInto(xml, element.start.right, ' ' + attribute.asString());
+        shiftSegments(element.start.left, xml.length - len);
+
+//        insertAfterNode(newElement, refElement);
+    }
+
     void removeAttribute(Attribute attribute) {
         final Element element = attribute.getElement();
         final int len = xml.length;
@@ -670,6 +687,10 @@ public final class XMLTree {
         //remove attribute from document
         element.delegate.getAttributes()
                         .removeNamedItem(attribute.getName());
+    }
+
+    boolean contains(Element element) {
+        return elements.contains(element);
     }
 
     private Segment attributeSegment(Attribute attribute) {
@@ -763,33 +784,6 @@ public final class XMLTree {
         refNode.getParentNode().insertBefore(createNode(newElement), refNode);
     }
 
-//    /**
-//     * Fetches attributes from reader and inserts it to given element
-//     */
-//    private void fetchAttributes(Element element, XMLStreamReader reader) {
-//        //There is no ability to fetch attributes like nodes
-//        //but each START_ELEMENT event of reader gives us ability
-//        //to fetch basic information about attributes such as names and values
-//        //so we need to provide mechanism of attributes fetching.
-//        //It can be done by analyzing node start segment!
-//        int size = reader.getAttributeCount();
-//        for (int i = 0; i < size; i++) {
-//            final String name = reader.getAttributeLocalName(i);
-//            final String value = reader.getAttributeValue(i);
-//            //segments
-//            final int start = indexOf(xml, name.getBytes(), element.start.left + element.getName().length());
-//            final int valueStart = indexOf(xml, value.getBytes(), start + name.length());
-//            final int end = valueStart + value.length();
-//            final int valueEnd = end - 1;
-//            //creating attribute
-//            final Attribute attribute = new Attribute(element, name, value);
-//            attribute.segment = new Segment(start, end);
-//            attribute.valueSegment = new Segment(valueStart, valueEnd);
-//            if (element.attributes == null) {
-//                element.attributes = new LinkedList<>();
-//            }
-//            element.attributes.add(attribute);
-//        }
 //}
 
     /**

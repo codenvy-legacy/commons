@@ -22,12 +22,10 @@ import java.util.List;
 
 import static com.codenvy.commons.xml.Util.asElement;
 import static com.codenvy.commons.xml.Util.asElements;
-import static com.codenvy.commons.xml.Util.attributeLength;
 import static com.codenvy.commons.xml.Util.nextElementSibling;
 import static com.codenvy.commons.xml.Util.previousElementSibling;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.max;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
@@ -222,13 +220,17 @@ public final class Element {
     }
 
     //FIXME
-//    public Element addAttribute(Attribute attribute) {
-//        if (attributes == null) {
-//            attributes = new LinkedList<>();
-//        }
-//        attributes.add(attribute);
-//        return this;
-//    }
+    public Element addAttribute(String name, String value) {
+        if (xmlTree.contains(this)) {
+            xmlTree.insertAttribute(new Attribute(this, name, value));
+        } else {
+            if (attributes == null) {
+                attributes = new LinkedList<>();
+            }
+            attributes.add(new Attribute(this, name, value));
+        }
+        return this;
+    }
 
     public Element removeAttribute(String name) {
         final Attribute attribute = getAttribute(name);
@@ -283,12 +285,17 @@ public final class Element {
         getAttributeNode(attribute.getName()).setNodeValue(attribute.getValue());
     }
 
-    //TODO add support for one line tags <option attr="value" />
     public String asString() {
         final StringBuilder builder = new StringBuilder();
         builder.append('<')
-               .append(name)
-               .append('>')
+               .append(name);
+        if (attributes != null) {
+            for (Attribute attribute : attributes) {
+                builder.append(' ')
+                       .append(attribute.asString());
+            }
+        }
+        builder.append('>')
                .append(getText());
         if (children != null) {
             builder.append('\n');

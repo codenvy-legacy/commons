@@ -141,9 +141,8 @@ public final class Util {
         return 3 + element.name.length(); // '<' + '/' + 'name' + '>'
     }
 
-    //TODO
     public static int attributeLength(Attribute attribute) {
-        return 0;
+        return attribute.getName().length() + attribute.getValue().length() + 3;
     }
 
     /**
@@ -204,7 +203,7 @@ public final class Util {
     }
 
     public static int indexOf(byte[] src, byte[] target, int fromIdx) {
-        for (int i = fromIdx; i < src.length ; i++) {
+        for (int i = fromIdx; i < src.length; i++) {
             if (src[i] == target[0]) {
                 boolean equals = true;
                 for (int j = 1, k = i + 1; j < target.length && equals; j++, k++) {
