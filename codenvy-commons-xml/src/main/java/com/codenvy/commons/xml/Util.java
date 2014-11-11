@@ -134,7 +134,7 @@ public final class Util {
         for (Attribute attribute : element.getAttributes()) {
             len += 1 + attributeLength(attribute); // ' ' + 'attribute="value"'
         }
-        return len;
+        return element.isVoid() ? len + 1 : len;
     }
 
     public static int closeTagLength(Element element) {

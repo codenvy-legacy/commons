@@ -26,6 +26,7 @@ import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 
 /**
+ * TODO add test for void elements
  * Tests for {@link Util}
  *
  * @author Eugene Voevodin
