@@ -92,7 +92,7 @@ import static org.w3c.dom.Node.COMMENT_NODE;
  * without working with xpath directly.
  * <p/>
  * XMLTree provides methods which do the same
- * as model methods but sometimes they are more convenient, 
+ * as model methods but sometimes they are more convenient,
  * you can use tree methods as well as model methods.
  * <pre>
  *     For example:
@@ -236,102 +236,6 @@ public final class XMLTree {
         return single(getElements(expression));
     }
 
-//    /**
-//     * Creates new element related to current tree
-//     * based on element name and text.
-//     * Newly created element will not be added to tree,
-//     * you should use exited elements update methods
-//     * or tree update methods to do so.
-//     * <p/>
-//     * Created element related to tree instance,
-//     * so it is not able to update other tree instance
-//     * with it.
-//     *
-//     * @param name
-//     *         element name
-//     * @param text
-//     *         element text
-//     * @return created element with given name and text content
-//     */
-//    public Element newElement(String name, String text) {
-//        final Element newElement = new Element(this);
-//        newElement.text = text;
-//        newElement.name = name;
-//        return newElement;
-//    }
-//
-//    /**
-//     * Creates new element related to current tree
-//     * based on given name and children elements.
-//     * Newly created element will not be added to tree,
-//     * you should use exited elements update methods
-//     * or tree update methods to do so.
-//     * Each tree update method will add related to
-//     * element children as well as itself.
-//     * <p/>
-//     * Created element related to tree instance,
-//     * so it is not able to update other tree instance
-//     * with it.
-//     *
-//     * @param name
-//     *         element name
-//     * @param children
-//     *         element children
-//     * @return created element with given name and children
-//     */
-//    public Element newElement(String name, Element... children) {
-//        final Element newElement = new Element(this);
-//        newElement.name = name;
-//        newElement.children = new ArrayList<>(asList(children));
-//        return newElement;
-//    }
-
-    /**
-     * Creates new element related to current tree
-     * based on given name and children elements.
-     * Newly created element will not be added to tree,
-     * you should use exited elements update methods
-     * or tree update methods to do so.
-     * Each tree update method will add related to
-     * element children as well as itself.
-     * <p/>
-     * Created element related to tree instance,
-     * so it is not able to update other tree instance
-     * with it.
-     *
-     * @param name
-     *         element name
-     * @param children
-     *         element children
-     * @return created element with given name and children
-     */
-    public Element newElement(String name, Element... children) {
-        final Element newElement = new Element(this);
-        newElement.name = name;
-        newElement.children = new ArrayList<>(asList(children));
-        return newElement;
-    }
-
-    /**
-     * Creates <b>Void</b> element related to current tree
-     * based on given name, it is not possible to
-     * append children to void element, it is just able to
-     * add attributes
-     * <p/>
-     * Created element related to tree instance,
-     * so it is not able to update other tree instance
-     * with it.
-     *
-     * @param name
-     *         element name
-     * @return created void element with given name
-     */
-    public Element newElement(String name) {
-        final Element newElement = new Element(this);
-        newElement.name = name;
-        return newElement;
-    }
-
     /**
      * Updates requested element text.
      * XPath expression should be used only
@@ -407,7 +311,7 @@ public final class XMLTree {
      * element it will be removed as well.
      * It is important when we need to keep formatting
      * pretty - if it was pretty. It is really strange
-     * when parent element contains not only whitespaces 
+     * when parent element contains not only whitespaces
      * but another text content.
      * <p/>
      * If there are more then only referenced element
