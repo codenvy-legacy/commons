@@ -487,7 +487,7 @@ public final class XMLTree {
     }
 
     private Node createNode(Element element) {
-        final Node newNode = document.createElement(element.getName());
+        final Node newNode = document.createElement(element.name);
         newNode.setTextContent(element.getText());
         newNode.setUserData("element", element, null);
         element.delegate = newNode;
@@ -732,7 +732,7 @@ public final class XMLTree {
         final int len = xml.length;
 
         xml = insertInto(xml, element.start.right, ' ' + attribute.asString());
-        shiftSegments(element.start.left, xml.length - len);
+        shiftSegments(element.start.left - 1, xml.length - len);
 
         element.delegate.getAttributes()
                         .setNamedItem(asAttributeNode(attribute));
@@ -777,7 +777,7 @@ public final class XMLTree {
         final byte[] name = attribute.getName().getBytes();
         final byte[] value = attribute.getValue().getBytes();
 
-        final int start = indexOf(xml, name, owner.start.left + owner.getName().length());
+        final int start = indexOf(xml, name, owner.start.left + owner.name.length());
         final int valueStart = indexOf(xml, value, start + name.length);
 
         return new Segment(start, valueStart + value.length);

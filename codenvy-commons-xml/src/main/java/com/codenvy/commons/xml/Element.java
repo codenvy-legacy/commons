@@ -51,6 +51,7 @@ public final class Element {
     //used with new element
     String          name;
     String          text;
+    String          prefix;
     List<Element>   children;
     List<Attribute> attributes;
 
@@ -152,7 +153,8 @@ public final class Element {
             final NamedNodeMap attributes = delegate.getAttributes();
             final List<Attribute> copy = new ArrayList<>();
             for (int i = 0; i < attributes.getLength(); i++) {
-                copy.add(new Attribute(this, attributes.item(i).getNodeName(), attributes.item(i).getNodeValue()));
+                final Node item = attributes.item(i);
+                copy.add(new Attribute(this, item.getPrefix(), item.getNodeName(), item.getNodeValue()));
             }
             return unmodifiableList(copy);
         }
@@ -191,6 +193,13 @@ public final class Element {
         return this;
     }
 
+    //TODO fixme should be used only for update
+    public Element setPrefix(String prefix) {
+        checkIsNew(this);
+        this.prefix = prefix;
+        return this;
+    }
+
     /**
      * Removes single element child.
      * If child does not exist nothing will be done
@@ -225,7 +234,7 @@ public final class Element {
             throw new XMLTreeException("You can only use remove children on existing in tree element");
         }
         final List<Node> matched = new LinkedList<>();
-        final NodeList nodes = this.delegate.getChildNodes();
+        final NodeList nodes = delegate.getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
             if (name.equals(nodes.item(i).getNodeName())) {
                 matched.add(nodes.item(i));
@@ -236,15 +245,28 @@ public final class Element {
         }
     }
 
-    public Element addAttribute(String name, String value) {
-        final Attribute newAttribute = new Attribute(this, name, value);
+    public Element setAttribute(String name, String value) {
+        final Attribute newAttribute = new Attribute(this, null, name, value);
         if (xmlTree.contains(this)) {
             xmlTree.insertAttribute(newAttribute);
         } else {
             if (attributes == null) {
                 attributes = new LinkedList<>();
             }
-            attributes.add(new Attribute(this, name, value));
+            attributes.add(newAttribute);
+        }
+        return this;
+    }
+
+    public Element addAttribute(String prefix, String name, String value) {
+        final Attribute newAttribute = new Attribute(this, prefix, name, value);
+        if (xmlTree.contains(this)) {
+            xmlTree.insertAttribute(newAttribute);
+        } else {
+            if (attributes == null) {
+                attributes = new LinkedList<>();
+            }
+            attributes.add(newAttribute);
         }
         return this;
     }
@@ -283,7 +305,7 @@ public final class Element {
         if (node == null) {
             return null;
         }
-        return new Attribute(this, node.getNodeName(), node.getNodeValue());
+        return new Attribute(this, node.getPrefix(), node.getNodeName(), node.getNodeValue());
     }
 
     public Element appendChild(Element newElement) {

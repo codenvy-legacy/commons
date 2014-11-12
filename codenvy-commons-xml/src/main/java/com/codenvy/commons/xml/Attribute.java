@@ -19,10 +19,12 @@ public final class Attribute {
 
     private final Element container;
     private final String  name;
+    private final String  prefix;
     private       String  value;
 
-    Attribute(Element container, String name, String value) {
+    Attribute(Element container, String prefix, String name, String value) {
         this.container = container;
+        this.prefix = prefix;
         this.name = name;
         this.value = value;
     }
@@ -31,12 +33,20 @@ public final class Attribute {
         return name;
     }
 
+    public String getPrefix() {
+        return prefix;
+    }
+
     public String getValue() {
         return value;
     }
 
     public Element getElement() {
         return container;
+    }
+
+    public boolean hasPrefix() {
+        return prefix != null && !prefix.isEmpty();
     }
 
     public void remove() {
@@ -50,7 +60,16 @@ public final class Attribute {
     }
 
     public String asString() {
-        return name + "=\"" + value + '\"';
+        final StringBuilder sb = new StringBuilder();
+        if (hasPrefix()) {
+            sb.append(prefix).append(':');
+        }
+        return sb.append(name)
+                 .append('=')
+                 .append('"')
+                 .append(value)
+                 .append('"')
+                 .toString();
     }
 
     @Override

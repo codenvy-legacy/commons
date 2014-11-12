@@ -574,7 +574,7 @@ public class XMLTreeTest {
                                           "    <name>Test</name>\n" +
                                           "</project>");
 
-        tree.getRoot().addAttribute("xlmns", "http://maven.apache.org/POM/4.0.0");
+        tree.getRoot().setAttribute("xlmns", "http://maven.apache.org/POM/4.0.0");
 
         assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                       "<project xlmns=\"http://maven.apache.org/POM/4.0.0\">\n" +
@@ -604,10 +604,10 @@ public class XMLTreeTest {
                                          tree.newElement("artifactId", "test-artifact"),
                                          tree.newElement("groupId", "test-group"),
                                          tree.newElement("version", "test-version")
-                                             .addAttribute("attribute1", "value1"))
-                             .addAttribute("attribute1", "value1")
-                             .addAttribute("attribute2", "value2")
-                             .addAttribute("attribute3", "value3"));
+                                             .setAttribute("attribute1", "value1"))
+                             .setAttribute("attribute1", "value1")
+                             .setAttribute("attribute2", "value2")
+                             .setAttribute("attribute3", "value3"));
 
         assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                       "<project>\n" +
@@ -1022,24 +1022,50 @@ public class XMLTreeTest {
                                       "</project>");
     }
 
-
     @Test
     public void shouldBeAbleToCreateTreeFromRootName() {
         final XMLTree tree = XMLTree.create("project");
 
-        tree.getRoot().appendChild(tree.newElement("modelVersion", "4.0.0"));
-        tree.getRoot().appendChild(tree.newElement("artifactId", "test-artifact"));
-        tree.getRoot().appendChild(tree.newElement("groupId", "test-group"));
-        tree.getRoot().appendChild(tree.newElement("version", "test-version"));
-        tree.getRoot().addAttribute("xlmns", "http://maven.apache.org/POM/4.0.0");
-        //TODO attribute with prefix
+        tree.getRoot()
+            .setAttribute("xmlns", "http://maven.apache.org/POM/4.0.0")
+            .addAttribute("xmlns", "xsi", "http://www.w3.org/2001/XMLSchema-instance")
+            .addAttribute("xsi", "schemaLocation", "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd")
+            .appendChild(tree.newElement("modelVersion", "4.0.0"))
+            .appendChild(tree.newElement("parent",
+                                         tree.newElement("artifactId", "test-parent"),
+                                         tree.newElement("groupId", "test-parent-group-id"),
+                                         tree.newElement("version", "test-parent-version")))
+            .appendChild(tree.newElement("artifactId", "test-artifact"))
+            .appendChild(tree.newElement("packaging", "jar"))
+            .appendChild(tree.newElement("name", "test"));
 
         assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                                      "<project xlmns=\"http://maven.apache.org/POM/4.0.0\">\n" +
+                                      "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" " +
+                                      "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                                      "xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 " +
+                                      "http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
                                       "    <modelVersion>4.0.0</modelVersion>\n" +
+                                      "    <parent>\n" +
+                                      "        <artifactId>test-parent</artifactId>\n" +
+                                      "        <groupId>test-parent-group-id</groupId>\n" +
+                                      "        <version>test-parent-version</version>\n" +
+                                      "    </parent>\n" +
                                       "    <artifactId>test-artifact</artifactId>\n" +
-                                      "    <groupId>test-group</groupId>\n" +
-                                      "    <version>test-version</version>\n" +
+                                      "    <packaging>jar</packaging>\n" +
+                                      "    <name>test</name>\n" +
                                       "</project>");
+    }
+
+    @Test(enabled = false)
+    public void shouldBeAbleToAddNewElementWithPrefix() throws IOException {
+        final XMLTree tree = XMLTree.from("<xp:products xmlns:xp=\"http://whatever.com\">\n" +
+                                          "    <xp:product xp:id=\"p1\"/>\n" +
+                                          "</xp:products>");
+
+        tree.getRoot()
+            .appendChild(tree.newElement("xp:product")
+                             .setAttribute("xp:id", "p2"));
+
+        assertEquals(tree.toString(), "");
     }
 }

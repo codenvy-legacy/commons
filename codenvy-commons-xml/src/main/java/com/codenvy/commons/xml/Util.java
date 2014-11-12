@@ -142,7 +142,12 @@ public final class Util {
     }
 
     public static int attributeLength(Attribute attribute) {
-        return attribute.getName().length() + attribute.getValue().length() + 3;
+        int len = 0;
+        if (attribute.hasPrefix()) {
+            len += attribute.getPrefix().length() + 1; //prefix  + ':'
+        }
+        len += attribute.getName().length() + attribute.getValue().length() + 3;
+        return len;
     }
 
     /**
