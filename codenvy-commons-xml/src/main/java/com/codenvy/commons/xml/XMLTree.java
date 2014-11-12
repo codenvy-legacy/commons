@@ -14,7 +14,6 @@ package com.codenvy.commons.xml;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -48,7 +47,6 @@ import static com.codenvy.commons.xml.Util.asElement;
 import static com.codenvy.commons.xml.Util.asElements;
 import static com.codenvy.commons.xml.Util.closeTagLength;
 import static com.codenvy.commons.xml.Util.indexOf;
-import static com.codenvy.commons.xml.Util.nextElementSibling;
 import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.level;
 import static com.codenvy.commons.xml.Util.insertBetween;
@@ -58,7 +56,6 @@ import static com.codenvy.commons.xml.Util.openTagLength;
 import static com.codenvy.commons.xml.Util.tabulate;
 import static java.lang.Math.abs;
 import static java.nio.file.Files.readAllBytes;
-import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.stream.XMLStreamConstants.CDATA;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
@@ -241,75 +238,75 @@ public final class XMLTree {
         return single(getElements(expression));
     }
 
-    /**
-     * Creates new element related to current tree
-     * based on element name and text.
-     * Newly created element will not be added to tree,
-     * you should use exited elements update methods
-     * or tree update methods to do so.
-     * <p/>
-     * Created element related to tree instance,
-     * so it is not able to update other tree instance
-     * with it.
-     *
-     * @param name
-     *         element name
-     * @param text
-     *         element text
-     * @return created element with given name and text content
-     */
-    public Element newElement(String name, String text) {
-        final Element newElement = new Element(this);
-        newElement.text = text;
-        newElement.name = name;
-        return newElement;
-    }
+//    /**
+//     * Creates new element related to current tree
+//     * based on element name and text.
+//     * Newly created element will not be added to tree,
+//     * you should use exited elements update methods
+//     * or tree update methods to do so.
+//     * <p/>
+//     * Created element related to tree instance,
+//     * so it is not able to update other tree instance
+//     * with it.
+//     *
+//     * @param name
+//     *         element name
+//     * @param text
+//     *         element text
+//     * @return created element with given name and text content
+//     */
+//    public Element newElement(String name, String text) {
+//        final Element newElement = new Element(this);
+//        newElement.text = text;
+//        newElement.name = name;
+//        return newElement;
+//    }
+//
+//    /**
+//     * Creates new element related to current tree
+//     * based on given name and children elements.
+//     * Newly created element will not be added to tree,
+//     * you should use exited elements update methods
+//     * or tree update methods to do so.
+//     * Each tree update method will add related to
+//     * element children as well as itself.
+//     * <p/>
+//     * Created element related to tree instance,
+//     * so it is not able to update other tree instance
+//     * with it.
+//     *
+//     * @param name
+//     *         element name
+//     * @param children
+//     *         element children
+//     * @return created element with given name and children
+//     */
+//    public Element newElement(String name, Element... children) {
+//        final Element newElement = new Element(this);
+//        newElement.name = name;
+//        newElement.children = new ArrayList<>(asList(children));
+//        return newElement;
+//    }
 
-    /**
-     * Creates new element related to current tree
-     * based on given name and children elements.
-     * Newly created element will not be added to tree,
-     * you should use exited elements update methods
-     * or tree update methods to do so.
-     * Each tree update method will add related to
-     * element children as well as itself.
-     * <p/>
-     * Created element related to tree instance,
-     * so it is not able to update other tree instance
-     * with it.
-     *
-     * @param name
-     *         element name
-     * @param children
-     *         element children
-     * @return created element with given name and children
-     */
-    public Element newElement(String name, Element... children) {
-        final Element newElement = new Element(this);
-        newElement.name = name;
-        newElement.children = new ArrayList<>(asList(children));
-        return newElement;
-    }
-
-    /**
-     * Creates <b>Void</b> element related to current tree
-     * based on given name, it is not possible to
-     * append children to void element, it is just able to
-     * add attributes
-     * <p/>
-     * Created element related to tree instance,
-     * so it is not able to update other tree instance
-     * with it.
-     *
-     * @param name
-     *         element name
-     * @return created void element with given name
-     */
-    public Element newElement(String name) {
-        final Element newElement = new Element(this);
-        newElement.name = name;
-        return newElement;
-    }
+//    /**
+//     * Creates <b>Void</b> element related to current tree
+//     * based on given name, it is not possible to
+//     * append children to void element, it is just able to
+//     * add attributes
+//     * <p/>
+//     * Created element related to tree instance,
+//     * so it is not able to update other tree instance
+//     * with it.
+//     *
+//     * @param name
+//     *         element name
+//     * @return created void element with given name
+//     */
+//    public Element newElement(String name) {
+//        final Element newElement = new Element(this);
+//        newElement.name = name;
+//        return newElement;
+//    }
 
     /**
      * Updates requested element text.
@@ -342,7 +339,7 @@ public final class XMLTree {
      *         new element which will be inserted.
      *         It should be created with same tree instance
      */
-    public void appendChild(String expression, Element newElement) {
+    public void appendChild(String expression, NewElement newElement) {
         single(getElements(expression)).appendChild(newElement);
     }
 
@@ -360,7 +357,7 @@ public final class XMLTree {
      *         new element which will be inserted.
      *         It should be created with same tree instance
      */
-    public void insertBefore(String expression, Element newElement) {
+    public void insertBefore(String expression, NewElement newElement) {
         single(getElements(expression)).insertBefore(newElement);
     }
 
@@ -376,7 +373,7 @@ public final class XMLTree {
      *         new element which will be inserted.
      *         It should be created with same tree instance
      */
-    public void insertAfter(String expression, Element newElement) {
+    public void insertAfter(String expression, NewElement newElement) {
         single(getElements(expression)).insertAfter(newElement);
     }
 
@@ -436,7 +433,7 @@ public final class XMLTree {
     }
 
     private void removeTextSegment(Element element, int left) {
-        for (Iterator<Segment> segIt = element.textSegments.iterator(); segIt.hasNext(); ) {
+        for (Iterator<Segment> segIt = element.text.iterator(); segIt.hasNext(); ) {
             if (segIt.next().left == left) {
                 segIt.remove();
                 break;
@@ -449,8 +446,8 @@ public final class XMLTree {
             if (element.end.left > fromIdx) {
                 shiftSegment(element.start, fromIdx, offset);
                 shiftSegment(element.end, fromIdx, offset);
-                if (element.textSegments != null) {
-                    for (Segment textSegment : element.textSegments) {
+                if (element.text != null) {
+                    for (Segment textSegment : element.text) {
                         shiftSegment(textSegment, fromIdx, offset);
                     }
                 }
@@ -486,30 +483,6 @@ public final class XMLTree {
         return elementsText;
     }
 
-    private Node createNode(Element element) {
-        final Node newNode = document.createElement(element.name);
-        newNode.setTextContent(element.getText());
-        newNode.setUserData("element", element, null);
-        element.delegate = newNode;
-        if (element.children != null) {
-            for (Element child : element.children) {
-                newNode.appendChild(createNode(child));
-            }
-        }
-        if (element.attributes != null) {
-            for (Attribute attribute : element.attributes) {
-                newNode.getAttributes().setNamedItem(asAttributeNode(attribute));
-            }
-        }
-        return newNode;
-    }
-
-    private Attr asAttributeNode(Attribute attribute) {
-        final Attr attr = document.createAttribute(attribute.getName());
-        attr.setValue(attribute.getName());
-        return attr;
-    }
-
     private void constructTree() throws XMLStreamException {
         Node node = document.getDocumentElement();
 
@@ -525,7 +498,6 @@ public final class XMLTree {
                 case START_ELEMENT:
                     final Element newElement = new Element(this);
                     newElement.start = new Segment(beforeStart + 1, offset(reader));
-                    newElement.name = reader.getLocalName();
                     //if new node is not xml root - set up relationships
                     if (!startedElements.isEmpty()) {
                         node = deepNext(node, true);
@@ -541,11 +513,11 @@ public final class XMLTree {
                     break;
                 case CHARACTERS:
                     final Element current = startedElements.peek();
-                    if (current.textSegments == null) {
+                    if (current.text == null) {
                         //TODO think about list size
-                        current.textSegments = new LinkedList<>();
+                        current.text = new LinkedList<>();
                     }
-                    current.textSegments.add(new Segment(beforeStart + 1, offset(reader)));
+                    current.text.add(new Segment(beforeStart + 1, offset(reader)));
                 case COMMENT_NODE:
                 case CDATA:
                 case COMMENT:
@@ -593,6 +565,112 @@ public final class XMLTree {
     }
 
     /**
+     * TODO write explanation
+     * <p/>
+     * Updates text of given element.
+     * It is based on element text positions.
+     * If element has more then one text segment
+     * only first will be used for update, other
+     * will be removed. Only text segment will have the same left bound as it
+     * has before and right bound equal to left bound + new text length
+     */
+    void updateText(Element target) {
+        final int len = xml.length;
+        if (target.text != null) {
+            final Iterator<Segment> segIt = target.text.iterator();
+            final Segment first = segIt.next();
+            //removing all segments instead of first
+            while (segIt.hasNext()) {
+                final Segment segment = segIt.next();
+                segIt.remove();
+                xml = insertBetween(xml, segment.left, segment.right, "");
+            }
+            //update new text content
+            xml = insertBetween(xml, first.left, first.right, target.getText());
+            first.right = first.left + target.getText().length();
+        } else {
+            xml = insertBetween(xml, target.start.right + 1, target.end.left - 1, target.getText());
+            target.text = new LinkedList<>();
+            target.text.add(new Segment(target.start.right + 1, target.end.left - 1));
+        }
+        shiftSegments(target.start.right, abs(len - xml.length));
+    }
+
+    void updateAttributeValue(Attribute attribute, String oldValue) {
+        final int len = xml.length;
+        final Segment segment = valueSegment(attribute, oldValue);
+        //replacing attribute value content with new content
+        xml = insertBetween(xml,
+                            segment.left,
+                            segment.right,
+                            attribute.getValue());
+        //shift existing segments which are after owner start left
+        //TODO fix offset
+        shiftSegments(attribute.getElement().start.left, abs(len - xml.length));
+    }
+
+    /**
+     * Adds new element to the end of children list with given parent.
+     */
+    void appendChild(NewElement newElement, Element relatedToNew, Element parent) {
+        final int level = level(parent) + 1;
+        final int lengthBefore = xml.length;
+        final int insertHere = lastIndexOf(xml, '>', parent.end.left) + 1;
+        //inserting new element bytes to tree bytes
+        xml = insertInto(xml,
+                         insertHere,
+                         '\n' + tabulate(newElement.asString(), level));
+        //shift existing segments which are after parent start
+        shiftSegments(parent.start.right, xml.length - lengthBefore);
+        //create and set up start, end, text segments to created element
+        applySegments(newElement, relatedToNew, insertHere, level, parent);
+        //let tree know about added element
+        registerElement(relatedToNew);
+    }
+
+    /**
+     * Inserts element after referenced one
+     */
+    void insertAfter(NewElement newElement, Element relatedToNew, Element refElement) {
+        final int level = level(refElement);
+        final int lengthBefore = xml.length;
+        //inserting new element bytes to tree bytes
+        xml = insertInto(xml,
+                         refElement.end.right + 1,
+                         '\n' + tabulate(newElement.asString(), level));
+        //shift existing segments which are after parent start
+        shiftSegments(refElement.end.right, xml.length - lengthBefore);
+        //create and set up start, end, text segments to created element
+        //+1 because of \n
+        applySegments(newElement, relatedToNew, refElement.end.right + 1, level, refElement.getParent());
+        //let tree know about inserted element
+        registerElement(relatedToNew);
+    }
+
+    /**
+     * Inserts element before referenced one.
+     * It is important to let all related to
+     * {@param refElement} comments on their places,
+     * so to avoid deformation we inserting new element after
+     * previous sibling or after element parent
+     * if element doesn't have previous sibling
+     */
+    void insertAfterParent(NewElement newElement, Element relatedToNew, Element parent) {
+        final int level = level(parent) + 1;
+        final int lengthBefore = xml.length;
+        //inserting after parent
+        xml = insertInto(xml,
+                         parent.start.right + 1,
+                         '\n' + tabulate(newElement.asString(), level));
+        //shift existing segments which are after parent start
+        shiftSegments(parent.start.right, xml.length - lengthBefore);
+        //create and set up start, end, text segments to created element
+        applySegments(newElement, relatedToNew, parent.start.right + 1, level, parent);
+        //let tree know about inserted element
+        registerElement(relatedToNew);
+    }
+
+    /**
      * Removes element from tree.
      * <p/>
      * It is important to save xml tree pretty view,
@@ -616,158 +694,59 @@ public final class XMLTree {
      * because it will produce not pretty formatting for
      * good and pretty formatted before document.
      */
-    void dropElement(Element element) {
-        final int left = lastIndexOf(xml, '>', element.start.left) + 1;
-        final int len = xml.length;
-        if (left != element.start.left - 1) {
-            removeTextSegment(element.getParent(), left);
+    void removeElement(Element element) {
+        final int leftBound = lastIndexOf(xml, '>', element.start.left) + 1;
+        final int lengthBefore = xml.length;
+        //if text segment before removal element
+        //exists it should go to hell with removal
+        if (leftBound != element.start.left - 1) {
+            removeTextSegment(element.getParent(), leftBound);
         }
-        xml = insertBetween(xml, left, element.end.right, "");
-        removeElement(element);
-        //shift all elements which are right from element
-        shiftSegments(element.end.right, xml.length - len);
+        //replacing content with nothing
+        xml = insertBetween(xml,
+                            leftBound,
+                            element.end.right,
+                            "");
+        //shift all elements which are right from removed element
+        shiftSegments(element.end.right, xml.length - lengthBefore);
+        //let tree know that element is not a family member
+        unregisterElement(element);
     }
 
-    /**
-     * TODO write explanation
-     * <p/>
-     * Updates text of given element.
-     * It is based on element text positions.
-     * If element has more then one text segment
-     * only first will be used for update, other
-     * will be removed. Only text segment will have the same left bound as it
-     * has before and right bound equal to left bound + new text length
-     */
-    void updateText(Element target) {
+    void insertAttribute(NewAttribute attribute, Element owner) {
         final int len = xml.length;
-        if (target.textSegments != null) {
-            final Iterator<Segment> segIt = target.textSegments.iterator();
-            final Segment first = segIt.next();
-            //removing all segments instead of first
-            while (segIt.hasNext()) {
-                final Segment segment = segIt.next();
-                segIt.remove();
-                xml = insertBetween(xml, segment.left, segment.right, "");
-            }
-            //update new text content
-            xml = insertBetween(xml, first.left, first.right, target.getText());
-            first.right = first.left + target.getText().length();
-        } else {
-            xml = insertBetween(xml, target.start.right + 1, target.end.left - 1, target.getText());
-            target.textSegments = new LinkedList<>();
-            target.textSegments.add(new Segment(target.start.right + 1, target.end.left - 1));
-        }
-        shiftSegments(target.start.right, abs(len - xml.length));
-    }
-
-    /**
-     * Inserts element before referenced one.
-     * It is important to let all related to
-     * {@param refElement} comments on their places,
-     * so to avoid deformation we inserting new element after
-     * previous sibling or after element parent
-     * if element doesn't have previous sibling
-     */
-    void insertBefore(Element newElement, Element refElement) {
-        final Element refPrevious = refElement.getPreviousSibling();
-        if (refPrevious != null) {
-            insertAfter(newElement, refPrevious);
-        } else {
-            int len = xml.length;
-            //inserting after parent
-            final Element parent = refElement.getParent();
-
-            xml = insertInto(xml, parent.start.right + 1, '\n' + tabulate(newElement.asString(), level(refElement)));
-            createSegments(newElement, parent.start.right + 1, level(refElement), parent);
-            shiftSegments(parent.start.right, xml.length - len);
-
-            addElement(newElement);
-            insertBeforeNode(newElement, refElement);
-        }
-    }
-
-    /**
-     * Inserts element after referenced one
-     */
-    void insertAfter(Element newElement, Element refElement) {
-        final int level = level(refElement);
-        final int len = xml.length;
-
-        xml = insertInto(xml, refElement.end.right + 1, '\n' + tabulate(newElement.asString(), level));
-        //TODO: write explanation! +1 cause of \n
-        createSegments(newElement, refElement.end.right + 1, level, refElement.getParent());
-        shiftSegments(refElement.end.right, xml.length - len);
-
-        addElement(newElement);
-        insertAfterNode(newElement, refElement);
-    }
-
-    void updateAttributeValue(Attribute attribute, String oldValue) {
-        final Element element = attribute.getElement();
-        final Segment segment = valueSegment(attribute, oldValue);
-        final int len = xml.length;
-
-        xml = insertBetween(xml, segment.left, segment.right, attribute.getValue());
-        shiftSegments(element.start.left, abs(len - xml.length));
-    }
-
-    /**
-     * Adds new element to the end of children list with given parent.
-     */
-    void appendChild(Element newElement, Element parent) {
-        final int level = level(parent) + 1;
-        final int len = xml.length;
-        final int pos = lastIndexOf(xml, '>', parent.end.left) + 1;
-
-        xml = insertInto(xml, pos, '\n' + tabulate(newElement.asString(), level));
-        createSegments(newElement, pos, level, parent);
-        shiftSegments(parent.start.right, xml.length - len);
-
-        addElement(newElement);
-        parent.delegate.appendChild(createNode(newElement));
-    }
-
-    void insertAttribute(Attribute attribute) {
-        final Element element = attribute.getElement();
-        final int len = xml.length;
-
-        xml = insertInto(xml, element.start.right, ' ' + attribute.asString());
-        shiftSegments(element.start.left - 1, xml.length - len);
-
-        element.delegate.getAttributes()
-                        .setNamedItem(asAttributeNode(attribute));
+        //inserting new attribute content
+        xml = insertInto(xml,
+                         owner.start.right,
+                         ' ' + attribute.asString());
+        //shift all elements which are right from removed element
+        shiftSegments(owner.start.left - 1, xml.length - len);
     }
 
     void removeAttribute(Attribute attribute) {
         final Element element = attribute.getElement();
         final int len = xml.length;
         final Segment segment = attributeSegment(attribute);
-
-        xml = insertBetween(xml, segment.left - 1, segment.right, "");
+        //replacing attribute segment with nothing
+        xml = insertBetween(xml,
+                            segment.left - 1,
+                            segment.right,
+                            "");
+        //shift all elements which are left from owner left
         shiftSegments(element.start.left, len - xml.length);
-
-        //remove attribute from document
-        element.delegate.getAttributes()
-                        .removeNamedItem(attribute.getName());
     }
 
-    boolean contains(Element element) {
-        return elements.contains(element);
-    }
-
-    private void addElement(Element element) {
+    private void registerElement(Element element) {
         elements.add(element);
-        if (element.children != null) {
-            for (Element child : element.children) {
-                addElement(child);
-            }
+        for (Element child : element.getChildren()) {
+            registerElement(child);
         }
     }
 
-    private void removeElement(Element element) {
+    private void unregisterElement(Element element) {
         elements.remove(element);
         for (Element child : element.getChildren()) {
-            removeElement(child);
+            unregisterElement(child);
         }
     }
 
@@ -777,7 +756,7 @@ public final class XMLTree {
         final byte[] name = attribute.getName().getBytes();
         final byte[] value = attribute.getValue().getBytes();
 
-        final int start = indexOf(xml, name, owner.start.left + owner.name.length());
+        final int start = indexOf(xml, name, owner.start.left + owner.getName().length());
         final int valueStart = indexOf(xml, value, start + name.length);
 
         return new Segment(start, valueStart + value.length);
@@ -798,7 +777,7 @@ public final class XMLTree {
     /**
      * Creates segments for newly created element and related children
      */
-    private int createSegments(Element element, int beforeText, int level, Element parent) {
+    int applySegments(NewElement newElement, Element relatedToNew, int beforeText, int level, Element parent) {
         //text length before element
         // child - element, '+' - text before element
         //        ++++++
@@ -812,61 +791,55 @@ public final class XMLTree {
 
         //we should add text segment which
         //is before given element to parent
-        if (parent.textSegments == null) {
-            parent.textSegments = new LinkedList<>();
+        if (parent.text == null) {
+            parent.text = new LinkedList<>();
         }
-        parent.textSegments.add(new Segment(beforeText, beforeStart));
+        parent.text.add(new Segment(beforeText, beforeStart));
 
         //pos of open tag right '>'
-        int startRight = beforeStart + openTagLength(element);
+        int startRight = beforeStart + openTagLength(newElement);
 
-        element.start = new Segment(beforeStart + 1, startRight);
+        relatedToNew.start = new Segment(beforeStart + 1, startRight);
         //if element is void it doesn't have children and text
         //and it has same start and end so we can initialize
         //only start and end segments
-        if (element.isVoid()) {
-            element.end = element.start;
+        if (relatedToNew.isVoid()) {
+            relatedToNew.end = relatedToNew.start;
             return startRight;
         }
         //if element has children it doesn't have text instead of
         //whitespaces, so all what we need - detect element close tag segment
-        //to do so we need to createSegments element children first
+        //to do so we need to apply segments for all children first
         int beforeTextForChild = startRight;// 1 - \n
-        if (element.children != null) {
-            for (Element child : element.children) {
-                beforeTextForChild = createSegments(child, beforeTextForChild + 1, level + 1, element);
+        if (newElement.hasChildren()) {
+
+            final Iterator<NewElement> newChIt = newElement.getChildren().iterator();
+            final Iterator<Element> chIt = relatedToNew.getChildren().iterator();
+
+            while (newChIt.hasNext()) {
+                beforeTextForChild = applySegments(newChIt.next(),
+                                                   chIt.next(),
+                                                   beforeTextForChild + 1,
+                                                   level + 1,
+                                                   relatedToNew);
             }
             //after last element we need to add 1 more text segment
             beforeTextForChild += 1 + lineTextLength;
         } else {
-            element.textSegments = new LinkedList<>();
+            relatedToNew.text = new LinkedList<>();
         }
         //before element close tag pos
         //                        +
         //<parent>\n    <child>text</child>
-
-        int beforeEnd = beforeTextForChild + element.getText().length();
-        element.textSegments.add(new Segment(startRight + 1, beforeEnd));
-        element.end = new Segment(beforeEnd + 1, beforeEnd + closeTagLength(element));
-        return element.end.right;
-    }
-
-    /**
-     * Inserting new node before next sibling
-     * appending new child if refElement doesn't have
-     */
-    private void insertAfterNode(Element newElement, Element refElement) {
-        final Node nextSibling = nextElementSibling(refElement.delegate);
-        if (nextSibling != null) {
-            nextSibling.getParentNode().insertBefore(createNode(newElement), nextSibling);
+        final int beforeEnd;
+        if (newElement.hasChildren()) {
+            beforeEnd = beforeTextForChild;
         } else {
-            refElement.delegate.getParentNode().appendChild(createNode(newElement));
+            beforeEnd = beforeTextForChild + relatedToNew.getText().length();
         }
-    }
-
-    private void insertBeforeNode(Element newElement, Element refElement) {
-        final Node refNode = refElement.delegate;
-        refNode.getParentNode().insertBefore(createNode(newElement), refNode);
+        relatedToNew.text.add(new Segment(startRight + 1, beforeEnd));
+        relatedToNew.end = new Segment(beforeEnd + 1, beforeEnd + closeTagLength(newElement));
+        return relatedToNew.end.right;
     }
 
     /**

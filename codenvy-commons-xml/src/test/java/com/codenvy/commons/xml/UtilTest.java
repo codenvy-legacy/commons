@@ -14,6 +14,7 @@ package com.codenvy.commons.xml;
 import org.testng.annotations.Test;
 
 
+import static com.codenvy.commons.xml.NewElement.createElement;
 import static com.codenvy.commons.xml.Util.closeTagLength;
 import static com.codenvy.commons.xml.Util.indexOf;
 import static com.codenvy.commons.xml.Util.single;
@@ -86,23 +87,18 @@ public class UtilTest {
         assertEquals(lastIndexOf(src, '>', src.length - 1), 28);
     }
 
-    //TODO add attributes
     @Test
     public void shouldBeAbleToGetElementOpenTagLength() {
-        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project></project>");
-
         //<test>test</test>
-        final Element newElement = tree.newElement("test", "test");
+        final NewElement newElement = createElement("test", "test");
 
         assertEquals(openTagLength(newElement), 6);
     }
 
     @Test
     public void shouldBeAbleToGetElementCloseTagLength() {
-        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project></project>");
-
         //<test>test</test>
-        final Element newElement = tree.newElement("test", "test");
+        final NewElement newElement = createElement("test", "test");
 
         assertEquals(closeTagLength(newElement), 7);
     }

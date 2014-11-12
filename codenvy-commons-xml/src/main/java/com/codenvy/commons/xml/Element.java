@@ -12,6 +12,8 @@ package com.codenvy.commons.xml;
 
 import com.codenvy.commons.xml.XMLTree.Segment;
 
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -22,9 +24,8 @@ import java.util.List;
 
 import static com.codenvy.commons.xml.Util.asElement;
 import static com.codenvy.commons.xml.Util.asElements;
-import static com.codenvy.commons.xml.Util.nextElementSibling;
-import static com.codenvy.commons.xml.Util.previousElementSibling;
-import static com.codenvy.commons.xml.Util.tabulate;
+import static com.codenvy.commons.xml.Util.nextElementNode;
+import static com.codenvy.commons.xml.Util.previousElementNode;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
@@ -46,14 +47,7 @@ public final class Element {
     //used for tree content manipulation
     Segment       start;
     Segment       end;
-    List<Segment> textSegments;
-
-    //used with new element
-    String          name;
-    String          text;
-    String          prefix;
-    List<Element>   children;
-    List<Attribute> attributes;
+    List<Segment> text;
 
     //used to fetch information from related node
     Node delegate;
@@ -63,10 +57,7 @@ public final class Element {
     }
 
     public String getName() {
-        if (delegate != null) {
-            return delegate.getNodeName();
-        }
-        return name;
+        return delegate.getNodeName();
     }
 
     public Element getParent() {
@@ -76,7 +67,7 @@ public final class Element {
     public Element getSingleSibling(String name) {
         Element target = null;
         for (Element sibling : asElements(delegate.getParentNode().getChildNodes())) {
-            if (this != sibling && sibling.name.equals(name)) {
+            if (this != sibling && sibling.getName().equals(name)) {
                 if (target != null) {
                     throw new XMLTreeException("Element " + name + " has more then only sibling with name " + name);
                 }
@@ -88,7 +79,7 @@ public final class Element {
 
     public Element getSingleChild(String name) {
         for (Element child : asElements(delegate.getChildNodes())) {
-            if (name.equals(child.name)) {
+            if (name.equals(child.getName())) {
                 if (child.hasSibling(name)) {
                     throw new XMLTreeException("Element " + name + " has more then only child with name " + name + " found");
                 }
@@ -101,7 +92,7 @@ public final class Element {
     public Element getLastChild() {
         final Node lastChild = delegate.getLastChild();
         if (lastChild != null && lastChild.getNodeType() != ELEMENT_NODE) {
-            return asElement(previousElementSibling(lastChild));
+            return asElement(previousElementNode(lastChild));
         }
         return asElement(lastChild);
     }
@@ -109,7 +100,7 @@ public final class Element {
     public Element getFirstChild() {
         final Node firstChild = delegate.getFirstChild();
         if (firstChild.getNodeType() != ELEMENT_NODE) {
-            return asElement(nextElementSibling(firstChild));
+            return asElement(nextElementNode(firstChild));
         }
         return asElement(firstChild);
     }
@@ -120,9 +111,6 @@ public final class Element {
     }
 
     public String getText() {
-        if (delegate == null) {
-            return text == null ? "" : text;
-        }
         return delegate.getTextContent();
     }
 
@@ -141,11 +129,11 @@ public final class Element {
     }
 
     public Element getPreviousSibling() {
-        return asElement(previousElementSibling(delegate));
+        return asElement(previousElementNode(delegate));
     }
 
     public Element getNextSibling() {
-        return asElement(nextElementSibling(delegate));
+        return asElement(nextElementNode(delegate));
     }
 
     public List<Attribute> getAttributes() {
@@ -179,24 +167,13 @@ public final class Element {
 
     public Element setText(String newText) {
         requireNonNull(newText);
-        if (!xmlTree.contains(this)) {
-            text = newText;
-        } else {
-            if (!newText.equals(getText())) {
-                delegate.setTextContent(newText);
-                xmlTree.updateText(this);
-                //fixme its not true - if element contains any child then first child left - 1 should
-                //be used instead
-                textSegments = singletonList(new Segment(start.right + 1, end.left - 1));
-            }
+        if (!newText.equals(getText())) {
+            delegate.setTextContent(newText);
+            xmlTree.updateText(this);
+            //fixme its not true - if element contains any child then first child left - 1 should
+            //be used instead
+            text = singletonList(new Segment(start.right + 1, end.left - 1));
         }
-        return this;
-    }
-
-    //TODO fixme should be used only for update
-    public Element setPrefix(String prefix) {
-        checkIsNew(this);
-        this.prefix = prefix;
         return this;
     }
 
@@ -208,9 +185,6 @@ public final class Element {
      *         child name to removeElement
      */
     public void removeChild(String name) {
-        if (!xmlTree.contains(this)) {
-            throw new XMLTreeException("You can only use remove child on existing in tree element");
-        }
         final Element child = getSingleChild(name);
         if (child != null) {
             child.remove();
@@ -221,18 +195,16 @@ public final class Element {
      * Removes current element
      */
     public void remove() {
-        if (!xmlTree.contains(this)) {
-            throw new XMLTreeException("You can only remove existing in tree element");
-        }
-        xmlTree.dropElement(this);
+        //let tree do dirty job
+        xmlTree.removeElement(this);
+        //remove self from document
         delegate.getParentNode().removeChild(delegate);
+        //if references to 'this' element exist
+        //we should disallow ability to use delegate
         delegate = null;
     }
 
     public void removeChildren(String name) {
-        if (!xmlTree.contains(this)) {
-            throw new XMLTreeException("You can only use remove children on existing in tree element");
-        }
         final List<Node> matched = new LinkedList<>();
         final NodeList nodes = delegate.getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
@@ -246,38 +218,30 @@ public final class Element {
     }
 
     public Element setAttribute(String name, String value) {
-        final Attribute newAttribute = new Attribute(this, null, name, value);
-        if (xmlTree.contains(this)) {
-            xmlTree.insertAttribute(newAttribute);
-        } else {
-            if (attributes == null) {
-                attributes = new LinkedList<>();
-            }
-            attributes.add(newAttribute);
-        }
-        return this;
+        return setAttribute(new NewAttribute(name, value));
     }
 
-    public Element addAttribute(String prefix, String name, String value) {
-        final Attribute newAttribute = new Attribute(this, prefix, name, value);
-        if (xmlTree.contains(this)) {
-            xmlTree.insertAttribute(newAttribute);
-        } else {
-            if (attributes == null) {
-                attributes = new LinkedList<>();
-            }
-            attributes.add(newAttribute);
+    public Element setAttribute(NewAttribute newAttribute) {
+        //if tree already contains element replace value
+        if (hasAttribute(newAttribute.getName())) {
+            final Attribute attr = getAttribute(newAttribute.getName());
+            attr.setValue(newAttribute.getValue());
+            return this;
         }
+        //create new element add insert it to document
+        final Node newAttrNode = createAttrNode(newAttribute);
+        delegate.getAttributes().setNamedItem(newAttrNode);
+        //let tree do dirty job
+        xmlTree.insertAttribute(newAttribute, this);
         return this;
     }
 
     public Element removeAttribute(String name) {
-        if (!xmlTree.contains(this)) {
-            throw new XMLTreeException("You can only remove attribute from existing in tree element");
-        }
         final Attribute attribute = getAttribute(name);
         if (attribute != null) {
             xmlTree.removeAttribute(attribute);
+            delegate.getAttributes()
+                    .removeNamedItem(name);
         }
         return this;
     }
@@ -288,9 +252,6 @@ public final class Element {
 
     //if element doesn't have closing tag - <element attr="value"/>
     public boolean isVoid() {
-        if (delegate == null) {
-            return text == null && children == null;
-        }
         return start.equals(end);
     }
 
@@ -308,85 +269,100 @@ public final class Element {
         return new Attribute(this, node.getPrefix(), node.getNodeName(), node.getNodeValue());
     }
 
-    public Element appendChild(Element newElement) {
-        checkIsRelative(newElement);
-        checkIsNew(newElement);
+    public Element appendChild(NewElement newElement) {
         if (isVoid()) {
             throw new XMLTreeException("Append child is not permitted on void elements");
         }
-        if (!xmlTree.contains(this)) {
-            if (children == null) {
-                children = new LinkedList<>();
-            }
-            children.add(newElement);
+        final Node newNode = createNode(newElement);
+        final Element element = createElement(newNode);
+        //append new node into document
+        delegate.appendChild(newNode);
+        //let tree do dirty job
+        xmlTree.appendChild(newElement, element, this);
+        return this;
+    }
+
+    public Element insertAfter(NewElement newElement) {
+        final Node newNode = createNode(newElement);
+        final Element element = createElement(newNode);
+        //if element has next sibling append child to parent
+        //else insert before next sibling
+        final Node nextNode = nextElementNode(delegate);
+        if (nextNode != null) {
+            delegate.getParentNode().insertBefore(newNode, nextNode);
         } else {
-            xmlTree.appendChild(newElement, this);
-            dropFields();
+            delegate.getParentNode().appendChild(newNode);
         }
+        //let tree do dirty job
+        xmlTree.insertAfter(newElement, element, this);
         return this;
     }
 
-    public Element insertBefore(Element newElement) {
-        checkIsRelative(newElement);
-        checkIsNew(newElement);
-        if (!xmlTree.contains(this)) {
-            throw new XMLTreeException("You can only use inserted before existing in tree element");
+    public Element insertBefore(NewElement newElement) {
+        //if element has previous sibling insert new element after it
+        //inserting before this element to let existing comments
+        //or whatever over referenced element
+        if (previousElementNode(delegate) != null) {
+            getPreviousSibling().insertAfter(newElement);
+            return this;
         }
-        xmlTree.insertBefore(newElement, this);
-        dropFields();
+        final Node newNode = createNode(newElement);
+        final Element element = createElement(newNode);
+        delegate.getParentNode().insertBefore(newNode, delegate);
+        //let tree do dirty job
+        xmlTree.insertAfterParent(newElement, element, getParent());
         return this;
-    }
-
-    public Element insertAfter(Element newElement) {
-        checkIsRelative(newElement);
-        checkIsNew(newElement);
-        if (!xmlTree.contains(this)) {
-            throw new XMLTreeException("You can only use inserted after existing in tree element");
-        }
-        xmlTree.insertAfter(newElement, this);
-        dropFields();
-        return this;
-    }
-
-    /**
-     * Converts element to string representation
-     */
-    public String asString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append('<')
-               .append(name);
-        if (attributes != null) {
-            for (Attribute attribute : attributes) {
-                builder.append(' ')
-                       .append(attribute.asString());
-            }
-        }
-        //if it is one line element such as <tag attr="value"/>
-        if (isVoid()) {
-            return builder.append('/')
-                          .append('>')
-                          .toString();
-        }
-        builder.append('>')
-               .append(getText());
-        if (children != null) {
-            builder.append('\n');
-            for (Element child : children) {
-                builder.append(tabulate(child.asString(), 1))
-                       .append('\n');
-            }
-        }
-        builder.append('<')
-               .append('/')
-               .append(name)
-               .append('>');
-        return builder.toString();
     }
 
     void setAttributeValue(Attribute attribute) {
         final Node attributeNode = getAttributeNode(attribute.getName());
         xmlTree.updateAttributeValue(attribute, attributeNode.getNodeValue());
         getAttributeNode(attribute.getName()).setNodeValue(attribute.getValue());
+    }
+
+    private Element createElement(Node node) {
+        final Element element = new Element(xmlTree);
+        element.delegate = node;
+        node.setUserData("element", element, null);
+        if (node.hasChildNodes()) {
+            final NodeList children = node.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                if (children.item(i).getNodeType() == ELEMENT_NODE) {
+                    createElement(children.item(i));
+                }
+            }
+        }
+        return element;
+    }
+
+    private Node createNode(NewElement newElement) {
+        final Node newNode = document().createElement(newElement.getName());
+        if (newElement.hasPrefix()) {
+            newNode.setPrefix(newElement.getPrefix());
+        }
+        newNode.setTextContent(newElement.getText());
+        //creating all related children
+        for (NewElement child : newElement.getChildren()) {
+            newNode.appendChild(createNode(child));
+        }
+        //creating all related attributes
+        for (NewAttribute attribute : newElement.getAttributes()) {
+            newNode.getAttributes().setNamedItem(createAttrNode(attribute));
+        }
+        return newNode;
+    }
+
+    private Attr createAttrNode(NewAttribute attribute) {
+        final Attr attr = document().createAttribute(attribute.getName());
+        if (attribute.hasPrefix()) {
+            attr.setPrefix(attribute.getPrefix());
+        }
+        attr.setValue(attribute.getName());
+        return attr;
+    }
+
+    private Document document() {
+        return delegate.getOwnerDocument();
     }
 
     private Node getAttributeNode(String name) {
@@ -397,38 +373,5 @@ public final class Element {
             }
         }
         return null;
-    }
-
-    private void checkIsRelative(Element element) {
-        if (element.xmlTree != xmlTree) {
-            throw new XMLTreeException("Element " + element + " should be created with same tree");
-        }
-    }
-
-    /**
-     * New element keeps information about
-     * it name, text, children, attributes
-     * and then it delegates org.w3c.dom.Node to
-     * get all of this information, so after
-     * element insertion references will be
-     * obsolete.
-     */
-    private void dropFields() {
-        //let gc do it work
-        attributes = null;
-        children = null;
-        name = null;
-        text = null;
-    }
-
-    private void checkIsNew(Element element) {
-        if (xmlTree.contains(element)) {
-            throw new XMLTreeException("Tree already contains element " + element);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return asString();
     }
 }

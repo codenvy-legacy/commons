@@ -127,21 +127,20 @@ public final class Util {
         return level;
     }
 
-
-    public static int openTagLength(Element element) {
+    public static int openTagLength(NewElement element) {
         int len = 2; // '<' + '>'
-        len += element.name.length();// 'name'
-        for (Attribute attribute : element.getAttributes()) {
+        len += element.getName().length();// 'name'
+        for (NewAttribute attribute : element.getAttributes()) {
             len += 1 + attributeLength(attribute); // ' ' + 'attribute="value"'
         }
         return element.isVoid() ? len + 1 : len;
     }
 
-    public static int closeTagLength(Element element) {
-        return 3 + element.name.length(); // '<' + '/' + 'name' + '>'
+    public static int closeTagLength(NewElement element) {
+        return 3 + element.getName().length(); // '<' + '/' + 'name' + '>'
     }
 
-    public static int attributeLength(Attribute attribute) {
+    public static int attributeLength(NewAttribute attribute) {
         int len = 0;
         if (attribute.hasPrefix()) {
             len += attribute.getPrefix().length() + 1; //prefix  + ':'
@@ -191,7 +190,7 @@ public final class Util {
         return elements;
     }
 
-    public static Node nextElementSibling(Node node) {
+    public static Node nextElementNode(Node node) {
         node = node.getNextSibling();
         while (node != null && node.getNodeType() != ELEMENT_NODE) {
             node = node.getNextSibling();
@@ -199,7 +198,7 @@ public final class Util {
         return node;
     }
 
-    public static Node previousElementSibling(Node node) {
+    public static Node previousElementNode(Node node) {
         node = node.getPreviousSibling();
         while (node != null && node.getNodeType() != ELEMENT_NODE) {
             node = node.getPreviousSibling();

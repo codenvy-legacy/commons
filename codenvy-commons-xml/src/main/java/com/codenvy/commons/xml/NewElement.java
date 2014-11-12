@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2012-2014 Codenvy, S.A.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Codenvy, S.A. - initial API and implementation
+ *******************************************************************************/
 package com.codenvy.commons.xml;
 
 import java.util.ArrayList;
@@ -12,16 +22,16 @@ import static java.util.Arrays.asList;
  */
 public final class NewElement extends PrefixedName {
 
-    public static NewElement create(String name) {
+    public static NewElement createElement(String name) {
         return new NewElement(name, null);
     }
 
-    public static NewElement create(String name, String text) {
+    public static NewElement createElement(String name, String text) {
         return new NewElement(name, text);
     }
 
-    public static NewElement create(String name, NewElement... children) {
-        final NewElement newElement = create(name);
+    public static NewElement createElement(String name, NewElement... children) {
+        final NewElement newElement = createElement(name);
         newElement.children = new ArrayList<>(asList(children));
         return newElement;
     }
@@ -29,9 +39,9 @@ public final class NewElement extends PrefixedName {
     private static final int EXPECTED_ATTRIBUTES_SIZE = 2;
     private static final int EXPECTED_CHILDREN_SIZE   = 3;
 
-    private String                    text;
-    private List<NewAttribute>        attributes;
-    private List<NewElement>          children;
+    private String             text;
+    private List<NewAttribute> attributes;
+    private List<NewElement>   children;
 
     private NewElement(String name, String text) {
         super(name);
@@ -64,7 +74,7 @@ public final class NewElement extends PrefixedName {
     }
 
     public String getText() {
-        return text;
+        return text == null ? "" : text;
     }
 
     public List<NewAttribute> getAttributes() {
@@ -79,6 +89,10 @@ public final class NewElement extends PrefixedName {
             children = newArrayListWithExpectedSize(EXPECTED_CHILDREN_SIZE);
         }
         return children;
+    }
+
+    public boolean hasChildren() {
+        return children != null && !children.isEmpty();
     }
 
     public boolean isVoid() {
@@ -120,9 +134,5 @@ public final class NewElement extends PrefixedName {
     @Override
     public String toString() {
         return asString();
-    }
-
-    private boolean hasChildren() {
-        return children != null && !children.isEmpty();
     }
 }
