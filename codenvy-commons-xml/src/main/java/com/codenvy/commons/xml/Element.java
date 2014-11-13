@@ -25,11 +25,13 @@ import java.util.List;
 import static com.codenvy.commons.xml.Util.asElement;
 import static com.codenvy.commons.xml.Util.asElements;
 import static com.codenvy.commons.xml.Util.nextElementNode;
+import static com.codenvy.commons.xml.Util.checkNotNull;
 import static com.codenvy.commons.xml.Util.previousElementNode;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
-import static java.util.Objects.requireNonNull;
+import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE;
+import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
 import static org.w3c.dom.Node.DOCUMENT_NODE;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
@@ -49,15 +51,22 @@ public final class Element {
     Segment       end;
     List<Segment> text;
 
-    //used to fetch information from related node
-    Node delegate;
+    org.w3c.dom.Element delegate;
 
     Element(XMLTree xmlTree) {
         this.xmlTree = xmlTree;
     }
 
     public String getName() {
-        return delegate.getNodeName();
+        return delegate.getTagName();
+    }
+
+    public String getLocalName() {
+        return delegate.getLocalName();
+    }
+
+    public String getPrefix() {
+        return delegate.getPrefix();
     }
 
     public Element getParent() {
@@ -65,6 +74,7 @@ public final class Element {
     }
 
     public Element getSingleSibling(String name) {
+        checkNotNull(name, "sibling name");
         Element target = null;
         for (Element sibling : asElements(delegate.getParentNode().getChildNodes())) {
             if (this != sibling && sibling.getName().equals(name)) {
@@ -78,6 +88,7 @@ public final class Element {
     }
 
     public Element getSingleChild(String name) {
+        checkNotNull(name, "child name");
         for (Element child : asElements(delegate.getChildNodes())) {
             if (name.equals(child.getName())) {
                 if (child.hasSibling(name)) {
@@ -105,7 +116,6 @@ public final class Element {
         return asElement(firstChild);
     }
 
-    //FIXME
     public List<Element> getChildren() {
         return unmodifiableList(asElements(delegate.getChildNodes()));
     }
@@ -115,6 +125,7 @@ public final class Element {
     }
 
     public boolean hasSibling(String name) {
+        checkNotNull(name, "sibling name");
         final NodeList nodes = delegate.getParentNode().getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
             if (nodes.item(i) != delegate && name.equals(nodes.item(i).getNodeName())) {
@@ -142,7 +153,7 @@ public final class Element {
             final List<Attribute> copy = new ArrayList<>();
             for (int i = 0; i < attributes.getLength(); i++) {
                 final Node item = attributes.item(i);
-                copy.add(new Attribute(this, item.getPrefix(), item.getNodeName(), item.getNodeValue()));
+                copy.add(asAttribute(item));
             }
             return unmodifiableList(copy);
         }
@@ -156,6 +167,7 @@ public final class Element {
     }
 
     public boolean hasChild(String name) {
+        checkNotNull(name, "child name");
         final NodeList nodes = delegate.getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
             if (name.equals(nodes.item(i).getNodeName())) {
@@ -166,7 +178,7 @@ public final class Element {
     }
 
     public Element setText(String newText) {
-        requireNonNull(newText);
+        checkNotNull(newText, "new text");
         if (!newText.equals(getText())) {
             delegate.setTextContent(newText);
             xmlTree.updateText(this);
@@ -184,17 +196,19 @@ public final class Element {
      * @param name
      *         child name to removeElement
      */
-    public void removeChild(String name) {
+    public Element removeChild(String name) {
         final Element child = getSingleChild(name);
         if (child != null) {
             child.remove();
         }
+        return this;
     }
 
     /**
      * Removes current element
      */
     public void remove() {
+        notPermittedForRoot();
         //let tree do dirty job
         xmlTree.removeElement(this);
         //remove self from document
@@ -228,12 +242,37 @@ public final class Element {
             attr.setValue(newAttribute.getValue());
             return this;
         }
-        //create new element add insert it to document
-        final Node newAttrNode = createAttrNode(newAttribute);
-        delegate.getAttributes().setNamedItem(newAttrNode);
+        //
+        if (newAttribute.hasPrefix()) {
+            delegate.setAttributeNodeNS(createAttrNSNode(newAttribute));
+        } else {
+            delegate.setAttributeNode(createAttrNode(newAttribute));
+        }
         //let tree do dirty job
         xmlTree.insertAttribute(newAttribute, this);
         return this;
+    }
+
+    private Attr createAttrNode(NewAttribute newAttribute) {
+        final Attr attr = document().createAttribute(newAttribute.getName());
+        attr.setValue(newAttribute.getValue());
+        return attr;
+    }
+
+    private Attr createAttrNSNode(NewAttribute attribute) {
+        if (attribute.getPrefix().equals(XMLNS_ATTRIBUTE)) {
+            final Attr attr = document().createAttributeNS(XMLNS_ATTRIBUTE_NS_URI, attribute.getName());
+            attr.setValue(attribute.getValue());
+            //save uri
+            xmlTree.putNamespace(attribute.getLocalName(), attribute.getValue());
+            return attr;
+        } else {
+            //retrieve namespace
+            final String uri = xmlTree.getNamespaceUri(attribute.getPrefix());
+            final Attr attr = document().createAttributeNS(uri, attribute.getName());
+            attr.setValue(attribute.getValue());
+            return attr;
+        }
     }
 
     public Element removeAttribute(String name) {
@@ -247,7 +286,7 @@ public final class Element {
     }
 
     public boolean hasAttribute(String name) {
-        return ((org.w3c.dom.Element)delegate).hasAttribute(name);
+        return delegate.hasAttribute(name);
     }
 
     //if element doesn't have closing tag - <element attr="value"/>
@@ -256,6 +295,7 @@ public final class Element {
     }
 
     public Attribute getAttribute(String name) {
+        checkNotNull(name, "attribute name");
         if (delegate.hasAttributes()) {
             return asAttribute(getAttributeNode(name));
         }
@@ -266,10 +306,11 @@ public final class Element {
         if (node == null) {
             return null;
         }
-        return new Attribute(this, node.getPrefix(), node.getNodeName(), node.getNodeValue());
+        return new Attribute(this, node.getNodeName(), node.getNodeValue());
     }
 
     public Element appendChild(NewElement newElement) {
+        checkNotNull(newElement, "new element");
         if (isVoid()) {
             throw new XMLTreeException("Append child is not permitted on void elements");
         }
@@ -283,6 +324,8 @@ public final class Element {
     }
 
     public Element insertAfter(NewElement newElement) {
+        checkNotNull(newElement, "new element");
+        notPermittedForRoot();
         final Node newNode = createNode(newElement);
         final Element element = createElement(newNode);
         //if element has next sibling append child to parent
@@ -299,6 +342,8 @@ public final class Element {
     }
 
     public Element insertBefore(NewElement newElement) {
+        checkNotNull(newElement, "new element");
+        notPermittedForRoot();
         //if element has previous sibling insert new element after it
         //inserting before this element to let existing comments
         //or whatever over referenced element
@@ -320,9 +365,15 @@ public final class Element {
         getAttributeNode(attribute.getName()).setNodeValue(attribute.getValue());
     }
 
+    private void notPermittedForRoot() {
+        if (!hasParent()) {
+            throw new XMLTreeException("Operation not permitted for root element");
+        }
+    }
+
     private Element createElement(Node node) {
         final Element element = new Element(xmlTree);
-        element.delegate = node;
+        element.delegate = (org.w3c.dom.Element)node;
         node.setUserData("element", element, null);
         if (node.hasChildNodes()) {
             final NodeList children = node.getChildNodes();
@@ -336,9 +387,12 @@ public final class Element {
     }
 
     private Node createNode(NewElement newElement) {
-        final Node newNode = document().createElement(newElement.getName());
+        final org.w3c.dom.Element newNode;
         if (newElement.hasPrefix()) {
-            newNode.setPrefix(newElement.getPrefix());
+            final String uri = xmlTree.getNamespaceUri(newElement.getPrefix());
+            newNode = document().createElementNS(uri, newElement.getName());
+        } else {
+            newNode = document().createElement(newElement.getLocalName());
         }
         newNode.setTextContent(newElement.getText());
         //creating all related children
@@ -347,18 +401,13 @@ public final class Element {
         }
         //creating all related attributes
         for (NewAttribute attribute : newElement.getAttributes()) {
-            newNode.getAttributes().setNamedItem(createAttrNode(attribute));
+            if (attribute.hasPrefix()) {
+                newNode.setAttributeNodeNS(createAttrNSNode(attribute));
+            } else {
+                newNode.setAttributeNode(createAttrNode(attribute));
+            }
         }
         return newNode;
-    }
-
-    private Attr createAttrNode(NewAttribute attribute) {
-        final Attr attr = document().createAttribute(attribute.getName());
-        if (attribute.hasPrefix()) {
-            attr.setPrefix(attribute.getPrefix());
-        }
-        attr.setValue(attribute.getName());
-        return attr;
     }
 
     private Document document() {

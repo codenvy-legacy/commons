@@ -11,30 +11,26 @@
 package com.codenvy.commons.xml;
 
 /**
- * TODO
- *
  * @author Eugene Voevodin
  */
 public final class Attribute {
 
     private final Element container;
-    private final String  name;
-    private final String  prefix;
+    private final QName   name;
     private       String  value;
 
-    Attribute(Element container, String prefix, String name, String value) {
+    Attribute(Element container, String name, String value) {
+        this.name = new QName(name);
         this.container = container;
-        this.prefix = prefix;
-        this.name = name;
         this.value = value;
     }
 
     public String getName() {
-        return name;
+        return name.getName();
     }
 
     public String getPrefix() {
-        return prefix;
+        return name.getPrefix();
     }
 
     public String getValue() {
@@ -46,11 +42,11 @@ public final class Attribute {
     }
 
     public boolean hasPrefix() {
-        return prefix != null && !prefix.isEmpty();
+        return name.hasPrefix();
     }
 
     public void remove() {
-        container.removeAttribute(name);
+        container.removeAttribute(name.getName());
     }
 
     public Attribute setValue(String value) {
@@ -62,7 +58,7 @@ public final class Attribute {
     public String asString() {
         final StringBuilder sb = new StringBuilder();
         if (hasPrefix()) {
-            sb.append(prefix).append(':');
+            sb.append(getPrefix()).append(':');
         }
         return sb.append(name)
                  .append('=')

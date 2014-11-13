@@ -13,42 +13,38 @@ package com.codenvy.commons.xml;
 /**
  * @author Eugene Voevodin
  */
-public class PrefixedName {
+public class QName {
 
-    protected String prefix;
-    protected String name;
+    private String prefix;
+    private String localName;
 
-    public PrefixedName(String name) {
+    public QName(String name) {
         applyName(name);
-    }
-
-    public boolean hasPrefix() {
-        return prefix != null && !prefix.isEmpty();
     }
 
     public String getPrefix() {
         return prefix;
     }
 
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
+    public String getLocalName() {
+        return localName;
     }
 
     public String getName() {
-        return name;
+        return hasPrefix() ? prefix + ':' + localName : localName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public boolean hasPrefix() {
+        return prefix != null && !prefix.isEmpty();
     }
 
     private void applyName(String newName) {
         final int separator = newName.indexOf(':');
         if (separator != -1) {
-            name = newName.substring(separator + 1);
+            localName = newName.substring(separator + 1);
             prefix = newName.substring(0, separator);
         } else {
-            name = newName;
+            localName = newName;
         }
     }
 }

@@ -11,6 +11,7 @@
 package com.codenvy.commons.xml;
 
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 
@@ -38,6 +39,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -47,6 +49,7 @@ import static com.codenvy.commons.xml.Util.asElement;
 import static com.codenvy.commons.xml.Util.asElements;
 import static com.codenvy.commons.xml.Util.closeTagLength;
 import static com.codenvy.commons.xml.Util.indexOf;
+import static com.codenvy.commons.xml.Util.indexOfAttrName;
 import static com.codenvy.commons.xml.Util.single;
 import static com.codenvy.commons.xml.Util.level;
 import static com.codenvy.commons.xml.Util.insertBetween;
@@ -57,6 +60,7 @@ import static com.codenvy.commons.xml.Util.tabulate;
 import static java.lang.Math.abs;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Collections.unmodifiableList;
+import static javax.xml.XMLConstants.XML_NS_URI;
 import static javax.xml.stream.XMLStreamConstants.CDATA;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.COMMENT;
@@ -113,11 +117,6 @@ import static org.w3c.dom.Node.COMMENT_NODE;
  */
 public final class XMLTree {
 
-    private static final XMLInputFactory        XML_INPUT_FACTORY        = XMLInputFactory.newFactory();
-    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
-    private static final XPathFactory           XPATH_FACTORY            = XPathFactory.newInstance();
-    private static final String                 ROOT_TEMPLATE            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<%s>\n</%s>";
-
     /**
      * Creates XMLTree from input stream.
      * Doesn't close the stream
@@ -162,13 +161,23 @@ public final class XMLTree {
         return from(String.format(ROOT_TEMPLATE, rootName, rootName));
     }
 
-    private Document     document;
-    private Set<Element> elements;
-    private byte[]       xml;
+    private static final XMLInputFactory        XML_INPUT_FACTORY        = XMLInputFactory.newFactory();
+    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+    private static final XPathFactory           XPATH_FACTORY            = XPathFactory.newInstance();
+    private static final String                 ROOT_TEMPLATE            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<%s>\n</%s>";
+    private static final int                    EXPECTED_NAMESPACES      = 2;
+
+    private Document            document;
+    private Map<String, String> namespaces;
+    private Set<Element>        elements;
+    private byte[]              xml;
 
     private XMLTree(byte[] xml) {
         this.xml = xml;
+        //FIXME use TreeSet to improve performance
+        //when we need to iterate all elements which left is less then given
         elements = Sets.newIdentityHashSet();
+        namespaces = Maps.newHashMapWithExpectedSize(EXPECTED_NAMESPACES);
         document = parseQuietly(xml);
         constructTreeQuietly();
     }
@@ -420,7 +429,7 @@ public final class XMLTree {
         //determines right of before selected element
         //used to cover next element with segment
         //TODO change this value
-        int beforeStart = 38;
+        int beforeStart = rootStart();
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case START_ELEMENT:
@@ -432,7 +441,7 @@ public final class XMLTree {
                     }
                     startedElements.push(newElement);
                     node.setUserData("element", newElement, null);
-                    newElement.delegate = node;
+                    newElement.delegate = (org.w3c.dom.Element)node;
                     break;
                 case END_ELEMENT:
                     final Element element = startedElements.pop();
@@ -664,6 +673,17 @@ public final class XMLTree {
         shiftSegments(element.start.left, len - xml.length);
     }
 
+    //TODO should it be public?
+    void putNamespace(String prefix, String uri) {
+        namespaces.put(prefix, uri);
+    }
+
+    //TODO should it be public?
+    String getNamespaceUri(String prefix) {
+        final String uri = namespaces.get(prefix);
+        return uri == null ? XML_NS_URI : uri;
+    }
+
     private void registerElement(Element element) {
         elements.add(element);
         for (Element child : element.getChildren()) {
@@ -684,7 +704,7 @@ public final class XMLTree {
         final byte[] name = attribute.getName().getBytes();
         final byte[] value = attribute.getValue().getBytes();
 
-        final int start = indexOf(xml, name, owner.start.left + owner.getName().length());
+        final int start = indexOfAttrName(xml, name, owner.start.left + owner.getName().length());
         final int valueStart = indexOf(xml, value, start + name.length);
 
         return new Segment(start, valueStart + value.length);
@@ -696,7 +716,7 @@ public final class XMLTree {
         final byte[] name = attribute.getName().getBytes();
         final byte[] value = oldValue.getBytes();
 
-        final int start = indexOf(xml, name, owner.start.left + owner.getName().length());
+        final int start = indexOfAttrName(xml, name, owner.start.left + owner.getName().length());
         final int valueStart = indexOf(xml, value, start + name.length);
 
         return new Segment(valueStart, valueStart + value.length - 1);
@@ -705,7 +725,7 @@ public final class XMLTree {
     /**
      * Creates segments for newly created element and related children
      */
-    int applySegments(NewElement newElement, Element relatedToNew, int beforeText, int level, Element parent) {
+    private int applySegments(NewElement newElement, Element relatedToNew, int beforeText, int level, Element parent) {
         //text length before element
         // child - element, '+' - text before element
         //        ++++++
@@ -768,6 +788,15 @@ public final class XMLTree {
         relatedToNew.text.add(new Segment(startRight + 1, beforeEnd));
         relatedToNew.end = new Segment(beforeEnd + 1, beforeEnd + closeTagLength(newElement));
         return relatedToNew.end.right;
+    }
+
+    private int rootStart() {
+        final byte[] open = new byte[]{'<'};
+        int pos = indexOf(xml, open, 0);
+        if (xml[pos + 1] == '?') {
+            pos = indexOf(xml, open, pos + 1);
+        }
+        return pos;
     }
 
     /**

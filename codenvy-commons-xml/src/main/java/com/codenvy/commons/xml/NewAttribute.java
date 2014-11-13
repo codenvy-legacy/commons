@@ -15,12 +15,12 @@ package com.codenvy.commons.xml;
  *
  * @author Eugene Voevodin
  */
-public final class NewAttribute extends PrefixedName {
+public final class NewAttribute extends QName {
 
     private String value;
 
-    public NewAttribute(String name, String value) {
-        super(name);
+    public NewAttribute(String qName, String value) {
+        super(qName);
         this.value = value;
     }
 
@@ -29,16 +29,7 @@ public final class NewAttribute extends PrefixedName {
     }
 
     public String asString() {
-        final StringBuilder sb = new StringBuilder();
-        if (hasPrefix()) {
-            sb.append(prefix).append(':');
-        }
-        return sb.append(getName())
-                 .append('=')
-                 .append('"')
-                 .append(value)
-                 .append('"')
-                 .toString();
+        return getName() + '=' + '"' + value + '"';
     }
 
     @Override

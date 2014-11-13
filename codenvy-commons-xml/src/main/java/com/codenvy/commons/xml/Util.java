@@ -85,6 +85,12 @@ public final class Util {
         return newSrc;
     }
 
+    public static void checkNotNull(Object ref, String argument) {
+        if (ref == null) {
+            throw new IllegalArgumentException("Expected not null " + argument);
+        }
+    }
+
     /**
      * Check given list contains only element and return it.
      * If list size is not 1 {@link XMLTreeException} will be thrown.
@@ -129,15 +135,16 @@ public final class Util {
 
     public static int openTagLength(NewElement element) {
         int len = 2; // '<' + '>'
-        len += element.getName().length();// 'name'
+        len += element.getName().length();// 'name' or 'prefix:name'
         for (NewAttribute attribute : element.getAttributes()) {
-            len += 1 + attributeLength(attribute); // ' ' + 'attribute="value"'
+            len += 1 + attributeLength(attribute); // ' ' + 'attr="value"' or 'pref:attr="value"'
         }
+        //if is void add +1 '/'
         return element.isVoid() ? len + 1 : len;
     }
 
     public static int closeTagLength(NewElement element) {
-        return 3 + element.getName().length(); // '<' + '/' + 'name' + '>'
+        return 3 + element.getLocalName().length(); // '<' + '/' + 'name' + '>'
     }
 
     public static int attributeLength(NewAttribute attribute) {
@@ -215,7 +222,7 @@ public final class Util {
                         equals = false;
                     }
                 }
-                if (equals && isValueEnd(src[i + target.length])) {
+                if (equals) {
                     return i;
                 }
             }
@@ -223,8 +230,16 @@ public final class Util {
         return -1;
     }
 
-    private static boolean isValueEnd(byte b) {
-        return isWhitespace(b) || '=' == b || '"' == b;
+    public static int indexOfAttrName(byte[] src, byte[] target, int fromIdx) {
+        int idx = indexOf(src, target, fromIdx);
+        if (idx == -1) {
+            return -1;
+        }
+        int next = idx + target.length;
+        if (next == src.length || isWhitespace(src[next]) || src[next] == '=') {
+            return idx;
+        }
+        return indexOfAttrName(src, target, idx + 1);
     }
 
     private Util() {}

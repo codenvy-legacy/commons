@@ -18,9 +18,30 @@ import static com.google.common.collect.Lists.newArrayListWithExpectedSize;
 import static java.util.Arrays.asList;
 
 /**
+ * Used to add new element to {@link XMLTree}.
+ * This class is really convenient when
+ * you need to make complex tree update, to
+ * do it you need to make hierarchy from NewElement
+ * instances which can contain NewAttribute instances as well.
+ * When NewElement instance is ready tree uses {@link NewElement#asString()}
+ * to get view of new element.
+ *
+ * Why don't we just create {@link Element} instead of using {@link NewElement} class?
+ * //TODO add ul li
+ * First reason for it is performance!
+ * Each time when you need to insert element
+ * you need to rewrite tree bytes, but with {@link NewElement}
+ * we ca n do it only time.
+ * Second reason is that we need to keep new element values such as
+ * children, attributes etc, fom each element instance which
+ * should be added to tree and after tree update we
+ * need to drop this fields because element doesn't need it anymore.
+ * Third reason is that each element should be related to tree,
+ * so we need to make check each time when we need to execute update.
+ *
  * @author Eugene Voevodin
  */
-public final class NewElement extends PrefixedName {
+public final class NewElement extends QName {
 
     public static NewElement createElement(String name) {
         return new NewElement(name, null);
@@ -102,7 +123,7 @@ public final class NewElement extends PrefixedName {
     public String asString() {
         final StringBuilder builder = new StringBuilder();
         builder.append('<')
-               .append(name);
+               .append(getName());
         if (attributes != null) {
             for (NewAttribute attribute : attributes) {
                 builder.append(' ')
@@ -126,7 +147,7 @@ public final class NewElement extends PrefixedName {
         }
         builder.append('<')
                .append('/')
-               .append(name)
+               .append(getName())
                .append('>');
         return builder.toString();
     }
