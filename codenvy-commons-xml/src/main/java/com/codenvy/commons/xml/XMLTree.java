@@ -57,7 +57,6 @@ import static com.codenvy.commons.xml.Util.insertInto;
 import static com.codenvy.commons.xml.Util.lastIndexOf;
 import static com.codenvy.commons.xml.Util.openTagLength;
 import static com.codenvy.commons.xml.Util.tabulate;
-import static java.lang.Math.abs;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.XMLConstants.XML_NS_URI;
@@ -502,48 +501,33 @@ public final class XMLTree {
     }
 
     /**
-     * TODO write explanation
-     * <p/>
-     * Updates text of given element.
-     * It is based on element text positions.
-     * If element has more then one text segment
-     * only first will be used for update, other
-     * will be removed. Only text segment will have the same left bound as it
-     * has before and right bound equal to left bound + new text length
+     * Updates element text content. Update based on element text segments.
+     * If element doesn't have any text segment then new segment will
+     * be created which positions based on container bounds, otherwise
+     * only first text segment will be used for update, other text segments
+     * will be removed.
      */
     void updateText(Element target) {
-        final int len = xml.length;
-        if (target.text != null) {
-            final Iterator<Segment> segIt = target.text.iterator();
-            final Segment first = segIt.next();
-            //removing all segments instead of first
-            while (segIt.hasNext()) {
-                final Segment segment = segIt.next();
-                segIt.remove();
-                xml = insertBetween(xml, segment.left, segment.right, "");
-            }
-            //update new text content
-            xml = insertBetween(xml, first.left, first.right, target.getText());
-            first.right = first.left + target.getText().length();
-        } else {
-            xml = insertBetween(xml, target.start.right + 1, target.end.left - 1, target.getText());
+        //it may be null when target element doesn't contain
+        //text <element></element> so CHARACTERS event was not processed
+        if (target.text == null) {
             target.text = new LinkedList<>();
             target.text.add(new Segment(target.start.right + 1, target.end.left - 1));
         }
-        shiftSegments(target.start.right, abs(len - xml.length));
+        final Iterator<Segment> segIt = target.text.iterator();
+        final Segment first = segIt.next();
+        //removing all segments instead of first
+        while (segIt.hasNext()) {
+            final Segment removal = segIt.next();
+            segIt.remove();
+            removeSegment(removal);
+        }
+        updateSegmentContent(first, target.getText());
     }
 
     void updateAttributeValue(Attribute attribute, String oldValue) {
-        final int len = xml.length;
         final Segment segment = valueSegment(attribute, oldValue);
-        //replacing attribute value content with new content
-        xml = insertBetween(xml,
-                            segment.left,
-                            segment.right,
-                            attribute.getValue());
-        //shift existing segments which are after owner start left
-        //TODO fix offset
-        shiftSegments(attribute.getElement().start.left, abs(len - xml.length));
+        updateSegmentContent(segment, attribute.getValue());
     }
 
     /**
@@ -662,7 +646,7 @@ public final class XMLTree {
 
     void removeAttribute(Attribute attribute) {
         final Element element = attribute.getElement();
-        final int len = xml.length;
+        final int lengthBefore = xml.length;
         final Segment segment = attributeSegment(attribute);
         //replacing attribute segment with nothing
         xml = insertBetween(xml,
@@ -670,7 +654,7 @@ public final class XMLTree {
                             segment.right,
                             "");
         //shift all elements which are left from owner left
-        shiftSegments(element.start.left, len - xml.length);
+        shiftSegments(element.start.left, xml.length - lengthBefore);
     }
 
     //TODO should it be public?
@@ -682,6 +666,19 @@ public final class XMLTree {
     String getNamespaceUri(String prefix) {
         final String uri = namespaces.get(prefix);
         return uri == null ? XML_NS_URI : uri;
+    }
+
+    private void removeSegment(Segment segment) {
+        final int lengthBefore = xml.length;
+        xml = insertBetween(xml, segment.left, segment.right, "");
+        shiftSegments(segment.left, xml.length - lengthBefore);
+    }
+
+    private void updateSegmentContent(Segment segment, String content) {
+        final int lengthBefore = xml.length;
+        xml = insertBetween(xml, segment.left, segment.right, content);
+        shiftSegments(segment.left, xml.length - lengthBefore);
+        segment.right = segment.left + content.length() - 1;
     }
 
     private void registerElement(Element element) {

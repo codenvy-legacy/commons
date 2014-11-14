@@ -10,6 +10,8 @@
  *******************************************************************************/
 package com.codenvy.commons.xml;
 
+import sun.awt.X11.XLayerProtocol;
+
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -924,6 +926,75 @@ public class XMLTreeTest {
                                       "            <groupId>test-group</groupId>\n" +
                                       "            <version>test-version</version>\n" +
                                       "        </dependency></dependencies>\n" +
+                                      "</project>");
+    }
+
+    @Test
+    public void elementsShouldBeShiftedRightAfterElementTextUpdate() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.updateText("//artifactId", "longer artifact identifier");
+        //all elements which are right from artifact id
+        //should be shifted right on "new artifact id length" minus "old artifact id length"
+        //to check it lets modify elements which are right
+        tree.removeElement("//packaging");
+        tree.updateText("//name", "new name");
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <modelVersion>4.0.0</modelVersion>\n" +
+                                      "    <artifactId>longer artifact identifier</artifactId>\n" +
+                                      "    <!-- project name -->\n" +
+                                      "    <name>new name</name>\n" +
+                                      "</project>");
+    }
+
+    @Test
+    public void elementsShouldBeShiftedLeftAfterElementTextUpdate() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>long-artifact-identifier</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.updateText("//artifactId", "smaller-art-id");
+        //all elements which are right from artifact id
+        //should be shifted left on "old artifact id length" minus "new artifact id length"
+        //to check it lets modify elements which are right
+        tree.removeElement("//packaging");
+        tree.updateText("//name", "new name");
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <modelVersion>4.0.0</modelVersion>\n" +
+                                      "    <artifactId>smaller-art-id</artifactId>\n" +
+                                      "    <!-- project name -->\n" +
+                                      "    <name>new name</name>\n" +
+                                      "</project>");
+    }
+
+    @Test
+    public void shouldBeAbleToChangeElementEmptyText() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <name></name>\n" +
+                                          "</project>");
+
+        tree.updateText("//name", "name");
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <name>name</name>\n" +
                                       "</project>");
     }
 
