@@ -11,33 +11,37 @@
 package com.codenvy.commons.xml;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-import static com.codenvy.commons.xml.Util.tabulate;
-import static com.google.common.collect.Lists.newArrayListWithExpectedSize;
+import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static java.util.Arrays.asList;
 
 /**
  * Used to add new element to {@link XMLTree}.
- * This class is really convenient when
- * you need to make complex tree update, to
- * do it you need to make hierarchy from NewElement
- * instances which can contain NewAttribute instances as well.
- * When NewElement instance is ready tree uses {@link NewElement#asString()}
+ * <p/>
+ * This class is really convenient for complex tree updates.
+ * To do it you need to make hierarchy from NewElement
+ * instances which can contain NewAttribute instances or text as well.
+ * When {@link NewElement} instance is ready tree uses {@link NewElement#asString()}
  * to get view of new element.
- *
+ * <p/>
  * Why don't we just create {@link Element} instead of using {@link NewElement} class?
- * //TODO add ul li
- * First reason for it is performance!
+ * <ul>
+ * <li>First reason - is performance!
  * Each time when you need to insert element
- * you need to rewrite tree bytes, but with {@link NewElement}
- * we ca n do it only time.
- * Second reason is that we need to keep new element values such as
- * children, attributes etc, fom each element instance which
- * should be added to tree and after tree update we
- * need to drop this fields because element doesn't need it anymore.
- * Third reason is that each element should be related to tree,
- * so we need to make check each time when we need to execute update.
+ * tree bytes should be rewrote, but with {@link NewElement}
+ * tree bytes will be updated only time</li>
+ * <li>Second reason is - data redundancy!
+ * Element should keep values such as children, attributes, name, text
+ * for each element instance which will be added to tree
+ * and after tree update this values must be dropped because
+ * element delegates for {@link org.w3c.dom.Node} and doesn't need it anymore.</li>
+ * <li>Third reason is - tree integrity!
+ * Element instance created with tree should be inserted
+ * into same tree, so each time when update is going we
+ * need to make a lot of checks to save tree elements integrity</li>
+ * </ul>
  *
  * @author Eugene Voevodin
  */
@@ -56,9 +60,6 @@ public final class NewElement extends QName {
         newElement.children = new ArrayList<>(asList(children));
         return newElement;
     }
-
-    private static final int EXPECTED_ATTRIBUTES_SIZE = 2;
-    private static final int EXPECTED_CHILDREN_SIZE   = 3;
 
     private String             text;
     private List<NewAttribute> attributes;
@@ -100,14 +101,14 @@ public final class NewElement extends QName {
 
     public List<NewAttribute> getAttributes() {
         if (attributes == null) {
-            attributes = newArrayListWithExpectedSize(EXPECTED_ATTRIBUTES_SIZE);
+            attributes = new LinkedList<>();
         }
         return attributes;
     }
 
     public List<NewElement> getChildren() {
         if (children == null) {
-            children = newArrayListWithExpectedSize(EXPECTED_CHILDREN_SIZE);
+            children = new LinkedList<>();
         }
         return children;
     }

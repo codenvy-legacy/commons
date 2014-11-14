@@ -11,8 +11,6 @@
 package com.codenvy.commons.xml;
 
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 
 import org.w3c.dom.Document;
@@ -43,20 +41,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import static com.codenvy.commons.xml.Util.SPACES_IN_TAB;
-import static com.codenvy.commons.xml.Util.UTF_8;
-import static com.codenvy.commons.xml.Util.asElement;
-import static com.codenvy.commons.xml.Util.asElements;
-import static com.codenvy.commons.xml.Util.closeTagLength;
-import static com.codenvy.commons.xml.Util.indexOf;
-import static com.codenvy.commons.xml.Util.indexOfAttrName;
-import static com.codenvy.commons.xml.Util.single;
-import static com.codenvy.commons.xml.Util.level;
-import static com.codenvy.commons.xml.Util.insertBetween;
-import static com.codenvy.commons.xml.Util.insertInto;
-import static com.codenvy.commons.xml.Util.lastIndexOf;
-import static com.codenvy.commons.xml.Util.openTagLength;
-import static com.codenvy.commons.xml.Util.tabulate;
+import static com.codenvy.commons.xml.XMLTreeUtil.SPACES_IN_TAB;
+import static com.codenvy.commons.xml.XMLTreeUtil.UTF_8;
+import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
+import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
+import static com.codenvy.commons.xml.XMLTreeUtil.closeTagLength;
+import static com.codenvy.commons.xml.XMLTreeUtil.indexOf;
+import static com.codenvy.commons.xml.XMLTreeUtil.indexOfAttributeName;
+import static com.codenvy.commons.xml.XMLTreeUtil.single;
+import static com.codenvy.commons.xml.XMLTreeUtil.level;
+import static com.codenvy.commons.xml.XMLTreeUtil.insertBetween;
+import static com.codenvy.commons.xml.XMLTreeUtil.insertInto;
+import static com.codenvy.commons.xml.XMLTreeUtil.lastIndexOf;
+import static com.codenvy.commons.xml.XMLTreeUtil.openTagLength;
+import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
+import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
+import static com.google.common.collect.Sets.newIdentityHashSet;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.XMLConstants.XML_NS_URI;
@@ -164,7 +164,7 @@ public final class XMLTree {
     private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
     private static final XPathFactory           XPATH_FACTORY            = XPathFactory.newInstance();
     private static final String                 ROOT_TEMPLATE            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<%s>\n</%s>";
-    private static final int                    EXPECTED_NAMESPACES      = 2;
+    private static final int                    EXPECTED_NAMESPACES_SIZE = 2;
 
     private Document            document;
     private Map<String, String> namespaces;
@@ -173,10 +173,9 @@ public final class XMLTree {
 
     private XMLTree(byte[] xml) {
         this.xml = xml;
-        //FIXME use TreeSet to improve performance
-        //when we need to iterate all elements which left is less then given
-        elements = Sets.newIdentityHashSet();
-        namespaces = Maps.newHashMapWithExpectedSize(EXPECTED_NAMESPACES);
+        //FIXME use TreeSet to improve performance when we need to iterate all elements which left is less then given
+        elements = newIdentityHashSet();
+        namespaces = newHashMapWithExpectedSize(EXPECTED_NAMESPACES_SIZE);
         document = parseQuietly(xml);
         constructTreeQuietly();
     }
@@ -359,36 +358,6 @@ public final class XMLTree {
      */
     public void writeTo(java.io.File file) throws IOException {
         Files.write(file.toPath(), xml);
-    }
-
-    private void shiftSegment(Segment segment, int idx, int offset) {
-        if (segment.left > idx) {
-            segment.left += offset;
-            segment.right += offset;
-        }
-    }
-
-    private void removeTextSegment(Element element, int left) {
-        for (Iterator<Segment> segIt = element.text.iterator(); segIt.hasNext(); ) {
-            if (segIt.next().left == left) {
-                segIt.remove();
-                break;
-            }
-        }
-    }
-
-    private void shiftSegments(int fromIdx, int offset) {
-        for (Element element : elements) {
-            if (element.end.left > fromIdx) {
-                shiftSegment(element.start, fromIdx, offset);
-                shiftSegment(element.end, fromIdx, offset);
-                if (element.text != null) {
-                    for (Segment textSegment : element.text) {
-                        shiftSegment(textSegment, fromIdx, offset);
-                    }
-                }
-            }
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -610,7 +579,7 @@ public final class XMLTree {
      *
      *      segment [first, last] - will be removed
      * </pre>
-     * So after removing formatting will be the same.
+     * So after removing - formatting will be the same.
      * We can't remove just element from start to end
      * because it will produce not pretty formatting for
      * good and pretty formatted before document.
@@ -621,7 +590,7 @@ public final class XMLTree {
         //if text segment before removal element
         //exists it should go to hell with removal
         if (leftBound != element.start.left - 1) {
-            removeTextSegment(element.getParent(), leftBound);
+            removeSegmentFromElement(element.getParent(), leftBound);
         }
         //replacing content with nothing
         xml = insertBetween(xml,
@@ -668,6 +637,36 @@ public final class XMLTree {
         return uri == null ? XML_NS_URI : uri;
     }
 
+    private void shiftSegment(Segment segment, int idx, int offset) {
+        if (segment.left > idx) {
+            segment.left += offset;
+            segment.right += offset;
+        }
+    }
+
+    private void removeSegmentFromElement(Element element, int left) {
+        for (Iterator<Segment> segIt = element.text.iterator(); segIt.hasNext(); ) {
+            if (segIt.next().left == left) {
+                segIt.remove();
+                break;
+            }
+        }
+    }
+
+    private void shiftSegments(int fromIdx, int offset) {
+        for (Element element : elements) {
+            if (element.end.left > fromIdx) {
+                shiftSegment(element.start, fromIdx, offset);
+                shiftSegment(element.end, fromIdx, offset);
+                if (element.text != null) {
+                    for (Segment textSegment : element.text) {
+                        shiftSegment(textSegment, fromIdx, offset);
+                    }
+                }
+            }
+        }
+    }
+
     private void removeSegment(Segment segment) {
         final int lengthBefore = xml.length;
         xml = insertBetween(xml, segment.left, segment.right, "");
@@ -701,7 +700,7 @@ public final class XMLTree {
         final byte[] name = attribute.getName().getBytes();
         final byte[] value = attribute.getValue().getBytes();
 
-        final int start = indexOfAttrName(xml, name, owner.start.left + owner.getName().length());
+        final int start = indexOfAttributeName(xml, name, owner.start.left + owner.getName().length());
         final int valueStart = indexOf(xml, value, start + name.length);
 
         return new Segment(start, valueStart + value.length);
@@ -713,7 +712,7 @@ public final class XMLTree {
         final byte[] name = attribute.getName().getBytes();
         final byte[] value = oldValue.getBytes();
 
-        final int start = indexOfAttrName(xml, name, owner.start.left + owner.getName().length());
+        final int start = indexOfAttributeName(xml, name, owner.start.left + owner.getName().length());
         final int valueStart = indexOf(xml, value, start + name.length);
 
         return new Segment(valueStart, valueStart + value.length - 1);

@@ -15,24 +15,26 @@ import org.testng.annotations.Test;
 
 
 import static com.codenvy.commons.xml.NewElement.createElement;
-import static com.codenvy.commons.xml.Util.closeTagLength;
-import static com.codenvy.commons.xml.Util.indexOf;
-import static com.codenvy.commons.xml.Util.single;
-import static com.codenvy.commons.xml.Util.insertBetween;
-import static com.codenvy.commons.xml.Util.insertInto;
-import static com.codenvy.commons.xml.Util.lastIndexOf;
-import static com.codenvy.commons.xml.Util.openTagLength;
-import static com.codenvy.commons.xml.Util.tabulate;
+import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
+import static com.codenvy.commons.xml.XMLTreeUtil.closeTagLength;
+import static com.codenvy.commons.xml.XMLTreeUtil.indexOf;
+import static com.codenvy.commons.xml.XMLTreeUtil.indexOfAttributeName;
+import static com.codenvy.commons.xml.XMLTreeUtil.single;
+import static com.codenvy.commons.xml.XMLTreeUtil.insertBetween;
+import static com.codenvy.commons.xml.XMLTreeUtil.insertInto;
+import static com.codenvy.commons.xml.XMLTreeUtil.lastIndexOf;
+import static com.codenvy.commons.xml.XMLTreeUtil.openTagLength;
+import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 
 /**
- * TODO add test for void elements
- * Tests for {@link Util}
+ * Tests for {@link XMLTreeUtil}
  *
  * @author Eugene Voevodin
  */
-public class UtilTest {
+public class XMLTreeUtilTest {
 
     @Test
     public void shouldTabulateOneLineString() {
@@ -51,6 +53,16 @@ public class UtilTest {
     @Test
     public void shouldReturnFirstElement() {
         assertEquals(single(asList("first")), "first");
+    }
+
+    @Test
+    public void shouldDoNothingIfObjectReferenceIsNotNull() {
+        checkNotNull(new Object(), "object");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Expected not null object")
+    public void shouldThrowExceptionIfObjectReferenceIsNull() {
+        checkNotNull(null, "object");
     }
 
     @Test(expectedExceptions = XMLTreeException.class)
@@ -106,10 +118,37 @@ public class UtilTest {
     @Test
     public void shouldBeAbleToGetIndexOf() {
         final String src = "<element attribute1=\"value1\" attribute2=\"value2\" attribute3=\"value3\">text</element>";
-        final byte[] byteSrc = "<element attribute1=\"value1\" attribute2=\"value2\" attribute3=\"value3\">text</element>".getBytes();
+        final byte[] byteSrc = src.getBytes();
 
         assertEquals(indexOf(byteSrc, "attribute1".getBytes(), 0), src.indexOf("attribute1"));
         assertEquals(indexOf(byteSrc, "attribute2".getBytes(), 0), src.indexOf("attribute2"));
         assertEquals(indexOf(byteSrc, "attribute3".getBytes(), 0), src.indexOf("attribute3"));
+    }
+
+    @Test
+    public void shouldReturnMinusOneIfTargetBytesWereNotFound() {
+        final String src = "source string";
+        final byte[] byteSrc = src.getBytes();
+
+        assertNotEquals(indexOf(byteSrc, "string".getBytes(), 0), -1);
+        assertEquals(indexOf(byteSrc, "strings".getBytes(), 0), -1);
+    }
+
+    @Test
+    public void shouldBeAbleToFindIndexOfAttributeNameBytes() {
+        final String src = "<element attribute1=\"value1\" attribute2=\"value2\" attribute3=\"value3\">text</element>";
+        final byte[] byteSrc = src.getBytes();
+
+        assertEquals(indexOfAttributeName(byteSrc, "attribute1".getBytes(), 0), src.indexOf("attribute1"));
+        assertEquals(indexOfAttributeName(byteSrc, "attribute2".getBytes(), 0), src.indexOf("attribute2"));
+        assertEquals(indexOfAttributeName(byteSrc, "attribute3".getBytes(), 0), src.indexOf("attribute3"));
+    }
+
+    @Test
+    public void shouldReturnMinusOneIfAttributeNameBytesWereNotFound() {
+        final String src = "<element attribute12=\"value1\"/>";
+        final byte[] byteSrc = src.getBytes();
+
+        assertEquals(indexOfAttributeName(byteSrc, "attribute1".getBytes(), 0), -1);
     }
 }

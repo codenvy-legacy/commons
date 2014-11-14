@@ -28,13 +28,12 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
  *
  * @author Eugene Voevodin
  */
-public final class Util {
+public final class XMLTreeUtil {
 
     public static final Charset UTF_8         = Charset.forName("utf-8");
     public static final int     SPACES_IN_TAB = 4;
 
     /**
-     * TODO: write doc
      * <pre>
      * New content schema:
      *
@@ -61,7 +60,6 @@ public final class Util {
     }
 
     /**
-     * TODO write doc
      * <pre>
      * New content schema:
      *
@@ -85,6 +83,16 @@ public final class Util {
         return newSrc;
     }
 
+    /**
+     * Check object reference is not null, if it is
+     * throw {@link IllegalArgumentException} with
+     * message "Expected not null {@param argument}"
+     *
+     * @param ref
+     *         reference to check
+     * @param argument
+     *         argument for exception message
+     */
     public static void checkNotNull(Object ref, String argument) {
         if (ref == null) {
             throw new IllegalArgumentException("Expected not null " + argument);
@@ -106,7 +114,6 @@ public final class Util {
         return target.get(0);
     }
 
-    //TODO
     public static int lastIndexOf(byte[] src, char c, int fromIdx) {
         for (int i = min(fromIdx, src.length - 1); i >= 0; i--) {
             if (src[i] == c) {
@@ -180,6 +187,13 @@ public final class Util {
         return builder.toString();
     }
 
+    /**
+     * Fetches {@link Element} from {@link Node} using {@link Node#getUserData(String)}
+     *
+     * @param node
+     *         node to fetch from
+     * @return {@code null} if {@param node} is null or {@link Element} associated with given node
+     */
     public static Element asElement(Node node) {
         if (node == null) {
             return null;
@@ -187,6 +201,15 @@ public final class Util {
         return (Element)node.getUserData("element");
     }
 
+    /**
+     * Converts {@link NodeList} to list of elements.
+     * Only nodes with type {@link Node#ELEMENT_NODE} will
+     * be fetched other will be skipped
+     *
+     * @param list
+     *         list of nodes to fetch elements from
+     * @return list of fetched elements or empty list if node list doesn't contain any element node
+     */
     public static List<Element> asElements(NodeList list) {
         final List<Element> elements = new ArrayList<>(list.getLength());
         for (int i = 0; i < list.getLength(); i++) {
@@ -197,24 +220,19 @@ public final class Util {
         return elements;
     }
 
-    public static Node nextElementNode(Node node) {
-        node = node.getNextSibling();
-        while (node != null && node.getNodeType() != ELEMENT_NODE) {
-            node = node.getNextSibling();
-        }
-        return node;
-    }
-
-    public static Node previousElementNode(Node node) {
-        node = node.getPreviousSibling();
-        while (node != null && node.getNodeType() != ELEMENT_NODE) {
-            node = node.getPreviousSibling();
-        }
-        return node;
-    }
-
+    /**
+     * Searches for target bytes in the source bytes.
+     *
+     * @param src
+     *         where to search
+     * @param target
+     *         what to search
+     * @param fromIdx
+     *         source index to search from
+     * @return index of the first occurrence or -1 if nothing was found
+     */
     public static int indexOf(byte[] src, byte[] target, int fromIdx) {
-        for (int i = fromIdx; i < src.length; i++) {
+        for (int i = fromIdx; i < src.length - target.length + 1; i++) {
             if (src[i] == target[0]) {
                 boolean equals = true;
                 for (int j = 1, k = i + 1; j < target.length && equals; j++, k++) {
@@ -230,17 +248,32 @@ public final class Util {
         return -1;
     }
 
-    public static int indexOfAttrName(byte[] src, byte[] target, int fromIdx) {
-        int idx = indexOf(src, target, fromIdx);
+    /**
+     * Search for attribute name bytes in the source bytes.
+     * The main difference with {@link #indexOf} is that
+     * if occurrence was found then we need to check next byte
+     * as character, if it is whitespace character or it equals to '='
+     * attribute name was found otherwise continue searching
+     *
+     * @param src
+     *         where to search
+     * @param target
+     *         attribute name bytes to search
+     * @param fromIdx
+     *         source index to search from
+     * @return index of the first attribute name occurrence or -1 if nothing was found
+     */
+    public static int indexOfAttributeName(byte[] src, byte[] target, int fromIdx) {
+        final int idx = indexOf(src, target, fromIdx);
         if (idx == -1) {
             return -1;
         }
-        int next = idx + target.length;
+        final int next = idx + target.length;
         if (next == src.length || isWhitespace(src[next]) || src[next] == '=') {
             return idx;
         }
-        return indexOfAttrName(src, target, idx + 1);
+        return indexOfAttributeName(src, target, idx + 1);
     }
 
-    private Util() {}
+    private XMLTreeUtil() {}
 }

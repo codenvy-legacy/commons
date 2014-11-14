@@ -22,11 +22,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.codenvy.commons.xml.Util.asElement;
-import static com.codenvy.commons.xml.Util.asElements;
-import static com.codenvy.commons.xml.Util.nextElementNode;
-import static com.codenvy.commons.xml.Util.checkNotNull;
-import static com.codenvy.commons.xml.Util.previousElementNode;
+import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
+import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
+import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
@@ -38,7 +36,6 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 /**
  * XMLTree element - gives ability to fetch
  * and update related xml document.
- * TODO: cleanup
  *
  * @author Eugene Voevodin
  */
@@ -46,7 +43,6 @@ public final class Element {
 
     private final XMLTree xmlTree;
 
-    //used for tree content manipulation
     Segment       start;
     Segment       end;
     List<Segment> text;
@@ -363,6 +359,22 @@ public final class Element {
         final Node attributeNode = getAttributeNode(attribute.getName());
         xmlTree.updateAttributeValue(attribute, attributeNode.getNodeValue());
         getAttributeNode(attribute.getName()).setNodeValue(attribute.getValue());
+    }
+
+    private Node nextElementNode(Node node) {
+        node = node.getNextSibling();
+        while (node != null && node.getNodeType() != ELEMENT_NODE) {
+            node = node.getNextSibling();
+        }
+        return node;
+    }
+
+    private Node previousElementNode(Node node) {
+        node = node.getPreviousSibling();
+        while (node != null && node.getNodeType() != ELEMENT_NODE) {
+            node = node.getPreviousSibling();
+        }
+        return node;
     }
 
     private void notPermittedForRoot() {
