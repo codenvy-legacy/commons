@@ -14,12 +14,23 @@ import sun.awt.X11.XLayerProtocol;
 
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static com.codenvy.commons.xml.NewElement.createElement;
+import static com.google.common.io.Files.toByteArray;
+import static java.nio.file.Files.*;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
@@ -1172,5 +1183,86 @@ public class XMLTreeTest {
         assertEquals(appended.getLocalName(), "test");
         assertEquals(appended.getPrefix(), "examples");
         assertEquals(appended.getName(), "examples:test");
+    }
+
+    @Test
+    public void shouldBeAbleToWriteTreeBytesToPath() throws Exception {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        final Path path = targetDir().resolve("test-xml.xml");
+
+        tree.writeTo(path);
+
+        assertTrue(exists(path));
+        assertEquals(readAllBytes(path), tree.getBytes());
+
+        delete(path);
+    }
+
+    @Test
+    public void shouldBeABleToWriteTreeBytesToFile() throws Exception {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        final java.io.File file = targetDir().resolve("test-xml.xml").toFile();
+
+        tree.writeTo(file);
+
+        assertTrue(file.exists());
+        assertEquals(toByteArray(file), tree.getBytes());
+        assertTrue(file.delete());
+    }
+
+    @Test
+    public void shouldBeAbleToWriteTreeBytesToOutputStream() throws Exception {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        final Path path = targetDir().resolve("test-xml.xml");
+
+        try (OutputStream os = newOutputStream(path)) {
+            tree.writeTo(os);
+        }
+
+        assertTrue(exists(path));
+        assertEquals(readAllBytes(path), tree.getBytes());
+
+        delete(path);
+    }
+
+    @Test
+    public void shouldBeAbleToCreateTreeFromPath() throws Exception {
+        final byte[] bytes = XML_CONTENT.getBytes();
+        final Path path = targetDir().resolve("test-xml.xml");
+        write(path, bytes);
+
+        final XMLTree tree = XMLTree.from(path);
+
+        assertEquals(tree.getBytes(), bytes);
+
+        delete(path);
+    }
+
+    @Test
+    public void shouldBeAbleToCreateTreeFromFile() throws Exception {
+        final byte[] bytes = XML_CONTENT.getBytes();
+        final Path path = targetDir().resolve("test-xml.xml");
+        write(path, bytes);
+
+        final XMLTree tree = XMLTree.from(path.toFile());
+
+        assertEquals(tree.getBytes(), bytes);
+
+        delete(path);
+    }
+
+    @Test
+    public void shouldBeAbleToCreateTreeFromInputStream() throws Exception {
+        final byte[] bytes = XML_CONTENT.getBytes();
+
+        final XMLTree tree = XMLTree.from(new ByteArrayInputStream(bytes));
+
+        assertEquals(tree.getBytes(), bytes);
+    }
+
+    private Path targetDir() throws URISyntaxException {
+        final URL url = Thread.currentThread().getContextClassLoader().getResource(".");
+        assertNotNull(url);
+        return Paths.get(url.toURI()).getParent();
     }
 }
