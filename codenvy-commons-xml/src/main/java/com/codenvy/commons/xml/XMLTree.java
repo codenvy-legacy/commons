@@ -54,6 +54,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.lastIndexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.openTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
+import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.XMLConstants.XML_NS_URI;
@@ -118,7 +119,7 @@ public final class XMLTree {
      * Doesn't close the stream
      */
     public static XMLTree from(InputStream is) throws IOException {
-        return new XMLTree(ByteStreams.toByteArray(is));
+        return new XMLTree(toByteArray(is));
     }
 
     /**
@@ -149,7 +150,6 @@ public final class XMLTree {
         return new XMLTree(xml);
     }
 
-
     /**
      * Creates XMLTree with given root element
      */
@@ -165,13 +165,11 @@ public final class XMLTree {
 
     private Document            document;
     private Map<String, String> namespaces;
-    //TODO use TreeSet instead? to improve performance when we need to  iterate element which are left from given
     private List<Element>       elements;
     private byte[]              xml;
 
     private XMLTree(byte[] xml) {
         this.xml = xml;
-        //FIXME use TreeSet to improve performance when we need to iterate all elements which left is less then given
         elements = new LinkedList<>();
         namespaces = newHashMapWithExpectedSize(EXPECTED_NAMESPACES_SIZE);
         document = parseQuietly(xml);
@@ -223,7 +221,7 @@ public final class XMLTree {
     }
 
     /**
-     * Returns root tree element
+     * Returns root element for current tree
      */
     public Element getRoot() {
         return asElement(document.getDocumentElement());
@@ -358,6 +356,10 @@ public final class XMLTree {
         Files.write(file.toPath(), xml);
     }
 
+    /**
+     * Evaluates xpath expression with given return type.
+     * Rethrows all exceptions as {@link XMLTreeException}
+     */
     @SuppressWarnings("unchecked")
     private <T> T evaluateXPath(String expression, QName returnType) {
         final XPath xpath = XPATH_FACTORY.newXPath();
@@ -368,6 +370,10 @@ public final class XMLTree {
         }
     }
 
+    /**
+     * Parses document using {@link DocumentBuilder}
+     * Rethrows all exceptions as {@link XMLTreeException}
+     */
     private Document parseQuietly(byte[] xml) {
         try {
             final DocumentBuilder db = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
@@ -377,6 +383,10 @@ public final class XMLTree {
         }
     }
 
+    /**
+     * Evaluates xpath expression and maps result as list of strings
+     * using {@link Node#getTextContent()} method
+     */
     private List<String> retrieveText(String expression) {
         final NodeList nodeList = evaluateXPath(expression, NODESET);
         final List<String> elementsText = new ArrayList<>(nodeList.getLength());
@@ -386,6 +396,13 @@ public final class XMLTree {
         return elementsText;
     }
 
+    /**
+     * Constructs tree based on segments which are supplied by {@link XMLStreamReader}.
+     * Before this method is invoked {@link #document} should be initialized first.
+     * For START_ELEMENT, END_ELEMENT, CHARACTERS reader provides offset from
+     * start of source array bytes, so we can fetch position of elements and text.
+     * Each created element associated with related {@link Node} and vise-versa.
+     */
     private void constructTree() throws XMLStreamException {
         final XMLStreamReader reader = newXMLStreamReader();
         final LinkedList<Element> stack = new LinkedList<>();
@@ -556,7 +573,7 @@ public final class XMLTree {
     }
 
     /**
-     * Removes element from tree.
+     * Removes element bytes from tree.
      * <p/>
      * It is important to save xml tree pretty view,
      * so element should be removed without of destroying
@@ -598,6 +615,9 @@ public final class XMLTree {
         unregisterElement(element);
     }
 
+    /**
+     * Inserts new attribute value content to tree bytes
+     */
     void insertAttribute(NewAttribute attribute, Element owner) {
         final int len = xml.length;
         //inserting new attribute content
@@ -608,6 +628,9 @@ public final class XMLTree {
         shiftSegments(owner.start.left - 1, xml.length - len);
     }
 
+    /**
+     * Removes element bytes from tree
+     */
     void removeAttribute(Attribute attribute) {
         final Element element = attribute.getElement();
         final int lengthBefore = xml.length;
@@ -632,13 +655,26 @@ public final class XMLTree {
         return uri == null ? XML_NS_URI : uri;
     }
 
-    private void shiftSegment(Segment segment, int idx, int offset) {
-        if (segment.left > idx) {
+    /**
+     * Shift given segment on offset if it is righter then idx
+     *
+     * @param segment
+     *         segment to shift
+     * @param leftBound
+     *         left bound
+     * @param offset
+     *         offset to shift on, it can be negative
+     */
+    private void shiftSegment(Segment segment, int leftBound, int offset) {
+        if (segment.left > leftBound) {
             segment.left += offset;
             segment.right += offset;
         }
     }
 
+    /**
+     * Removes segment which left bound equal to {@param left} from element
+     */
     private void removeSegmentFromElement(Element element, int left) {
         for (Iterator<Segment> segIt = element.text.iterator(); segIt.hasNext(); ) {
             if (segIt.next().left == left) {
@@ -648,6 +684,9 @@ public final class XMLTree {
         }
     }
 
+    /**
+     * Iterates all existed elements and shifts their segments if needed
+     */
     private void shiftSegments(int fromIdx, int offset) {
         for (Element element : elements) {
             if (element.end.left > fromIdx) {
@@ -662,12 +701,21 @@ public final class XMLTree {
         }
     }
 
+    /**
+     * Removes given segment from source bytes and shifts segments left
+     * on offset equal to removal segment length
+     */
     private void removeSegment(Segment segment) {
         final int lengthBefore = xml.length;
         xml = insertBetween(xml, segment.left, segment.right, "");
         shiftSegments(segment.left, xml.length - lengthBefore);
     }
 
+    /**
+     * Inserts content bytes between left and right segment bounds
+     * and shifts segments on offset equal to difference between new and old
+     * source bytes length
+     */
     private void updateSegmentContent(Segment segment, String content) {
         final int lengthBefore = xml.length;
         xml = insertBetween(xml, segment.left, segment.right, content);
@@ -675,6 +723,9 @@ public final class XMLTree {
         segment.right = segment.left + content.length() - 1;
     }
 
+    /**
+     * Adds element and it children to tree
+     */
     private void registerElement(Element element) {
         elements.add(element);
         for (Element child : element.getChildren()) {
@@ -682,6 +733,9 @@ public final class XMLTree {
         }
     }
 
+    /**
+     * Removes element and children from tree
+     */
     private void unregisterElement(Element element) {
         elements.remove(element);
         for (Element child : element.getChildren()) {
@@ -689,6 +743,9 @@ public final class XMLTree {
         }
     }
 
+    /**
+     * Retrieves attribute segment
+     */
     private Segment attributeSegment(Attribute attribute) {
         final Element owner = attribute.getElement();
 
@@ -701,6 +758,9 @@ public final class XMLTree {
         return new Segment(start, valueStart + value.length);
     }
 
+    /**
+     * Retrieves attribute value segment
+     */
     private Segment valueSegment(Attribute attribute, String oldValue) {
         final Element owner = attribute.getElement();
 
@@ -781,6 +841,12 @@ public final class XMLTree {
         return relatedToNew.end.right;
     }
 
+    /**
+     * Searches for root start index in source bytes.
+     * Root start index equal to first occurrence of '<'
+     * when document doesn't start with {@literal <?xml} and
+     * it equal to second occurrence when document does.
+     */
     private int rootStart() {
         final byte[] open = new byte[]{'<'};
         int pos = indexOf(xml, open, 0);
