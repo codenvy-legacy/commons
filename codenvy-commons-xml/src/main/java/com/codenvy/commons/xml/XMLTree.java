@@ -389,35 +389,32 @@ public final class XMLTree {
     }
 
     private void constructTree() throws XMLStreamException {
-        Node node = document.getDocumentElement();
-
         final XMLStreamReader reader = newXMLStreamReader();
-        //TODO: rewrite with LinkedList to avoid synchronization
-        final Stack<Element> startedElements = new Stack<>();
-        //determines right of before selected element
-        //used to cover next element with segment
-        //TODO change this value
+        final LinkedList<Element> stack = new LinkedList<>();
+        //before element open tag index
         int beforeStart = rootStart();
+        //used to associate each element with document node
+        Node node = document.getDocumentElement();
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case START_ELEMENT:
                     final Element newElement = new Element(this);
                     newElement.start = new Segment(beforeStart + 1, offset(reader));
                     //if new node is not xml root - set up relationships
-                    if (!startedElements.isEmpty()) {
+                    if (!stack.isEmpty()) {
                         node = deepNext(node, true);
                     }
-                    startedElements.push(newElement);
+                    stack.push(newElement);
                     node.setUserData("element", newElement, null);
                     newElement.delegate = (org.w3c.dom.Element)node;
                     break;
                 case END_ELEMENT:
-                    final Element element = startedElements.pop();
+                    final Element element = stack.pop();
                     element.end = new Segment(beforeStart + 1, offset(reader));
                     elements.add(element);
                     break;
                 case CHARACTERS:
-                    final Element current = startedElements.peek();
+                    final Element current = stack.peek();
                     if (current.text == null) {
                         //TODO think about list size
                         current.text = new LinkedList<>();

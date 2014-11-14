@@ -10,23 +10,24 @@
  *******************************************************************************/
 package com.codenvy.commons.xml;
 
-import sun.awt.X11.XLayerProtocol;
 
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 import static com.codenvy.commons.xml.NewElement.createElement;
 import static com.google.common.io.Files.toByteArray;
-import static java.nio.file.Files.*;
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.write;
+import static java.nio.file.Files.readAllBytes;
+import static java.nio.file.Files.newOutputStream;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
