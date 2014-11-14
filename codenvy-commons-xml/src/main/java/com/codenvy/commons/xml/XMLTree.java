@@ -38,8 +38,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
 
 import static com.codenvy.commons.xml.XMLTreeUtil.SPACES_IN_TAB;
 import static com.codenvy.commons.xml.XMLTreeUtil.UTF_8;
@@ -56,7 +54,6 @@ import static com.codenvy.commons.xml.XMLTreeUtil.lastIndexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.openTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
-import static com.google.common.collect.Sets.newIdentityHashSet;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.XMLConstants.XML_NS_URI;
@@ -168,13 +165,14 @@ public final class XMLTree {
 
     private Document            document;
     private Map<String, String> namespaces;
-    private Set<Element>        elements;
+    //TODO use TreeSet instead? to improve performance when we need to  iterate element which are left from given
+    private List<Element>       elements;
     private byte[]              xml;
 
     private XMLTree(byte[] xml) {
         this.xml = xml;
         //FIXME use TreeSet to improve performance when we need to iterate all elements which left is less then given
-        elements = newIdentityHashSet();
+        elements = new LinkedList<>();
         namespaces = newHashMapWithExpectedSize(EXPECTED_NAMESPACES_SIZE);
         document = parseQuietly(xml);
         constructTreeQuietly();
