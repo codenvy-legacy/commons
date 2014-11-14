@@ -524,25 +524,32 @@ public class XMLTreeTest {
         assertEquals(tree.getSingleText("//dependencies/dependency[artifactId='test-artifact']/version"), "test-version");
     }
 
-    //We need to know that all elements
-    //and text segments were indexed correct after insertion of
-    //new element to do so we need to change any of content
-    //which position follows inserted element position
     @Test
     public void shouldBeAbleToChangeInsertedElementText() {
-        final XMLTree tree = XMLTree.from(XML_CONTENT);
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
 
         tree.getRoot()
             .getLastChild()
-            .insertBefore(createElement("description", "description"));
-        //all elements after description should be indexed again
-        //we can check element text bounds by inserting new content
-        tree.updateText("/project/dependencies/dependency[artifactId='guava']/version", "new version");
+            .insertBefore(createElement("description", "description"))
+            .getPreviousSibling()
+            .setText("other description");
 
-        //TODO add better assertion
-        //create new tree to be sure that text was inserted in correct place
-        final XMLTree tree2 = XMLTree.from(new String(tree.getBytes()));
-        assertEquals(tree2.getSingleText("/project/dependencies/dependency[artifactId='guava']/version"), "new version");
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <modelVersion>4.0.0</modelVersion>\n" +
+                                      "    <artifactId>test-artifact</artifactId>\n" +
+                                      "    <packaging>jar</packaging>\n" +
+                                      "    <description>other description</description>\n" +
+                                      "    <!-- project name -->\n" +
+                                      "    <name>Test</name>\n" +
+                                      "</project>");
     }
 
     @Test
@@ -938,6 +945,27 @@ public class XMLTreeTest {
                                       "            <groupId>test-group</groupId>\n" +
                                       "            <version>test-version</version>\n" +
                                       "        </dependency></dependencies>\n" +
+                                      "</project>");
+    }
+
+    @Test
+    public void shouldRemoveCommentIfCommentContainerRemoved() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <dependencies>\n" +
+                                          "        <!-- test dependencies -->\n" +
+                                          "        <dependency>\n" +
+                                          "            <artifactId>test-artifact</artifactId>\n" +
+                                          "            <groupId>test-group</groupId>\n" +
+                                          "            <version>test-version</version>\n" +
+                                          "        </dependency>\n" +
+                                          "    </dependencies>\n" +
+                                          "</project>");
+
+        tree.removeElement("//dependencies");
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
                                       "</project>");
     }
 

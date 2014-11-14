@@ -11,7 +11,7 @@
 package com.codenvy.commons.xml;
 
 /**
- * TODO add static factory methods?
+ * TODO add static factory methods like it done it NewElement?
  *
  * @author Eugene Voevodin
  */
