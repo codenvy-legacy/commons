@@ -850,7 +850,7 @@ public final class XMLTree {
     private int rootStart() {
         final byte[] open = new byte[]{'<'};
         int pos = indexOf(xml, open, 0);
-        if (xml[pos + 1] == '?') {
+        if (xml[pos + 1] == '?' || xml[pos + 1] == '!') {
             pos = indexOf(xml, open, pos + 1);
         }
         return pos;
