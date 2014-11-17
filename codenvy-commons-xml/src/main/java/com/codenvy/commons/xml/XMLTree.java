@@ -23,12 +23,15 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,6 +57,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.lastIndexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.openTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
+import static com.google.common.io.ByteStreams.read;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Collections.unmodifiableList;
@@ -407,7 +411,7 @@ public final class XMLTree {
         final XMLStreamReader reader = newXMLStreamReader();
         final LinkedList<Element> stack = new LinkedList<>();
         //before element open tag index
-        int beforeStart = rootStart();
+        int beforeStart = rootStart() - 1;
         //used to associate each element with document node
         Node node = document.getDocumentElement();
         while (reader.hasNext()) {
@@ -431,7 +435,6 @@ public final class XMLTree {
                 case CHARACTERS:
                     final Element current = stack.peek();
                     if (current.text == null) {
-                        //TODO think about list size
                         current.text = new LinkedList<>();
                     }
                     current.text.add(new Segment(beforeStart + 1, offset(reader)));
@@ -440,6 +443,8 @@ public final class XMLTree {
                 case COMMENT:
                     node = deepNext(node, true);
                     break;
+                default:
+                    continue;
             }
             beforeStart = offset(reader);
         }
@@ -475,8 +480,9 @@ public final class XMLTree {
      */
     private XMLStreamReader newXMLStreamReader() {
         try {
-            return XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(xml));
-        } catch (XMLStreamException xmlEx) {
+//            StreamSource source = new StreamSource(new InputStreamReader(new ByteArrayInputStream(xml), "UTF-8"));
+            return XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(xml), "UTF-8");
+        } catch (Exception xmlEx) {
             throw XMLTreeException.wrap(xmlEx);
         }
     }
@@ -853,7 +859,7 @@ public final class XMLTree {
     private int rootStart() {
         final byte[] open = {'<'};
         int pos = indexOf(xml, open, 0);
-        if (xml[pos + 1] == '?' || xml[pos + 1] == '!') {
+        while (xml[pos + 1] == '?' || xml[pos + 1] == '!') {
             pos = indexOf(xml, open, pos + 1);
         }
         return pos;
@@ -862,9 +868,9 @@ public final class XMLTree {
     /**
      * XMLStreamReader returns offset from source array start to start
      * of next element,  for all events instead its correct, instead of CHARACTERS event.
-     * For characters event reader returns +2 or +3 to original offset, it depends on
-     * next event type - if next type is END_ELEMENT then reader returns +3, if
-     * next type is START_ELEMENT then reader returns +2.
+     * For characters event reader returns +3 or +4 to original offset, it depends on
+     * next event type - if next type is END_ELEMENT then reader returns +4, if
+     * next type is START_ELEMENT then reader returns +3.
      * This methods calculates offset from source array
      * start to current reader element event end [0, end].
      *
@@ -875,9 +881,9 @@ public final class XMLTree {
     private int offset(XMLStreamReader reader) {
         final int offset = reader.getLocation().getCharacterOffset();
         if (reader.getEventType() != CHARACTERS) {
-            return offset - 1;
+            return offset - 2;
         }
-        return xml[offset - 1] == '<' ? offset - 2 : offset - 3;
+        return xml[offset - 2] == '<' ? offset - 3 : offset - 4;
     }
 
     /**
