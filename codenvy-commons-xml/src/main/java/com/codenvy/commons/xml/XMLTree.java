@@ -525,7 +525,7 @@ public final class XMLTree {
         //shift existing segments which are after parent start
         shiftSegments(parent.start.right, xml.length - lengthBefore);
         //create and set up start, end, text segments to created element
-        applySegments(newElement, relatedToNew, insertHere, level, parent);
+        applySegments(newElement, relatedToNew, insertHere - 1, level, parent);
         //let tree know about added element
         registerElement(relatedToNew);
     }
@@ -544,7 +544,7 @@ public final class XMLTree {
         shiftSegments(refElement.end.right, xml.length - lengthBefore);
         //create and set up start, end, text segments to created element
         //+1 because of \n
-        applySegments(newElement, relatedToNew, refElement.end.right + 1, level, refElement.getParent());
+        applySegments(newElement, relatedToNew, refElement.end.right, level, refElement.getParent());
         //let tree know about inserted element
         registerElement(relatedToNew);
     }
@@ -567,7 +567,7 @@ public final class XMLTree {
         //shift existing segments which are after parent start
         shiftSegments(parent.start.right, xml.length - lengthBefore);
         //create and set up start, end, text segments to created element
-        applySegments(newElement, relatedToNew, parent.start.right + 1, level, parent);
+        applySegments(newElement, relatedToNew, parent.start.right, level, parent);
         //let tree know about inserted element
         registerElement(relatedToNew);
     }
@@ -776,68 +776,71 @@ public final class XMLTree {
     /**
      * Creates segments for newly created element and related children
      */
-    private int applySegments(NewElement newElement, Element relatedToNew, int beforeText, int level, Element parent) {
+    private int applySegments(NewElement newElement,
+                              Element relatedToNew,
+                              int prevElementCloseRight,
+                              int level,
+                              Element parent) {
         //text length before element
         // child - element, '+' - text before element
         //        ++++++
         //<parent>\n    <child>...
-        final int lineTextLength = level * SPACES_IN_TAB;
+        final int levelTextLength = level * SPACES_IN_TAB;
 
         //before element open tag pos
         //             +
         //<parent>\n    <child>...
-        final int beforeStart = beforeText + lineTextLength;
+        final int beforeOpenLeft = 1 + prevElementCloseRight + levelTextLength;
 
         //we should add text segment which
         //is before given element to parent
         if (parent.text == null) {
             parent.text = new LinkedList<>();
         }
-        parent.text.add(new Segment(beforeText, beforeStart));
+        parent.text.add(new Segment(prevElementCloseRight, beforeOpenLeft));
 
         //pos of open tag right '>'
-        int startRight = beforeStart + openTagLength(newElement);
+        final int openRight = beforeOpenLeft + openTagLength(newElement);
 
-        relatedToNew.start = new Segment(beforeStart + 1, startRight);
+        relatedToNew.start = new Segment(beforeOpenLeft + 1, openRight);
         //if element is void it doesn't have children and text
         //and it has same start and end so we can initialize
         //only start and end segments
         if (relatedToNew.isVoid()) {
             relatedToNew.end = relatedToNew.start;
-            return startRight;
+            return openRight;
         }
         //if element has children it doesn't have text instead of
         //whitespaces, so all what we need - detect element close tag segment
         //to do so we need to apply segments for all children first
-        int beforeTextForChild = startRight;// 1 - \n
+        int childRight = openRight;
         if (newElement.hasChildren()) {
 
             final Iterator<NewElement> newChIt = newElement.getChildren().iterator();
             final Iterator<Element> chIt = relatedToNew.getChildren().iterator();
 
             while (newChIt.hasNext()) {
-                beforeTextForChild = applySegments(newChIt.next(),
-                                                   chIt.next(),
-                                                   beforeTextForChild + 1,
-                                                   level + 1,
-                                                   relatedToNew);
+                childRight = applySegments(newChIt.next(),
+                                           chIt.next(),
+                                           childRight,
+                                           level + 1,
+                                           relatedToNew);
             }
             //after last element we need to add 1 more text segment
-            beforeTextForChild += 1 + lineTextLength;
         } else {
             relatedToNew.text = new LinkedList<>();
         }
         //before element close tag pos
         //                        +
         //<parent>\n    <child>text</child>
-        final int beforeEnd;
+        int beforeCloseLeft;
         if (newElement.hasChildren()) {
-            beforeEnd = beforeTextForChild;
+            beforeCloseLeft = childRight + levelTextLength + 1;
         } else {
-            beforeEnd = beforeTextForChild + relatedToNew.getText().length();
+            beforeCloseLeft = childRight + newElement.getText().length();
         }
-        relatedToNew.text.add(new Segment(startRight + 1, beforeEnd));
-        relatedToNew.end = new Segment(beforeEnd + 1, beforeEnd + closeTagLength(newElement));
+        relatedToNew.text.add(new Segment(childRight + 1, beforeCloseLeft));
+        relatedToNew.end = new Segment(beforeCloseLeft + 1, beforeCloseLeft + closeTagLength(newElement));
         return relatedToNew.end.right;
     }
 
@@ -848,7 +851,7 @@ public final class XMLTree {
      * it equal to second occurrence when document does.
      */
     private int rootStart() {
-        final byte[] open = new byte[]{'<'};
+        final byte[] open = {'<'};
         int pos = indexOf(xml, open, 0);
         if (xml[pos + 1] == '?' || xml[pos + 1] == '!') {
             pos = indexOf(xml, open, pos + 1);
