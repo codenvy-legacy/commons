@@ -34,8 +34,10 @@ import static org.w3c.dom.Node.DOCUMENT_NODE;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
- * XMLTree element - gives ability to fetch
- * and update related xml document.
+ * XMLTree element which provides abilities to
+ * fetch and update xml document data.
+ * <p/>
+ * Delegates for related {@link org.w3c.dom.Element}
  *
  * @author Eugene Voevodin
  */

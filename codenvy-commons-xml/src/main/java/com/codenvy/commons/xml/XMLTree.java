@@ -426,11 +426,13 @@ public final class XMLTree {
                     stack.push(newElement);
                     node.setUserData("element", newElement, null);
                     newElement.delegate = (org.w3c.dom.Element)node;
+                    beforeStart = newElement.start.right;
                     break;
                 case END_ELEMENT:
                     final Element element = stack.pop();
                     element.end = new Segment(beforeStart + 1, offset(reader));
                     elements.add(element);
+                    beforeStart = offset(reader);
                     break;
                 case CHARACTERS:
                     final Element current = stack.peek();
@@ -438,15 +440,12 @@ public final class XMLTree {
                         current.text = new LinkedList<>();
                     }
                     current.text.add(new Segment(beforeStart + 1, offset(reader)));
-                case COMMENT_NODE:
                 case CDATA:
                 case COMMENT:
                     node = deepNext(node, true);
+                    beforeStart = offset(reader);
                     break;
-                default:
-                    continue;
             }
-            beforeStart = offset(reader);
         }
     }
 
@@ -480,7 +479,6 @@ public final class XMLTree {
      */
     private XMLStreamReader newXMLStreamReader() {
         try {
-//            StreamSource source = new StreamSource(new InputStreamReader(new ByteArrayInputStream(xml), "UTF-8"));
             return XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(xml), "UTF-8");
         } catch (Exception xmlEx) {
             throw XMLTreeException.wrap(xmlEx);
@@ -866,24 +864,24 @@ public final class XMLTree {
     }
 
     /**
-     * XMLStreamReader returns offset from source array start to start
-     * of next element,  for all events instead its correct, instead of CHARACTERS event.
-     * For characters event reader returns +3 or +4 to original offset, it depends on
-     * next event type - if next type is END_ELEMENT then reader returns +4, if
-     * next type is START_ELEMENT then reader returns +3.
-     * This methods calculates offset from source array
-     * start to current reader element event end [0, end].
+     * Calculates element offset
      *
      * @param reader
      *         reader which is going to be used to detect offset
-     * @return the right of current reader event
+     * @return the right position of current reader event
      */
     private int offset(XMLStreamReader reader) {
-        final int offset = reader.getLocation().getCharacterOffset();
+        int offset = reader.getLocation().getCharacterOffset();
         if (reader.getEventType() != CHARACTERS) {
-            return offset - 2;
+            while (offset >= xml.length || xml[offset] != '>') {
+                offset--;
+            }
+            return offset;
         }
-        return xml[offset - 2] == '<' ? offset - 3 : offset - 4;
+        while (offset >= xml.length || xml[offset] != '<') {
+            offset--;
+        }
+        return offset - 1;
     }
 
     /**
