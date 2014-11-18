@@ -11,8 +11,6 @@
 package com.codenvy.commons.xml;
 
 
-import com.google.common.io.ByteStreams;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -23,15 +21,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,7 +52,6 @@ import static com.codenvy.commons.xml.XMLTreeUtil.lastIndexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.openTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
-import static com.google.common.io.ByteStreams.read;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Collections.unmodifiableList;
@@ -66,10 +60,10 @@ import static javax.xml.stream.XMLStreamConstants.CDATA;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.COMMENT;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import static javax.xml.stream.XMLStreamConstants.SPACE;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.STRING;
-import static org.w3c.dom.Node.COMMENT_NODE;
 
 /**
  * XML tool which provides abilities to modify and search
@@ -423,10 +417,14 @@ public final class XMLTree {
                     if (!stack.isEmpty()) {
                         node = deepNext(node, true);
                     }
-                    stack.push(newElement);
+                    //connect node with element
                     node.setUserData("element", newElement, null);
                     newElement.delegate = (org.w3c.dom.Element)node;
+                    //let next event know about its start
                     beforeStart = newElement.start.right;
+                    //if element has declared namespaces register it
+                    putNamespaces(reader);
+                    stack.push(newElement);
                     break;
                 case END_ELEMENT:
                     final Element element = stack.pop();
@@ -442,6 +440,7 @@ public final class XMLTree {
                     current.text.add(new Segment(beforeStart + 1, offset(reader)));
                 case CDATA:
                 case COMMENT:
+                case SPACE:
                     node = deepNext(node, true);
                     beforeStart = offset(reader);
                     break;
@@ -471,6 +470,18 @@ public final class XMLTree {
             constructTree();
         } catch (XMLStreamException xmlEx) {
             throw XMLTreeException.wrap(xmlEx);
+        }
+    }
+
+    /**
+     * Should be invoked on ELEMENT_START event
+     */
+    private void putNamespaces(XMLStreamReader reader) {
+        for (int i = 0; i < reader.getNamespaceCount(); i++) {
+            final String prefix = reader.getNamespacePrefix(i);
+            if (prefix != null) {
+                putNamespace(prefix, reader.getNamespaceURI(i));
+            }
         }
     }
 
