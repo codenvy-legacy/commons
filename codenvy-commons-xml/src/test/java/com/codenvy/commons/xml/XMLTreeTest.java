@@ -1102,6 +1102,16 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void should() {
+        final XMLTree tree = XMLTree.from("<root><inner></inner><inner></inner></root>");
+
+        tree.getRoot().setText("root text");
+
+        assertEquals(tree.toString(), "<root>root text<inner></inner><inner></inner></root>");
+        assertEquals(tree.getRoot().getText(), "root text");
+    }
+
+    @Test
     public void shouldBeAbleToRemoveVoidElement() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<project name=\"MyProject\" default=\"dist\" basedir=\".\">\n" +

@@ -32,6 +32,7 @@ import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
 import static org.w3c.dom.Node.DOCUMENT_NODE;
 import static org.w3c.dom.Node.ELEMENT_NODE;
+import static org.w3c.dom.Node.TEXT_NODE;
 
 /**
  * XMLTree element which provides abilities to
@@ -175,14 +176,25 @@ public final class Element {
         return false;
     }
 
+    public boolean hasChildren() {
+        final NodeList childNodes = delegate.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            if (childNodes.item(i).getNodeType() == ELEMENT_NODE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Element setText(String newText) {
         checkNotNull(newText, "new text");
         if (!newText.equals(getText())) {
-            delegate.setTextContent(newText);
+            removeTextNodes();
+            delegate.appendChild(document().createTextNode(newText));
+            final int right = hasChildren() ? getFirstChild().start.left - 1 : end.left - 1;
+            text = singletonList(new Segment(start.right + 1, right));
+            //let tree do dirty job
             xmlTree.updateText(this);
-            //fixme its not true - if element contains any child then first child left - 1 should
-            //be used instead
-            text = singletonList(new Segment(start.right + 1, end.left - 1));
         }
         return this;
     }
@@ -249,6 +261,15 @@ public final class Element {
         //let tree do dirty job
         xmlTree.insertAttribute(newAttribute, this);
         return this;
+    }
+
+    private void removeTextNodes() {
+        final NodeList childNodes = delegate.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            if (childNodes.item(i).getNodeType() == TEXT_NODE) {
+                delegate.removeChild(childNodes.item(i));
+            }
+        }
     }
 
     private Attr createAttrNode(NewAttribute newAttribute) {
