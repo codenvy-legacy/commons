@@ -1061,6 +1061,27 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void commentsShouldNotBeRemovedAfterElementTextUpdate() {
+        final XMLTree tree = XMLTree.from("<root>" +
+                                          "<!--comment1-->" +
+                                          "<!--comment2-->" +
+                                          "<!--long \n" +
+                                          "comment3-->" +
+                                          "text" +
+                                          "</root>");
+
+        tree.getRoot().setText("new text");
+
+        assertEquals(tree.toString(), "<root>" +
+                                      "<!--comment1-->" +
+                                      "<!--comment2-->" +
+                                      "<!--long \n" +
+                                      "comment3-->" +
+                                      "new text" +
+                                      "</root>");
+    }
+
+    @Test
     public void textUpdateShouldNotRemoveElements() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<root>" +

@@ -767,10 +767,10 @@ public final class XMLTree {
         final byte[] name = attribute.getName().getBytes();
         final byte[] value = attribute.getValue().getBytes();
 
-        final int start = indexOfAttributeName(xml, name, owner.start.left + owner.getName().length());
-        final int valueStart = indexOf(xml, value, start + name.length);
+        final int attrLeft = indexOfAttributeName(xml, name, owner.start.left + owner.getName().length());
+        final int valueLeft = indexOf(xml, value, attrLeft + name.length);
 
-        return new Segment(start, valueStart + value.length);
+        return new Segment(attrLeft, valueLeft + value.length);
     }
 
     /**
@@ -782,10 +782,10 @@ public final class XMLTree {
         final byte[] name = attribute.getName().getBytes();
         final byte[] value = oldValue.getBytes();
 
-        final int start = indexOfAttributeName(xml, name, owner.start.left + owner.getName().length());
-        final int valueStart = indexOf(xml, value, start + name.length);
+        final int attrLeft = indexOfAttributeName(xml, name, owner.start.left + owner.getName().length());
+        final int valueLeft = indexOf(xml, value, attrLeft + name.length);
 
-        return new Segment(valueStart, valueStart + value.length - 1);
+        return new Segment(valueLeft, valueLeft + value.length - 1);
     }
 
     /**
