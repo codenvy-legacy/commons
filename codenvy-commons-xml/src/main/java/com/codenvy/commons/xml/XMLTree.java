@@ -508,7 +508,8 @@ public final class XMLTree {
         //text <element></element> so CHARACTERS event was not processed
         if (target.text == null) {
             target.text = new LinkedList<>();
-            target.text.add(new Segment(target.start.right + 1, target.end.left - 1));
+            //updateSegmentContent will set up right bound
+            target.text.add(new Segment(target.start.right + 1, target.start.right));
         }
         final Iterator<Segment> segIt = target.text.iterator();
         final Segment first = segIt.next();

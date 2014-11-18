@@ -26,7 +26,6 @@ import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
 import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
@@ -120,7 +119,7 @@ public final class Element {
     }
 
     public String getText() {
-        return delegate.getTextContent();
+        return fetchText();
     }
 
     public boolean hasSibling(String name) {
@@ -191,8 +190,6 @@ public final class Element {
         if (!newText.equals(getText())) {
             removeTextNodes();
             delegate.appendChild(document().createTextNode(newText));
-            final int right = hasChildren() ? getFirstChild().start.left - 1 : end.left - 1;
-            text = singletonList(new Segment(start.right + 1, right));
             //let tree do dirty job
             xmlTree.updateText(this);
         }
@@ -270,6 +267,17 @@ public final class Element {
                 delegate.removeChild(childNodes.item(i));
             }
         }
+    }
+
+    private String fetchText() {
+        final StringBuilder sb = new StringBuilder();
+        final NodeList childNodes = delegate.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            if (childNodes.item(i).getNodeType() == TEXT_NODE) {
+                sb.append(childNodes.item(i).getTextContent());
+            }
+        }
+        return sb.toString();
     }
 
     private Attr createAttrNode(NewAttribute newAttribute) {

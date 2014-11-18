@@ -1102,7 +1102,7 @@ public class XMLTreeTest {
     }
 
     @Test
-    public void should() {
+    public void childrenShouldNotBeRemovedAfterParentTextUpdate() {
         final XMLTree tree = XMLTree.from("<root><inner></inner><inner></inner></root>");
 
         tree.getRoot().setText("root text");
