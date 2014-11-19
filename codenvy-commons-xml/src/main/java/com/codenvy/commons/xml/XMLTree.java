@@ -541,7 +541,7 @@ public final class XMLTree {
         //shift existing segments which are after parent start
         shiftSegments(parent.start.right, xml.length - lengthBefore);
         //create and set up start, end, text segments to created element
-        applySegments(newElement, relatedToNew, insertHere - 1, level, parent);
+        applySegments(newElement, relatedToNew, insertHere - 1, level);
         //let tree know about added element
         registerElement(relatedToNew);
     }
@@ -560,7 +560,7 @@ public final class XMLTree {
         shiftSegments(refElement.end.right, xml.length - lengthBefore);
         //create and set up start, end, text segments to created element
         //+1 because of \n
-        applySegments(newElement, relatedToNew, refElement.end.right, level, refElement.getParent());
+        applySegments(newElement, relatedToNew, refElement.end.right, level);
         //let tree know about inserted element
         registerElement(relatedToNew);
     }
@@ -583,7 +583,7 @@ public final class XMLTree {
         //shift existing segments which are after parent start
         shiftSegments(parent.start.right, xml.length - lengthBefore);
         //create and set up start, end, text segments to created element
-        applySegments(newElement, relatedToNew, parent.start.right, level, parent);
+        applySegments(newElement, relatedToNew, parent.start.right, level);
         //let tree know about inserted element
         registerElement(relatedToNew);
     }
@@ -795,8 +795,7 @@ public final class XMLTree {
     private int applySegments(NewElement newElement,
                               Element relatedToNew,
                               int prevElementCloseRight,
-                              int level,
-                              Element parent) {
+                              int level) {
         //text length before element
         // child - element, '+' - text before element
         //        ++++++
@@ -810,6 +809,7 @@ public final class XMLTree {
 
         //we should add text segment which
         //is before given element to parent
+        final Element parent = relatedToNew.getParent();
         if (parent.text == null) {
             parent.text = new LinkedList<>();
         }
@@ -839,10 +839,8 @@ public final class XMLTree {
                 childRight = applySegments(newChIt.next(),
                                            chIt.next(),
                                            childRight,
-                                           level + 1,
-                                           relatedToNew);
+                                           level + 1);
             }
-            //after last element we need to add 1 more text segment
         } else {
             relatedToNew.text = new LinkedList<>();
         }
