@@ -52,6 +52,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.lastIndexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.openTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
+import static com.google.common.io.ByteStreams.read;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Collections.unmodifiableList;
@@ -61,6 +62,7 @@ import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.COMMENT;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.SPACE;
+import static javax.xml.stream.XMLStreamConstants.START_DOCUMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.STRING;
@@ -437,7 +439,19 @@ public final class XMLTree {
                     if (current.text == null) {
                         current.text = new LinkedList<>();
                     }
-                    current.text.add(new Segment(beforeStart + 1, offset(reader)));
+                    //characters event may be invoked 2 or more times
+                    //on the element text, but related node is single text node
+                    //so only segment should be created for it
+                    final int left = beforeStart + 1;
+                    final int right = offset(reader);
+                    //if element has more text which be available
+                    //with next event invocation - skip current invocation
+                    if (left < right) {
+                        current.text.add(new Segment(beforeStart + 1, offset(reader)));
+                        beforeStart = offset(reader);
+                        node = deepNext(node, true);
+                    }
+                    break;
                 case CDATA:
                 case COMMENT:
                 case SPACE:
