@@ -444,7 +444,7 @@ public final class XMLTree {
                     final int right = offset(reader);
                     //if element has more text which be available
                     //with next event invocation - skip current invocation
-                    if (left < right) {
+                    if (left <= right) {
                         current.text.add(new Segment(beforeStart + 1, offset(reader)));
                         beforeStart = offset(reader);
                         node = deepNext(node, true);
@@ -453,8 +453,10 @@ public final class XMLTree {
                 case CDATA:
                 case COMMENT:
                 case SPACE:
-                    node = deepNext(node, true);
-                    beforeStart = offset(reader);
+                    if (!stack.isEmpty()) {
+                        node = deepNext(node, true);
+                        beforeStart = offset(reader);
+                    }
                     break;
             }
         }
