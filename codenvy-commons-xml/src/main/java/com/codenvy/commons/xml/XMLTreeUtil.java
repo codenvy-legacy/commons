@@ -285,4 +285,6 @@ public final class XMLTreeUtil {
         }
         return indexOfAttributeName(src, target, idx + 1);
     }
+
+    private XMLTreeUtil() {}
 }
