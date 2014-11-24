@@ -25,7 +25,7 @@ public class MemoryUtils {
      * @return int RAM in MB
      */
     public static int convert(String RAM) {
-        if (RAM.length() < 3) {
+        if (RAM == null || RAM.length() < 3) {
             throw new IllegalArgumentException("Illegal size of memory");
         }
         int ramMb;

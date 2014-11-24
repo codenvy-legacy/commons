@@ -42,6 +42,11 @@ public class MemoryUtilsTest {
         convert("1");
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Illegal size of memory")
+    public void shouldThrowIllegalArgumentExceptionIfInputStringIsNull() {
+        convert(null);
+    }
+
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Unknown unit GG")
     public void shouldThrowIllegalArgumentIfUnknownUnit() {
         String memorySize = "1000GG";
