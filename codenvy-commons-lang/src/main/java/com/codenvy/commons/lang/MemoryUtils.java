@@ -24,7 +24,7 @@ public class MemoryUtils {
      *         string RAM in GB or MB
      * @return int RAM in MB
      */
-    public static int convert(String RAM) throws NumberFormatException {
+    public static int convert(String RAM) {
         int ramMb;
         String unit = RAM.substring(RAM.length() - 2);
         switch (unit) {
