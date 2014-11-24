@@ -28,8 +28,18 @@ public class MemoryUtilsTest {
     }
 
     @Test
+    public void shouldConvertMegabyteIfUnitInLowerCase() {
+        assertEquals(256, convert("256mb"));
+    }
+
+    @Test
     public void shouldConvertGigabyte() {
         assertEquals(2048, convert("2GB"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Illegal size of memory")
+    public void shouldThrowIllegalArgumentExceptionIfInputStringContainsIncorrectMemorySize() {
+        convert("1");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Unknown unit GG")

@@ -21,12 +21,15 @@ public class MemoryUtils {
      * "1GB" -> 1024
      *
      * @param RAM
-     *         string RAM in GB or MB
+     *         string RAM in GB or MB. And It is case insensitive
      * @return int RAM in MB
      */
     public static int convert(String RAM) {
+        if (RAM.length() < 3) {
+            throw new IllegalArgumentException("Illegal size of memory");
+        }
         int ramMb;
-        String unit = RAM.substring(RAM.length() - 2);
+        String unit = RAM.substring(RAM.length() - 2).toUpperCase();
         switch (unit) {
             case "GB":
                 ramMb = 1024 * Integer.parseInt(RAM.substring(0, RAM.length() - 2));
