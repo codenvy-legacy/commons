@@ -218,6 +218,11 @@ public final class XMLTree {
         return unmodifiableList(asElements(nodes));
     }
 
+    public <R> List<R> getElements(String expression, FromElementFunction<? extends R> mapper) {
+        final NodeList nodes = evaluateXPath(expression, NODESET);
+        return unmodifiableList(asElements(nodes, mapper));
+    }
+
     /**
      * Returns root element for current tree
      */

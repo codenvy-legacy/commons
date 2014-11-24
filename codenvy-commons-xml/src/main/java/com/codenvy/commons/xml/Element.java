@@ -118,6 +118,14 @@ public final class Element {
         return unmodifiableList(asElements(delegate.getChildNodes()));
     }
 
+    public <R> List<R> getChildren(FromElementFunction<? extends R> mapper) {
+        return unmodifiableList(asElements(delegate.getChildNodes(), mapper));
+    }
+
+    public <R> R mapTo(FromElementFunction<? extends R> mapper) {
+        return mapper.apply(this);
+    }
+
     public String getText() {
         return fetchText();
     }
