@@ -26,7 +26,6 @@ import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
 import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
 import static org.w3c.dom.Node.DOCUMENT_NODE;
@@ -115,15 +114,11 @@ public final class Element {
     }
 
     public List<Element> getChildren() {
-        return unmodifiableList(asElements(delegate.getChildNodes()));
+        return asElements(delegate.getChildNodes());
     }
 
     public <R> List<R> getChildren(FromElementFunction<? extends R> mapper) {
-        return unmodifiableList(asElements(delegate.getChildNodes(), mapper));
-    }
-
-    public <R> R mapTo(FromElementFunction<? extends R> mapper) {
-        return mapper.apply(this);
+        return asElements(delegate.getChildNodes(), mapper);
     }
 
     public String getText() {
@@ -156,12 +151,12 @@ public final class Element {
     public List<Attribute> getAttributes() {
         if (delegate != null && delegate.hasAttributes()) {
             final NamedNodeMap attributes = delegate.getAttributes();
-            final List<Attribute> copy = new ArrayList<>();
+            final List<Attribute> copy = new ArrayList<>(attributes.getLength());
             for (int i = 0; i < attributes.getLength(); i++) {
                 final Node item = attributes.item(i);
                 copy.add(asAttribute(item));
             }
-            return unmodifiableList(copy);
+            return copy;
         }
         return emptyList();
     }
@@ -169,7 +164,7 @@ public final class Element {
     public List<Element> getSiblings() {
         final List<Element> siblings = asElements(delegate.getParentNode().getChildNodes());
         siblings.remove(asElement(delegate));
-        return unmodifiableList(siblings);
+        return siblings;
     }
 
     public boolean hasChild(String name) {
@@ -202,6 +197,56 @@ public final class Element {
             xmlTree.updateText(this);
         }
         return this;
+    }
+
+    /**
+     * Sets text to the child element.
+     * This method is really convenient when you need to
+     * set text content to child element if it exists or
+     * create child with text content if it doesn't.
+     * <p/>
+     * Child with given name should be single if
+     * it is not so {@link XMLTreeException} will be thrown.
+     * If child doesn't exist it will be appended to the end
+     * of children list.
+     *
+     * @param name
+     *         child name
+     * @param text
+     *         new text content
+     * @param createNew
+     *         if it is {@code true} and element doesn't have child with given
+     *         {@param name} then new element with given {@param name} and {@param text}
+     *         will be added as child to the end of children list
+     */
+    public Element setChildText(String name, String text, boolean createNew) {
+        if (hasChild(name)) {
+            getSingleChild(name).setText(text);
+        } else if (createNew) {
+            appendChild(NewElement.createElement(name, text));
+        }
+        return this;
+    }
+
+    //TODO write javadoc !important
+    public String getChildText(String childName) {
+        return getChildTextOrDefault(childName, null);
+    }
+
+    //TODO write javadoc !important
+    public String getChildTextOrDefault(String childName, String defaultValue) {
+        checkNotNull(childName, "child name");
+        return hasSingleChild(childName) ? getSingleChild(childName).getText() : defaultValue;
+    }
+
+    public boolean hasSingleChild(String childName) {
+        checkNotNull(childName, "child name");
+        for (Element child : asElements(delegate.getChildNodes())) {
+            if (childName.equals(child.getName())) {
+                return !child.hasSibling(childName);
+            }
+        }
+        return false;
     }
 
     /**
