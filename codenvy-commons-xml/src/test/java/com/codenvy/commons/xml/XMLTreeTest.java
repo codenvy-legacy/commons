@@ -235,6 +235,33 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void shouldBeAbleToGetChildText() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        final String artifactId = tree.getRoot().getChildText("artifactId");
+
+        assertEquals(artifactId, "test-artifact");
+    }
+
+    @Test
+    public void shouldReturnNullWhenGettingTextIfChildDoesNotExist() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        final Element dependency = tree.getSingleElement("/project/dependencies/dependency[artifactId='guava']");
+
+        assertNull(dependency.getChildText("scope"));
+    }
+
+    @Test
+    public void shouldBeAbleToGetChildTextOrDefaultValue() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        final Element dependency = tree.getSingleElement("/project/dependencies/dependency[artifactId='guava']");
+
+        assertEquals(dependency.getChildTextOrDefault("scope", "compile"), "compile");
+    }
+
+    @Test
     public void shouldBeAbleToGetNextSibling() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
@@ -364,6 +391,42 @@ public class XMLTreeTest {
         assertTrue(name.hasSibling("description"));
         assertEquals(name.getPreviousSibling().getText(), "This is test pom.xml");
         assertEquals(tree.getSingleText("/project/description"), "This is test pom.xml");
+    }
+
+    @Test
+    public void shouldBeAbleToReplaceElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <dependencies>\n" +
+                                          "        <!-- Test dependencies -->\n" +
+                                          "        <dependency>\n" +
+                                          "            <groupId>org.testng</groupId>\n" +
+                                          "            <artifactId>testng</artifactId>\n" +
+                                          "            <version>6.8</version>\n" +
+                                          "            <scope>test</scope>\n" +
+                                          "        </dependency>\n" +
+                                          "    </dependencies>\n" +
+                                          "</project>\n");
+
+        tree.getSingleElement("//dependency")
+            .replaceWith(createElement("dependency",
+                                       createElement("artifactId", "junit"),
+                                       createElement("groupId", "org.junit"),
+                                       createElement("version", "4.0")));
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <dependencies>\n" +
+                                      "        <!-- Test dependencies -->\n" +
+                                      "        <dependency>\n" +
+                                      "            <artifactId>junit</artifactId>\n" +
+                                      "            <groupId>org.junit</groupId>\n" +
+                                      "            <version>4.0</version>\n" +
+                                      "        </dependency>\n" +
+                                      "    </dependencies>\n" +
+                                      "</project>\n");
+        assertEquals(tree.getElements("//dependency").size(), 1);
+        assertEquals(tree.getSingleElement("//dependencies").getChildren().size(), 1);
     }
 
     @Test

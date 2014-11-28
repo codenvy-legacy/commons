@@ -26,6 +26,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
 import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.sort;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
 import static org.w3c.dom.Node.DOCUMENT_NODE;
@@ -228,12 +229,30 @@ public final class Element {
         return this;
     }
 
-    //TODO write javadoc !important
+    /**
+     * Returns text content of child with given name.
+     *
+     * @param childName
+     *         child name to fetch text content
+     * @return child text or {@code null} if child doesn't exist or
+     * element has more then only child with given {@param name}
+     */
     public String getChildText(String childName) {
         return getChildTextOrDefault(childName, null);
     }
 
-    //TODO write javadoc !important
+    /**
+     * Returns text content of child with given name or
+     * default value if child doesn't exist or it has
+     * sibling with same name
+     *
+     * @param childName
+     *         child name
+     * @param defaultValue
+     *         value which will be returned if child doesn't exist
+     *         or it has sibling with same name
+     * @return child text
+     */
     public String getChildTextOrDefault(String childName, String defaultValue) {
         checkNotNull(childName, "child name");
         return hasSingleChild(childName) ? getSingleChild(childName).getText() : defaultValue;
@@ -268,7 +287,7 @@ public final class Element {
      * Removes current element
      */
     public void remove() {
-        notPermittedForRoot();
+        notPermittedOnRootElement();
         //let tree do dirty job
         xmlTree.removeElement(this);
         //remove self from document
@@ -389,6 +408,21 @@ public final class Element {
         return new Attribute(this, node.getNodeName(), node.getNodeValue());
     }
 
+    /**
+     * Replaces this element with new one.
+     *
+     * @param newElement
+     *         new element which is replacement for current element
+     * @return newly created element
+     */
+    public Element replaceWith(NewElement newElement) {
+        checkNotNull(newElement, "new element");
+        insertAfter(newElement);
+        final Element inserted = getNextSibling();
+        remove();
+        return inserted;
+    }
+
     public Element appendChild(NewElement newElement) {
         checkNotNull(newElement, "new element");
         if (isVoid()) {
@@ -404,8 +438,8 @@ public final class Element {
     }
 
     public Element insertAfter(NewElement newElement) {
+        notPermittedOnRootElement();
         checkNotNull(newElement, "new element");
-        notPermittedForRoot();
         final Node newNode = createNode(newElement);
         final Element element = createElement(newNode);
         //if element has next sibling append child to parent
@@ -422,8 +456,8 @@ public final class Element {
     }
 
     public Element insertBefore(NewElement newElement) {
+        notPermittedOnRootElement();
         checkNotNull(newElement, "new element");
-        notPermittedForRoot();
         //if element has previous sibling insert new element after it
         //inserting before this element to let existing comments
         //or whatever over referenced element
@@ -461,7 +495,7 @@ public final class Element {
         return node;
     }
 
-    private void notPermittedForRoot() {
+    private void notPermittedOnRootElement() {
         if (!hasParent()) {
             throw new XMLTreeException("Operation not permitted for root element");
         }
