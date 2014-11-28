@@ -26,7 +26,6 @@ import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
 import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.sort;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
 import static org.w3c.dom.Node.DOCUMENT_NODE;
@@ -416,6 +415,7 @@ public final class Element {
      * @return newly created element
      */
     public Element replaceWith(NewElement newElement) {
+        notPermittedOnRootElement();
         checkNotNull(newElement, "new element");
         insertAfter(newElement);
         final Element inserted = getNextSibling();
