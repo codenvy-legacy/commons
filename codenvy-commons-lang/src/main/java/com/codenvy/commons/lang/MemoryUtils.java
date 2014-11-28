@@ -13,6 +13,7 @@ package com.codenvy.commons.lang;
 /**
  * @author Sergii Leschenko
  * @author Alexander Garagatyi
+ * @deprecated seems Size supports more formats
  */
 public class MemoryUtils {
     /**
