@@ -62,6 +62,19 @@ public class Size {
         return parseAndConvertToBytes(humanSize);
     }
 
+    /**
+     * Parse human readable size string to long size in megabytes.
+     *
+     * @param humanSize
+     *         human readable size string
+     * @return long size in megabytes
+     * @throws IllegalArgumentException
+     *         if {@code humanSize} has incorrect format
+     */
+    public static long parseSizeToMegabytes(String humanSize) {
+        return parseAndConvertToBytes(humanSize) / M;
+    }
+
     private static final long K = 1024;
     private static final long M = K * K;
     private static final long G = M * K;

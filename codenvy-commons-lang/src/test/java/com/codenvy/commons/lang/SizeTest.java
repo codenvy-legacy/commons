@@ -29,13 +29,20 @@ public class SizeTest {
     }
 
     @Test
-    public void testParse() {
+    public void testParseToByte() {
         Assert.assertEquals(Size.parseSize("1 kB"), 1024);
         Assert.assertEquals(Size.parseSize("1000B"), 1000);
         Assert.assertEquals(Size.parseSize("1000"), 1000);
         Assert.assertEquals(Size.parseSize("1 MB"), 1024 * 1024);
         Assert.assertEquals(Size.parseSize("5 mb"), 5 * 1024 * 1024);
         Assert.assertEquals(Size.parseSize("9.8M"), Float.valueOf(9.8f * 1024 * 1024).longValue());
+    }
+
+    @Test
+    public void testParseToMegabyte() {
+        Assert.assertEquals(Size.parseSizeToMegabytes("10485760"), 10);
+        Assert.assertEquals(Size.parseSizeToMegabytes("12 MB"), 12);
+        Assert.assertEquals(Size.parseSizeToMegabytes("1GB"), 1024);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
