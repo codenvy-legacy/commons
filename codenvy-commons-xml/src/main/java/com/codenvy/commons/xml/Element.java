@@ -216,7 +216,7 @@ public final class Element {
      *         new text content
      * @param createNew
      *         if it is {@code true} and element doesn't have child with given
-     *         {@param name} then new element with given {@param name} and {@param text}
+     *         name then new element with given name and text
      *         will be added as child to the end of children list
      */
     public Element setChildText(String name, String text, boolean createNew) {
@@ -470,6 +470,27 @@ public final class Element {
         delegate.getParentNode().insertBefore(newNode, delegate);
         //let tree do dirty job
         xmlTree.insertAfterParent(newElement, element, getParent());
+        return this;
+    }
+
+    /**
+     * If child with given name exists then it will be replaced
+     * with new element, otherwise it will be added to the
+     * end of children list. If there is more than only child
+     * with given name was found {@link XMLTreeException} will be thrown.
+     *
+     * @param childName
+     *         child which should be replaced
+     * @param newChild
+     *         new element
+     */
+    public Element setChild(String childName, NewElement newChild) {
+        final Element child = getSingleChild(childName);
+        if (child != null) {
+            child.replaceWith(newChild);
+        } else {
+            appendChild(newChild);
+        }
         return this;
     }
 

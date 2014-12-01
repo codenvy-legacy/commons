@@ -430,6 +430,39 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void setChildShouldReplaceExistingElementChild() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "</project>\n");
+
+        tree.getRoot()
+            .setChild("artifactId", createElement("artifactId", "new-artifact-id"));
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <artifactId>new-artifact-id</artifactId>\n" +
+                                      "</project>\n");
+    }
+
+    @Test
+    public void setChildShouldAppendChildIfElementDoesNotHaveChildWithGivenName() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "</project>\n");
+
+        tree.getRoot()
+            .setChild("groupId", createElement("groupId", "new-group-id"));
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <artifactId>test-artifact</artifactId>\n" +
+                                      "    <groupId>new-group-id</groupId>\n" +
+                                      "</project>\n");
+    }
+
+    @Test
     public void shouldBeAbleToInsertElementBeforeFirstExisting() {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
 
