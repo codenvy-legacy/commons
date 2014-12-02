@@ -11,6 +11,8 @@
 package com.codenvy.commons.xml;
 
 /**
+ * Describes qualified name
+ *
  * @author Eugene Voevodin
  */
 public class QName {

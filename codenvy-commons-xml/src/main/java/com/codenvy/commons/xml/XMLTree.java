@@ -221,12 +221,12 @@ public final class XMLTree {
      */
     public List<Element> getElements(String expression) {
         final NodeList nodes = evaluateXPath(expression, NODESET);
-        return unmodifiableList(asElements(nodes));
+        return asElements(nodes);
     }
 
     public <R> List<R> getElements(String expression, FromElementFunction<? extends R> mapper) {
         final NodeList nodes = evaluateXPath(expression, NODESET);
-        return unmodifiableList(asElements(nodes, mapper));
+        return asElements(nodes, mapper);
     }
 
     /**

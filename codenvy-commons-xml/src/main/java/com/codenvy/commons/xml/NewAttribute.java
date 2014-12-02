@@ -11,7 +11,9 @@
 package com.codenvy.commons.xml;
 
 /**
- * TODO add static factory methods like it done it NewElement?
+ * Describes new attribute.
+ * Should be used to insert new attribute into existing tree
+ * element or may be a part of {@link NewElement}.
  *
  * @author Eugene Voevodin
  */
