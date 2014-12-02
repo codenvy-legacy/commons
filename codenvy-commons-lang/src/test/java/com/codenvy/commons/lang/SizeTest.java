@@ -13,10 +13,15 @@ package com.codenvy.commons.lang;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+
 /**
  * @author andrew00x
  */
 public class SizeTest {
+    char sep = new DecimalFormat().getDecimalFormatSymbols().getDecimalSeparator();
+
     @Test
     public void testToHumanSize() {
         Assert.assertEquals(Size.toHumanSize(1024), "1 kB");
@@ -24,8 +29,8 @@ public class SizeTest {
         Assert.assertEquals(Size.toHumanSize(1024 * 1024), "1 MB");
         Assert.assertEquals(Size.toHumanSize(5 * 1024 * 1024), "5 MB");
         Assert.assertEquals(Size.toHumanSize(5l * 1024 * 1024 * 1024), "5 GB");
-        Assert.assertEquals(Size.toHumanSize(7539480), "7.2 MB");
-        Assert.assertEquals(Size.toHumanSize(10226124), "9.8 MB");
+        Assert.assertEquals(Size.toHumanSize(7539480), "7" + sep + "2 MB");
+        Assert.assertEquals(Size.toHumanSize(10226124), "9" + sep + "8 MB");
     }
 
     @Test
