@@ -1289,6 +1289,20 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void shouldBeAbleToGetCDATATextContent() {
+        final String CDATA = "Maven's model for the old archetype descriptor (ie for Archetype 1.0.x).";
+        final XMLTree tree = XMLTree.from("<model>\n" +
+                                          "    <id>archetype</id>\n" +
+                                          "    <name>Archetype</name>\n" +
+                                          "    <description><![CDATA[" + CDATA + "]]></description>\n" +
+                                          "</model>");
+        //AS tree#getSingleText uses XPath for selecting text content
+        //we can easily select CDATA from element
+        assertEquals(tree.getSingleText("/model/description"), CDATA);
+        assertTrue(tree.getSingleElement("/model/description").getText().isEmpty());
+    }
+
+    @Test
     public void shouldBeAbleToCreateTreeFromRootName() {
         final XMLTree tree = XMLTree.create("project");
 
