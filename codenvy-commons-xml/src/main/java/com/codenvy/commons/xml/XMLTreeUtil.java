@@ -220,11 +220,11 @@ public final class XMLTreeUtil {
         return elements;
     }
 
-    public static <R> List<R> asElements(NodeList list, FromElementFunction<? extends R> mapper) {
+    public static <R> List<R> asElements(NodeList list, ElementMapper<? extends R> mapper) {
         final List<R> elements = new ArrayList<>(list.getLength());
         for (int i = 0; i < list.getLength(); i++) {
             if (list.item(i).getNodeType() == ELEMENT_NODE) {
-                elements.add(mapper.apply(asElement(list.item(i))));
+                elements.add(mapper.map(asElement(list.item(i))));
             }
         }
         return elements;
@@ -286,5 +286,6 @@ public final class XMLTreeUtil {
         return indexOfAttributeName(src, target, idx + 1);
     }
 
-    private XMLTreeUtil() {}
+    private XMLTreeUtil() {
+    }
 }

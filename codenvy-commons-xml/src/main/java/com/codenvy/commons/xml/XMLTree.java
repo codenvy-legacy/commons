@@ -55,8 +55,6 @@ import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.readAllBytes;
-import static java.util.Collections.frequency;
-import static java.util.Collections.unmodifiableList;
 import static javax.xml.XMLConstants.XML_NS_URI;
 import static javax.xml.stream.XMLStreamConstants.CDATA;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
@@ -224,7 +222,7 @@ public final class XMLTree {
         return asElements(nodes);
     }
 
-    public <R> List<R> getElements(String expression, FromElementFunction<? extends R> mapper) {
+    public <R> List<R> getElements(String expression, ElementMapper<? extends R> mapper) {
         final NodeList nodes = evaluateXPath(expression, NODESET);
         return asElements(nodes, mapper);
     }
@@ -853,7 +851,7 @@ public final class XMLTree {
         }
         //if element has children it doesn't have text instead of
         //whitespaces, so all what we need - detect element close tag segment
-        //to do so we need to apply segments for all children first
+        //to do so we need to map segments for all children first
         int childRight = openRight;
         if (newElement.hasChildren()) {
 

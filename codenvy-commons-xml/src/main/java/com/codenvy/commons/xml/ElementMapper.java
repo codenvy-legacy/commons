@@ -13,7 +13,7 @@ package com.codenvy.commons.xml;
 /**
  * @author Eugene Voevodin
  */
-public interface FromElementFunction<T> {
+public interface ElementMapper<T> {
 
-    T apply(Element element);
+    T map(Element element);
 }

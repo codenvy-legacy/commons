@@ -167,7 +167,7 @@ public final class Element {
      * @param mapper
      *         function which will be applied on each child element
      */
-    public <R> List<R> getChildren(FromElementFunction<? extends R> mapper) {
+    public <R> List<R> getChildren(ElementMapper<? extends R> mapper) {
         return asElements(delegate.getChildNodes(), mapper);
     }
 
