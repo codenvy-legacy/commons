@@ -41,6 +41,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.SPACES_IN_TAB;
 import static com.codenvy.commons.xml.XMLTreeUtil.UTF_8;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
+import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static com.codenvy.commons.xml.XMLTreeUtil.closeTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOfAttributeName;
@@ -54,6 +55,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.readAllBytes;
+import static java.util.Collections.frequency;
 import static java.util.Collections.unmodifiableList;
 import static javax.xml.XMLConstants.XML_NS_URI;
 import static javax.xml.stream.XMLStreamConstants.CDATA;
@@ -145,6 +147,7 @@ public final class XMLTree {
      * Creates XMLTree from byte array
      */
     public static XMLTree from(byte[] xml) {
+        checkNotNull(xml, "xml bytes");
         return new XMLTree(xml);
     }
 
@@ -167,6 +170,9 @@ public final class XMLTree {
     private byte[]              xml;
 
     private XMLTree(byte[] xml) {
+        if (xml.length == 0) {
+            throw new XMLTreeException("Source content is empty");
+        }
         this.xml = xml;
         elements = new LinkedList<>();
         namespaces = newHashMapWithExpectedSize(EXPECTED_NAMESPACES_SIZE);
