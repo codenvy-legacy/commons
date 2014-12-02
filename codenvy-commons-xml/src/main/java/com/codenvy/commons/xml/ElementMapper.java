@@ -11,31 +11,9 @@
 package com.codenvy.commons.xml;
 
 /**
- * Describes new attribute.
- * Should be used to insert new attribute into existing tree
- * element or may be a part of {@link NewElement}.
- *
  * @author Eugene Voevodin
  */
-public final class NewAttribute extends QName {
+public interface ElementMapper<T> {
 
-    private String value;
-
-    public NewAttribute(String qName, String value) {
-        super(qName);
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public String asString() {
-        return getName() + '=' + '"' + value + '"';
-    }
-
-    @Override
-    public String toString() {
-        return asString();
-    }
+    T map(Element element);
 }
