@@ -608,6 +608,11 @@ public final class Element {
         return this;
     }
 
+    public Element insertChild(NewElement child, XMLTreePlace place) {
+        place.evalInsert(this, child);
+        return this;
+    }
+
     void setAttributeValue(Attribute attribute) {
         final Node attributeNode = getAttributeNode(attribute.getName());
         xmlTree.updateAttributeValue(attribute, attributeNode.getNodeValue());

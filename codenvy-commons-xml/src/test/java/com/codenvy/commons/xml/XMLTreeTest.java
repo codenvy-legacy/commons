@@ -22,6 +22,10 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static com.codenvy.commons.xml.NewElement.createElement;
+import static com.codenvy.commons.xml.XMLTreePlace.after;
+import static com.codenvy.commons.xml.XMLTreePlace.before;
+import static com.codenvy.commons.xml.XMLTreePlace.inTheEnd;
+import static com.codenvy.commons.xml.XMLTreePlace.inTheStart;
 import static com.google.common.io.Files.toByteArray;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.exists;
@@ -394,6 +398,102 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void shouldBeAbleToInsertChildAfterSpecifiedElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <modelVersion>4.0.0</modelVersion>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.getRoot()
+            .insertChild(createElement("packaging", "jar"), after("artifactId"));
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <modelVersion>4.0.0</modelVersion>\n" +
+                                      "    <artifactId>test-artifact</artifactId>\n" +
+                                      "    <packaging>jar</packaging>\n" +
+                                      "    <!-- project name -->\n" +
+                                      "    <name>Test</name>\n" +
+                                      "</project>");
+    }
+
+    @Test
+    public void shouldBeAbleToInsertChildBeforeSpecifiedElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <artifactId>test-artifact</artifactId>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.getRoot()
+            .insertChild(createElement("modelVersion", "4.0.0"), before("artifactId"));
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <modelVersion>4.0.0</modelVersion>\n" +
+                                      "    <artifactId>test-artifact</artifactId>\n" +
+                                      "    <packaging>jar</packaging>\n" +
+                                      "    <!-- project name -->\n" +
+                                      "    <name>Test</name>\n" +
+                                      "</project>");
+    }
+
+    @Test
+    public void shouldBeAbleToInsertChildInTheStartOfChildrenList() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <packaging>jar</packaging>\n" +
+                                          "    <!-- project name -->\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.getRoot()
+            .insertChild(createElement("modelVersion", "4.0.0"), before("artifactId").or(inTheStart()));
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <modelVersion>4.0.0</modelVersion>\n" +
+                                      "    <packaging>jar</packaging>\n" +
+                                      "    <!-- project name -->\n" +
+                                      "    <name>Test</name>\n" +
+                                      "</project>");
+    }
+
+    @Test
+    public void shouldBeAbleToInsertChildInTheEndOfChildrenList() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.getRoot()
+            .insertChild(createElement("groupId", "test-group-id"), after("artifactId").or(inTheEnd()));
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <name>Test</name>\n" +
+                                      "    <groupId>test-group-id</groupId>\n" +
+                                      "</project>");
+    }
+
+    @Test(expectedExceptions = XMLTreeException.class)
+    public void shouldThrowExceptionIfNotPossibleToInsertElementInSpecifiedPlace() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <name>Test</name>\n" +
+                                          "</project>");
+
+        tree.getRoot()
+            .insertChild(createElement("groupId", "test-group-id"), after("artifactId").or(after("version"))
+                                                                                       .or(after("parent"))
+                                                                                       .or(after("build")));
+    }
+
     public void shouldBeAbleToReplaceElement() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<project>\n" +
