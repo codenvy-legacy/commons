@@ -10,16 +10,14 @@
  *******************************************************************************/
 package com.codenvy.commons.lang;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,111 +31,128 @@ import java.util.zip.ZipOutputStream;
  * @author Eugene Voevodin
  */
 public class ZipUtils {
+    private static final int BUF_SIZE = 4096;
 
-    public static void zipDir(String zipRootPath, File dir, File zip, FilenameFilter filter) throws IOException {
+    public static void zipDir(String parentPath, File dir, File zip, FilenameFilter filter) throws IOException {
         if (!dir.isDirectory()) {
-            throw new IllegalArgumentException("Not a directory. ");
+            throw new IllegalArgumentException("Not a directory.");
+        }
+        if (!dir.getAbsolutePath().startsWith(parentPath)) {
+            throw new IllegalArgumentException("Invalid parent directory path " + parentPath);
         }
         if (filter == null) {
             filter = IoUtil.ANY_FILTER;
         }
         try (ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zip)))) {
-            zipOut.setLevel(0);
-            byte[] b = new byte[1024];
-            LinkedList<File> q = new LinkedList<File>();
-            q.add(dir);
-            while (!q.isEmpty()) {
-                File current = q.pop();
-                File[] list = current.listFiles();
-                if (list != null) {
-                    for (File f : list) {
-                        if (!filter.accept(current, f.getName())) {
-                            continue;
-                        }
-                        final String zipEntryName = f.getAbsolutePath().substring(zipRootPath.length() + 1).replace('\\', '/');
-                        if (f.isDirectory()) {
-                            q.push(f);
-                            zipOut.putNextEntry(new ZipEntry(zipEntryName.endsWith("/") ? zipEntryName : (zipEntryName + '/')));
-                            zipOut.closeEntry();
-                        } else {
-                            zipOut.putNextEntry(new ZipEntry(zipEntryName));
-                            try (InputStream in =  new BufferedInputStream(new FileInputStream(f))) {
-                                int r;
-                                while ((r = in.read(b)) != -1) {
-                                    zipOut.write(b, 0, r);
-                                }
-                            } finally {
-                                zipOut.closeEntry();
-                            }
-                        }
-                    }
-                }
-            }
+            zipOut.setLevel(0); // TODO: move in parameters of method
+            addDirectoryRecursively(zipOut, parentPath, dir, filter);
             zipOut.finish();
         }
     }
 
+    public static void zipFiles(File zip, File... files) throws IOException {
+        try (ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zip)))) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    addDirectoryEntry(zipOut, f.getName());
+                    final String parentPath = f.getParentFile().getAbsolutePath();
+                    addDirectoryRecursively(zipOut, parentPath, f, IoUtil.ANY_FILTER);
+                } else if (f.isFile()) {
+                    addFileEntry(zipOut, f.getName(), f);
+                }
+            }
+        }
+    }
+
+    private static void addDirectoryRecursively(ZipOutputStream zipOut, String parentPath, File dir, FilenameFilter filter)
+            throws IOException {
+        final int parentPathLength = parentPath.length() + 1;
+        final LinkedList<File> q = new LinkedList<>();
+        q.add(dir);
+        while (!q.isEmpty()) {
+            final File current = q.pop();
+            final File[] list = current.listFiles();
+            if (list != null) {
+                for (File f : list) {
+                    if (filter.accept(current, f.getName())) {
+                        final String entryName = f.getAbsolutePath().substring(parentPathLength).replace('\\', '/');
+                        if (f.isDirectory()) {
+                            addDirectoryEntry(zipOut, entryName);
+                            q.push(f);
+                        } else if (f.isFile()) {
+                            addFileEntry(zipOut, entryName, f);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static void addDirectoryEntry(ZipOutputStream zipOut, String entryName) throws IOException {
+        final ZipEntry zipEntry = new ZipEntry(entryName.endsWith("/") ? entryName : (entryName + '/'));
+        zipOut.putNextEntry(zipEntry);
+        zipOut.closeEntry();
+    }
+
+    private static void addFileEntry(ZipOutputStream zipOut, String entryName, File file) throws IOException {
+        final ZipEntry zipEntryEntry = new ZipEntry(entryName);
+        zipOut.putNextEntry(zipEntryEntry);
+        try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            final byte[] buf = new byte[BUF_SIZE];
+            int r;
+            while ((r = in.read(buf)) != -1) {
+                zipOut.write(buf, 0, r);
+            }
+        }
+        zipOut.closeEntry();
+    }
+
     public static Collection<String> listEntries(File zip) throws IOException {
-        return listEntries(new FileInputStream(zip));
+        try (InputStream in = new FileInputStream(zip)) {
+            return listEntries(in);
+        }
     }
 
     public static Collection<String> listEntries(InputStream in) throws IOException {
-        List<String> list = new ArrayList<String>();
-        ZipInputStream zipIn = null;
-        try {
-            zipIn = new ZipInputStream(in);
-            ZipEntry zipEntry;
-            while ((zipEntry = zipIn.getNextEntry()) != null) {
-                if (!zipEntry.isDirectory()) {
-                    list.add(zipEntry.getName());
-                }
-                zipIn.closeEntry();
+        final List<String> list = new LinkedList<>();
+        final ZipInputStream zipIn = new ZipInputStream(in);
+        ZipEntry zipEntry;
+        while ((zipEntry = zipIn.getNextEntry()) != null) {
+            if (!zipEntry.isDirectory()) {
+                list.add(zipEntry.getName());
             }
-        } finally {
-            if (zipIn != null) {
-                zipIn.close();
-            }
-            in.close();
+            zipIn.closeEntry();
         }
         return list;
     }
 
     public static void unzip(File zip, File targetDir) throws IOException {
-        unzip(new FileInputStream(zip), targetDir);
+        try (InputStream in = new FileInputStream(zip)) {
+            unzip(in, targetDir);
+        }
     }
 
     public static void unzip(InputStream in, File targetDir) throws IOException {
-        ZipInputStream zipIn = null;
-        try {
-            zipIn = new ZipInputStream(in);
-            byte[] b = new byte[8192];
-            ZipEntry zipEntry;
-            while ((zipEntry = zipIn.getNextEntry()) != null) {
-                File file = new File(targetDir, zipEntry.getName());
-                if (!zipEntry.isDirectory()) {
-                    File parent = file.getParentFile();
-                    if (!parent.exists()) {
-                        parent.mkdirs();
-                    }
-                    FileOutputStream fos = new FileOutputStream(file);
-                    try {
-                        int r;
-                        while ((r = zipIn.read(b)) != -1) {
-                            fos.write(b, 0, r);
-                        }
-                    } finally {
-                        fos.close();
-                    }
-                } else {
-                    file.mkdirs();
+        final ZipInputStream zipIn = new ZipInputStream(in);
+        final byte[] b = new byte[BUF_SIZE];
+        ZipEntry zipEntry;
+        while ((zipEntry = zipIn.getNextEntry()) != null) {
+            final File file = new File(targetDir, zipEntry.getName());
+            if (!zipEntry.isDirectory()) {
+                final File parent = file.getParentFile();
+                if (!parent.exists()) {
+                    parent.mkdirs();
                 }
-                zipIn.closeEntry();
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    int r;
+                    while ((r = zipIn.read(b)) != -1) {
+                        fos.write(b, 0, r);
+                    }
+                }
+            } else {
+                file.mkdirs();
             }
-        } finally {
-            if (zipIn != null) {
-                zipIn.close();
-            }
-            in.close();
+            zipIn.closeEntry();
         }
     }
 
@@ -146,49 +161,19 @@ public class ZipUtils {
      * Checks is specified file is zip file or not. Zip file <a href="http://en.wikipedia.org/wiki/Zip_(file_format)#File_headers">headers
      * description</a>.
      */
-    public static boolean isZipFile(java.io.File file) throws IOException {
+    public static boolean isZipFile(File file) throws IOException {
         if (file.isDirectory()) {
             return false;
         }
         // NOTE: little-indian bytes order!
-        byte[] bytes = new byte[4];
+        final byte[] bytes = new byte[4];
         try (FileInputStream fIn = new FileInputStream(file)) {
-            if (fIn.read(bytes) != 4) {
+            if (fIn.read(bytes) != bytes.length) {
                 return false;
             }
         }
         final int header = bytes[0] + (bytes[1] << 8) + (bytes[2] << 16) + (bytes[3] << 24);
         return 0x04034b50 == header;
-    }
-
-
-    /**
-     * Merges set of zip archives into one zip archive.
-     *
-     * @param archives
-     *         set of archives that will be merged
-     * @param targetArchive
-     *         result of merging. If file exists it will be replaced with new file.
-     * @param tmpDirParent
-     *         parent directory that will be used for temporary file storing. If it is {@code null} system property java.io.tmpdir will be
-     *         used. All temp files will be deleted after merging.
-     * @throws IOException when it is not possible to create temp directory, check file type, zip directory or unzip archive.
-     */
-    public static void mergeArchives(java.io.File targetArchive, java.io.File tmpDirParent, java.io.File... archives) throws IOException {
-        if (tmpDirParent == null) {
-            tmpDirParent = new File(System.getProperty("java.io.tmpdir"));
-        }
-        File tmp = Files.createTempDirectory(tmpDirParent.toPath(), "tmp").toFile();
-        try {
-            for (File archive : archives) {
-                if (isZipFile(archive)) {
-                    unzip(archive, tmp);
-                }
-            }
-            zipDir(tmp.getAbsolutePath(), tmp, targetArchive, IoUtil.ANY_FILTER);
-        } finally {
-            IoUtil.deleteRecursive(tmp);
-        }
     }
 
     private ZipUtils() {
