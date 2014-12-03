@@ -294,35 +294,6 @@ public final class Element {
     }
 
     /**
-     * Sets text to the child element.
-     * This method is really convenient when you need to
-     * set text content to child element if it exists or
-     * create child with text content if it doesn't.
-     * <p/>
-     * Child with given name should be single if
-     * it is not so {@link XMLTreeException} will be thrown.
-     * If child doesn't exist it will be appended to the end
-     * of children list.
-     *
-     * @param name
-     *         child name
-     * @param text
-     *         new text content
-     * @param createNew
-     *         if it is {@code true} and element doesn't have child with given
-     *         name then new element with given name and text
-     *         will be added as child to the end of children list
-     */
-    public Element setChildText(String name, String text, boolean createNew) {
-        if (hasChild(name)) {
-            getSingleChild(name).setText(text);
-        } else if (createNew) {
-            appendChild(NewElement.createElement(name, text));
-        }
-        return this;
-    }
-
-    /**
      * Returns text content of child with given name.
      *
      * @param childName
@@ -588,27 +559,15 @@ public final class Element {
     }
 
     /**
-     * If child with given name exists then it will be replaced
-     * with new element, otherwise it will be added to the
-     * end of children list. If there is more than only child
-     * with given name was found {@link XMLTreeException} will be thrown.
+     * Adds new element as child to the specified by {@link XMLTreeLocation} location.
+     * <p/>
+     * If it is not possible to insert element in specified location
+     * then {@link XMLTreeException} will be thrown
      *
-     * @param childName
-     *         child which should be replaced
-     * @param newChild
-     *         new element
+     * @param child
+     *         new child
      */
-    public Element setChild(String childName, NewElement newChild) {
-        final Element child = getSingleChild(childName);
-        if (child != null) {
-            child.replaceWith(newChild);
-        } else {
-            appendChild(newChild);
-        }
-        return this;
-    }
-
-    public Element insertChild(NewElement child, XMLTreePlace place) {
+    public Element insertChild(NewElement child, XMLTreeLocation place) {
         place.evalInsert(this, child);
         return this;
     }

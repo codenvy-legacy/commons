@@ -22,10 +22,10 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static com.codenvy.commons.xml.NewElement.createElement;
-import static com.codenvy.commons.xml.XMLTreePlace.after;
-import static com.codenvy.commons.xml.XMLTreePlace.before;
-import static com.codenvy.commons.xml.XMLTreePlace.inTheEnd;
-import static com.codenvy.commons.xml.XMLTreePlace.inTheStart;
+import static com.codenvy.commons.xml.XMLTreeLocation.after;
+import static com.codenvy.commons.xml.XMLTreeLocation.before;
+import static com.codenvy.commons.xml.XMLTreeLocation.inTheEnd;
+import static com.codenvy.commons.xml.XMLTreeLocation.inTheBegin;
 import static com.google.common.io.Files.toByteArray;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.exists;
@@ -453,7 +453,7 @@ public class XMLTreeTest {
                                           "</project>");
 
         tree.getRoot()
-            .insertChild(createElement("modelVersion", "4.0.0"), before("artifactId").or(inTheStart()));
+            .insertChild(createElement("modelVersion", "4.0.0"), before("artifactId").or(inTheBegin()));
 
         assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                       "<project>\n" +
@@ -527,39 +527,6 @@ public class XMLTreeTest {
                                       "</project>\n");
         assertEquals(tree.getElements("//dependency").size(), 1);
         assertEquals(tree.getSingleElement("//dependencies").getChildren().size(), 1);
-    }
-
-    @Test
-    public void setChildShouldReplaceExistingElementChild() {
-        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                                          "<project>\n" +
-                                          "    <artifactId>test-artifact</artifactId>\n" +
-                                          "</project>\n");
-
-        tree.getRoot()
-            .setChild("artifactId", createElement("artifactId", "new-artifact-id"));
-
-        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                                      "<project>\n" +
-                                      "    <artifactId>new-artifact-id</artifactId>\n" +
-                                      "</project>\n");
-    }
-
-    @Test
-    public void setChildShouldAppendChildIfElementDoesNotHaveChildWithGivenName() {
-        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                                          "<project>\n" +
-                                          "    <artifactId>test-artifact</artifactId>\n" +
-                                          "</project>\n");
-
-        tree.getRoot()
-            .setChild("groupId", createElement("groupId", "new-group-id"));
-
-        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                                      "<project>\n" +
-                                      "    <artifactId>test-artifact</artifactId>\n" +
-                                      "    <groupId>new-group-id</groupId>\n" +
-                                      "</project>\n");
     }
 
     @Test
