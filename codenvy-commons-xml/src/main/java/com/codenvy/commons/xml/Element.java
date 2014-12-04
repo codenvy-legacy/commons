@@ -59,6 +59,7 @@ public final class Element {
      * If element doesn't have prefix only local name will be returned
      */
     public String getName() {
+        checkNotRemoved();
         return delegate.getTagName();
     }
 
@@ -66,6 +67,7 @@ public final class Element {
      * Returns local name of element
      */
     public String getLocalName() {
+        checkNotRemoved();
         return delegate.getLocalName();
     }
 
@@ -73,6 +75,7 @@ public final class Element {
      * Element prefix or {@code null} if element name is not prefixed
      */
     public String getPrefix() {
+        checkNotRemoved();
         return delegate.getPrefix();
     }
 
@@ -81,6 +84,7 @@ public final class Element {
      * {@code null} if element doesn't have parent
      */
     public Element getParent() {
+        checkNotRemoved();
         return asElement(delegate.getParentNode());
     }
 
@@ -93,6 +97,7 @@ public final class Element {
      *         name to search sibling
      */
     public Element getSingleSibling(String name) {
+        checkNotRemoved();
         checkNotNull(name, "sibling name");
         Element target = null;
         for (Element sibling : asElements(delegate.getParentNode().getChildNodes())) {
@@ -116,6 +121,7 @@ public final class Element {
      *         name to search child
      */
     public Element getSingleChild(String name) {
+        checkNotRemoved();
         checkNotNull(name, "child name");
         for (Element child : asElements(delegate.getChildNodes())) {
             if (name.equals(child.getName())) {
@@ -133,6 +139,7 @@ public final class Element {
      * element doesn't have children
      */
     public Element getLastChild() {
+        checkNotRemoved();
         final Node lastChild = delegate.getLastChild();
         if (lastChild != null && lastChild.getNodeType() != ELEMENT_NODE) {
             return asElement(previousElementNode(lastChild));
@@ -145,6 +152,7 @@ public final class Element {
      * if element doesn't have children
      */
     public Element getFirstChild() {
+        checkNotRemoved();
         final Node firstChild = delegate.getFirstChild();
         if (firstChild.getNodeType() != ELEMENT_NODE) {
             return asElement(nextElementNode(firstChild));
@@ -157,6 +165,7 @@ public final class Element {
      * if element doesn't have children
      */
     public List<Element> getChildren() {
+        checkNotRemoved();
         return asElements(delegate.getChildNodes());
     }
 
@@ -168,6 +177,7 @@ public final class Element {
      *         function which will be applied on each child element
      */
     public <R> List<R> getChildren(ElementMapper<? extends R> mapper) {
+        checkNotRemoved();
         return asElements(delegate.getChildNodes(), mapper);
     }
 
@@ -175,6 +185,7 @@ public final class Element {
      * Returns element text content
      */
     public String getText() {
+        checkNotRemoved();
         return fetchText();
     }
 
@@ -183,6 +194,7 @@ public final class Element {
      * given name, otherwise returns {@code false}
      */
     public boolean hasSibling(String name) {
+        checkNotRemoved();
         checkNotNull(name, "sibling name");
         final NodeList nodes = delegate.getParentNode().getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
@@ -198,6 +210,7 @@ public final class Element {
      * otherwise returns {@code false}
      */
     public boolean hasParent() {
+        checkNotRemoved();
         return delegate.getParentNode() != null && delegate.getParentNode().getNodeType() != DOCUMENT_NODE;
     }
 
@@ -206,6 +219,7 @@ public final class Element {
      * if element doesn't have previous sibling
      */
     public Element getPreviousSibling() {
+        checkNotRemoved();
         return asElement(previousElementNode(delegate));
     }
 
@@ -214,6 +228,7 @@ public final class Element {
      * if element doesn't have next sibling
      */
     public Element getNextSibling() {
+        checkNotRemoved();
         return asElement(nextElementNode(delegate));
     }
 
@@ -222,6 +237,7 @@ public final class Element {
      * if element doesn't have attributes
      */
     public List<Attribute> getAttributes() {
+        checkNotRemoved();
         if (delegate != null && delegate.hasAttributes()) {
             final NamedNodeMap attributes = delegate.getAttributes();
             final List<Attribute> copy = new ArrayList<>(attributes.getLength());
@@ -239,6 +255,7 @@ public final class Element {
      * empty list if element doesn't have siblings
      */
     public List<Element> getSiblings() {
+        checkNotRemoved();
         final List<Element> siblings = asElements(delegate.getParentNode().getChildNodes());
         siblings.remove(asElement(delegate));
         return siblings;
@@ -252,6 +269,7 @@ public final class Element {
      *         child name to check
      */
     public boolean hasChild(String name) {
+        checkNotRemoved();
         checkNotNull(name, "child name");
         final NodeList nodes = delegate.getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
@@ -267,6 +285,7 @@ public final class Element {
      * or {@code false} if doesn't
      */
     public boolean hasChildren() {
+        checkNotRemoved();
         final NodeList childNodes = delegate.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             if (childNodes.item(i).getNodeType() == ELEMENT_NODE) {
@@ -283,6 +302,7 @@ public final class Element {
      *         new text content
      */
     public Element setText(String newText) {
+        checkNotRemoved();
         checkNotNull(newText, "new text");
         if (!newText.equals(getText())) {
             removeTextNodes();
@@ -318,6 +338,7 @@ public final class Element {
      * @return child text
      */
     public String getChildTextOrDefault(String childName, String defaultValue) {
+        checkNotRemoved();
         checkNotNull(childName, "child name");
         return hasSingleChild(childName) ? getSingleChild(childName).getText() : defaultValue;
     }
@@ -330,6 +351,7 @@ public final class Element {
      *         name of sibling
      */
     public boolean hasSingleChild(String childName) {
+        checkNotRemoved();
         checkNotNull(childName, "child name");
         for (Element child : asElements(delegate.getChildNodes())) {
             if (childName.equals(child.getName())) {
@@ -347,6 +369,7 @@ public final class Element {
      *         child name to removeElement
      */
     public Element removeChild(String name) {
+        checkNotRemoved();
         final Element child = getSingleChild(name);
         if (child != null) {
             child.remove();
@@ -358,6 +381,7 @@ public final class Element {
      * Removes current element
      */
     public void remove() {
+        checkNotRemoved();
         notPermittedOnRootElement();
         //let tree do dirty job
         xmlTree.removeElement(this);
@@ -375,6 +399,7 @@ public final class Element {
      *         name to remove children
      */
     public Element removeChildren(String name) {
+        checkNotRemoved();
         final List<Node> matched = new LinkedList<>();
         final NodeList nodes = delegate.getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
@@ -408,6 +433,7 @@ public final class Element {
      * then existing attribute value will be replaced with {@code newAttribute#value}.
      */
     public Element setAttribute(NewAttribute newAttribute) {
+        checkNotRemoved();
         //if tree already contains element replace value
         if (hasAttribute(newAttribute.getName())) {
             final Attribute attr = getAttribute(newAttribute.getName());
@@ -431,6 +457,7 @@ public final class Element {
      * nothing will be done.
      */
     public Element removeAttribute(String name) {
+        checkNotRemoved();
         final Attribute attribute = getAttribute(name);
         if (attribute != null) {
             xmlTree.removeAttribute(attribute);
@@ -447,6 +474,7 @@ public final class Element {
      *         name of attribute to check
      */
     public boolean hasAttribute(String name) {
+        checkNotRemoved();
         return delegate.hasAttribute(name);
     }
 
@@ -466,6 +494,7 @@ public final class Element {
      *         name to search attribute
      */
     public Attribute getAttribute(String name) {
+        checkNotRemoved();
         checkNotNull(name, "attribute name");
         if (delegate.hasAttributes()) {
             return asAttribute(getAttributeNode(name));
@@ -481,6 +510,7 @@ public final class Element {
      * @return newly created element
      */
     public Element replaceWith(NewElement newElement) {
+        checkNotRemoved();
         notPermittedOnRootElement();
         checkNotNull(newElement, "new element");
         insertAfter(newElement);
@@ -497,6 +527,7 @@ public final class Element {
      *         of children list
      */
     public Element appendChild(NewElement newElement) {
+        checkNotRemoved();
         checkNotNull(newElement, "new element");
         if (isVoid()) {
             throw new XMLTreeException("Append child is not permitted on void elements");
@@ -517,6 +548,7 @@ public final class Element {
      *         element which will be inserted after current
      */
     public Element insertAfter(NewElement newElement) {
+        checkNotRemoved();
         notPermittedOnRootElement();
         checkNotNull(newElement, "new element");
         final Node newNode = createNode(newElement);
@@ -541,6 +573,7 @@ public final class Element {
      *         element which will be inserted before current
      */
     public Element insertBefore(NewElement newElement) {
+        checkNotRemoved();
         notPermittedOnRootElement();
         checkNotNull(newElement, "new element");
         //if element has previous sibling insert new element after it
@@ -573,6 +606,7 @@ public final class Element {
     }
 
     void setAttributeValue(Attribute attribute) {
+        checkNotRemoved();
         final Node attributeNode = getAttributeNode(attribute.getName());
         xmlTree.updateAttributeValue(attribute, attributeNode.getNodeValue());
         getAttributeNode(attribute.getName()).setNodeValue(attribute.getValue());
@@ -646,6 +680,12 @@ public final class Element {
     private void notPermittedOnRootElement() {
         if (!hasParent()) {
             throw new XMLTreeException("Operation not permitted for root element");
+        }
+    }
+
+    private void checkNotRemoved() {
+        if (delegate == null) {
+            throw new XMLTreeException("Operation not permitted for element which was removed from XMLTree");
         }
     }
 
