@@ -20,7 +20,7 @@
     </parent>
     <groupId>com.codenvy.commons</groupId>
     <artifactId>codenvy-commons-parent</artifactId>
-    <version>0.39.0</version>
+    <version>0.40.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Codenvy :: Commons</name>
     <modules>
@@ -33,7 +33,7 @@
     <scm>
         <connection>scm:git:git@github.com:codenvy/commons.git</connection>
         <developerConnection>scm:git:git@github.com:codenvy/commons.git</developerConnection>
-        <tag>0.39.0</tag>
+        <tag>HEAD</tag>
         <url>https://fisheye.codenvycorp.com/browse/commons</url>
     </scm>
     <repositories>
