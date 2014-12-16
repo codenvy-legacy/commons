@@ -1423,6 +1423,37 @@ public class XMLTreeTest {
     }
 
     @Test
+    public void shouldBeAbleToCreateTreeWhichContainsInstructionElement() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "    <configuration>\n" +
+                                          "        <tasks>\n" +
+                                          "            <?SORTPOM IGNORE?>\n" +
+                                          "            <echo append=\"false\" file=\"${project.build.directory}/classes/com/codenvy/ide/BuildInfo.properties\">\n" +
+                                          "                  revision= ${revision}\n" +
+                                          "                  buildTime = ${timestamp}\n" +
+                                          "                  version = ${codenvy.cloud-ide.version}\n" +
+                                          "            </echo>\n" +
+                                          "            <?SORTPOM RESUME?>\n" +
+                                          "        </tasks>\n" +
+                                          "     </configuration>\n" +
+                                          "</project>");
+
+        tree.updateText("//echo", "new text content");
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <configuration>\n" +
+                                      "        <tasks>\n" +
+                                      "            <?SORTPOM IGNORE?>\n" +
+                                      "            <echo append=\"false\" file=\"${project.build.directory}/classes/com/codenvy/ide/BuildInfo.properties\">new text content</echo>\n" +
+                                      "            <?SORTPOM RESUME?>\n" +
+                                      "        </tasks>\n" +
+                                      "     </configuration>\n" +
+                                      "</project>");
+    }
+
+    @Test
     public void shouldBeAbleToWriteTreeBytesToPath() throws Exception {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
         final Path path = targetDir().resolve("test-xml.xml");
