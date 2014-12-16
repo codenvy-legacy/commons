@@ -1423,7 +1423,7 @@ public class XMLTreeTest {
     }
 
     @Test
-    public void shouldBeAbleToCreateTreeWhichContainsInstructionElement() {
+    public void shouldBeAbleToCreateTreeFromXMLWhichContainsInstructionElement() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<project>\n" +
                                           "    <configuration>\n" +
