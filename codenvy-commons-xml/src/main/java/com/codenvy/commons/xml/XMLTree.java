@@ -53,6 +53,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.lastIndexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.openTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
+import static com.google.common.io.ByteStreams.read;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.readAllBytes;
 import static javax.xml.XMLConstants.XML_NS_URI;
@@ -65,6 +66,7 @@ import static javax.xml.stream.XMLStreamConstants.SPACE;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.STRING;
+import static org.w3c.dom.Node.CDATA_SECTION_NODE;
 
 /**
  * XML tool which provides abilities to modify and search
@@ -450,17 +452,19 @@ public final class XMLTree {
                     //characters event may be invoked 2 or more times
                     //on the element text, but related node is single text node
                     //so only segment should be created for it
+                    final Node nextNode = deepNext(node, true);
                     final int left = beforeStart + 1;
-                    final int right = offset(reader);
+                    final int right = nextNode.getNodeType() == CDATA_SECTION_NODE ?
+                                      offset(reader) :
+                                      charOffset(reader);
                     //if element has more text which be available
                     //with next event invocation - skip current invocation
                     if (left <= right) {
-                        current.text.add(new Segment(beforeStart + 1, offset(reader)));
-                        beforeStart = offset(reader);
-                        node = deepNext(node, true);
+                        current.text.add(new Segment(left, right));
+                        beforeStart = right;
+                        node = nextNode;
                     }
                     break;
-                case CDATA:
                 case COMMENT:
                 case SPACE:
                 case PROCESSING_INSTRUCTION:
@@ -907,12 +911,20 @@ public final class XMLTree {
      */
     private int offset(XMLStreamReader reader) {
         int offset = reader.getLocation().getCharacterOffset();
-        if (reader.getEventType() != CHARACTERS) {
-            while (offset >= xml.length || xml[offset] != '>') {
-                offset--;
-            }
-            return offset;
+        while (offset >= xml.length || xml[offset] != '>') {
+            offset--;
         }
+        return offset;
+    }
+
+    /**
+     * Calculates characters offset
+     *
+     * @param reader
+     *         reader to get offset from
+     */
+    private int charOffset(XMLStreamReader reader) {
+        int offset = reader.getLocation().getCharacterOffset();
         while (offset >= xml.length || xml[offset] != '<') {
             offset--;
         }

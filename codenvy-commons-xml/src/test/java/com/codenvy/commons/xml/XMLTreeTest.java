@@ -494,6 +494,7 @@ public class XMLTreeTest {
                                                                                        .or(after("build")));
     }
 
+    @Test
     public void shouldBeAbleToReplaceElement() {
         final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<project>\n" +
@@ -540,7 +541,6 @@ public class XMLTreeTest {
         assertEquals(modelVersion.getPreviousSibling().getText(), "This is test pom.xml");
         assertEquals(tree.getSingleText("/project/description"), "This is test pom.xml");
     }
-
 
     @Test
     public void shouldBeAbleToRemoveElementByTree() {
@@ -1450,6 +1450,39 @@ public class XMLTreeTest {
                                       "            <?SORTPOM RESUME?>\n" +
                                       "        </tasks>\n" +
                                       "     </configuration>\n" +
+                                      "</project>");
+    }
+
+    @Test
+    public void shouldBeAbleToCreateTreeFromXMLWhichContainsCoupleOfCDATAElements() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\n" +
+                                          "<!-- Spring security authen/authorize query string -->\n" +
+                                          "<security.query.authen>\n" +
+                                          "<![CDATA[\n" +
+                                          "select u.login as user, u.password as password, case when u.status = 'ok' " +
+                                          "then 1 else 0 end as enabled \n" +
+                                          "from ${jdbc.default.schema}.USER u \n" +
+                                          "where u.login = ? and u.status = 'ok'" +
+                                          "]]>\n\n\n\n" +
+                                          "</security.query.authen>\n" +
+                                          "<security.query.authorize>\n" +
+                                          "<![CDATA[\n" +
+                                          "select u.login as user, u.password as password, case when u.status = 'ok' " +
+                                          "then 1 else 0 end as enabled \n" +
+                                          "from ${jdbc.default.schema}.USER u \n" +
+                                          "where u.login = ? and u.status = 'ok'" +
+                                          "]]>\na" +
+                                          "</security.query.authorize>\n" +
+                                          "</project>");
+
+        tree.removeElement("//security.query.authorize");
+        tree.updateText("//security.query.authen", "new-text");
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "<!-- Spring security authen/authorize query string -->\n" +
+                                      "<security.query.authen>new-text</security.query.authen>\n" +
                                       "</project>");
     }
 

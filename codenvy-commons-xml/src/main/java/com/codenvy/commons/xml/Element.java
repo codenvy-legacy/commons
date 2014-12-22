@@ -182,7 +182,10 @@ public final class Element {
     }
 
     /**
-     * Returns element text content
+     * Returns element text content.
+     * <p/>
+     * Only current element text will be returned,
+     * children text or "CDATA" section will be skipped.
      */
     public String getText() {
         checkNotRemoved();
