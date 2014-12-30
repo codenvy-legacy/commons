@@ -160,10 +160,12 @@ public class TarUtils {
     public static void untar(InputStream in, File targetDir) throws IOException {
         final TarArchiveInputStream tarIn = new TarArchiveInputStream(in);
         byte[] b = new byte[BUF_SIZE];
-        TarArchiveEntry zipEntry;
-        while ((zipEntry = tarIn.getNextTarEntry()) != null) {
-            final File file = new File(targetDir, zipEntry.getName());
-            if (!zipEntry.isDirectory()) {
+        TarArchiveEntry tarEntry;
+        while ((tarEntry = tarIn.getNextTarEntry()) != null) {
+            final File file = new File(targetDir, tarEntry.getName());
+            if (tarEntry.isDirectory()) {
+                file.mkdirs();
+            } else {
                 final File parent = file.getParentFile();
                 if (!parent.exists()) {
                     parent.mkdirs();
@@ -174,8 +176,6 @@ public class TarUtils {
                         fos.write(b, 0, r);
                     }
                 }
-            } else {
-                file.mkdirs();
             }
         }
     }
