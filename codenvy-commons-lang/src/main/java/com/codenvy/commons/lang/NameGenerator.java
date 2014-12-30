@@ -29,17 +29,28 @@ public class NameGenerator {
     }
 
     public static String generate(String prefix, int length) {
-        StringBuilder b;
-        if (prefix == null || prefix.isEmpty()) {
-            b = new StringBuilder(length);
-        } else {
-            b = new StringBuilder(length + prefix.length());
-            b.append(prefix);
+        return generate(prefix, null, length);
+    }
+
+    public static String generate(String prefix, String suffix, int length) {
+        int bufLength = length;
+        if (prefix != null) {
+            bufLength += prefix.length();
+        }
+        if (suffix != null) {
+            bufLength += suffix.length();
+        }
+        final StringBuilder buf = new StringBuilder(bufLength);
+        if (suffix != null && !suffix.isEmpty()) {
+            buf.append(prefix);
         }
         for (int i = 0; i < length; i++) {
-            b.append(CHARS[RANDOM.nextInt(CHARS.length)]);
+            buf.append(CHARS[RANDOM.nextInt(CHARS.length)]);
         }
-        return b.toString();
+        if (suffix != null && !suffix.isEmpty()) {
+            buf.append(suffix);
+        }
+        return buf.toString();
     }
 
     private NameGenerator() {
