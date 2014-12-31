@@ -41,7 +41,7 @@ public class NameGenerator {
             bufLength += suffix.length();
         }
         final StringBuilder buf = new StringBuilder(bufLength);
-        if (suffix != null && !suffix.isEmpty()) {
+        if (prefix != null && !prefix.isEmpty()) {
             buf.append(prefix);
         }
         for (int i = 0; i < length; i++) {
