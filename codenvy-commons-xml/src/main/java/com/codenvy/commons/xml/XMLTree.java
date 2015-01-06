@@ -147,7 +147,7 @@ public final class XMLTree {
      */
     public static XMLTree from(byte[] xml) {
         checkNotNull(xml, "xml bytes");
-        return new XMLTree(xml);
+        return new XMLTree(Arrays.copyOf(xml, xml.length));
     }
 
     /**
