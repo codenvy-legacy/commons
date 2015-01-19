@@ -57,6 +57,11 @@ public final class Element {
     /**
      * Returns name of element as <i>prefix:name</i>.
      * If element doesn't have prefix only local name will be returned
+     *
+     * @return name of element tag as <i>prefix:name</i>
+     * @throws XMLTreeException
+     *         when {@link #remove()} has been invoked on this element instance
+     * @see org.w3c.dom.Element#getTagName()
      */
     public String getName() {
         checkNotRemoved();
@@ -65,6 +70,11 @@ public final class Element {
 
     /**
      * Returns local name of element
+     *
+     * @return element local name
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @see org.w3c.dom.Element#getLocalName()
      */
     public String getLocalName() {
         checkNotRemoved();
@@ -72,7 +82,12 @@ public final class Element {
     }
 
     /**
-     * Element prefix or {@code null} if element name is not prefixed
+     * Returns element name prefix or {@code null} if element name is not prefixed
+     *
+     * @return element name prefix
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @see org.w3c.dom.Element#getPrefix()
      */
     public String getPrefix() {
         checkNotRemoved();
@@ -80,8 +95,11 @@ public final class Element {
     }
 
     /**
-     * Returns parent element for this element or
-     * {@code null} if element doesn't have parent
+     * Returns element parent or {@code null} if element doesn't have parent.
+     *
+     * @return element parent or {@code null} if element is xml root
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element getParent() {
         checkNotRemoved();
@@ -90,11 +108,19 @@ public final class Element {
 
     /**
      * Searches for element sibling with given name.
-     * If more then only sibling was found throws {@link XMLTreeException}.
-     * If sibling with given name doesn't exist returns {@code null}
+     * If more than one sibling was found throws {@link XMLTreeException}.
+     * If sibling with given name doesn't exist returns {@code null}.
+     * <p/>
+     * Note that {@link #getName} method used to compare element names.
      *
      * @param name
-     *         name to search sibling
+     *         sibling name to search
+     * @return element sibling with given name or {@code null} if sibling with given <i>name</i> was not found
+     * @throws XMLTreeException
+     *         when element has more than one sibling with given <i>name</i>
+     *         or this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when name parameter is {@code null}
      */
     public Element getSingleSibling(String name) {
         checkNotRemoved();
@@ -103,7 +129,7 @@ public final class Element {
         for (Element sibling : asElements(delegate.getParentNode().getChildNodes())) {
             if (this != sibling && sibling.getName().equals(name)) {
                 if (target != null) {
-                    throw new XMLTreeException("Element " + name + " has more then only sibling with name " + name);
+                    throw new XMLTreeException("Element " + name + " has more than one sibling with name " + name);
                 }
                 target = sibling;
             }
@@ -113,12 +139,19 @@ public final class Element {
 
     /**
      * Searches for element child with given name.
-     * If element has more then only child with given name
-     * then {@link XMLTreeException} will ne thrown.
+     * If element has more then only child with given name then {@link XMLTreeException} will be thrown.
      * If child with given name doesn't exist returns {@code null}
+     * <p/>
+     * Note that {@link #getName} method used to compare element names.
      *
      * @param name
      *         name to search child
+     * @return child element with given name or {@code null} if element with given name was not found
+     * @throws XMLTreeException
+     *         when element has more than one child with given <i>name</i>
+     *         or  this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when name parameter is {@code null}
      */
     public Element getSingleChild(String name) {
         checkNotRemoved();
@@ -135,8 +168,11 @@ public final class Element {
     }
 
     /**
-     * Returns last element child or {@code null} if
-     * element doesn't have children
+     * Returns last element child or {@code null} if element doesn't have children
+     *
+     * @return last child element or {@code null} if this element doesn't have children
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element getLastChild() {
         checkNotRemoved();
@@ -148,8 +184,11 @@ public final class Element {
     }
 
     /**
-     * Returns first element child or {@code null}
-     * if element doesn't have children
+     * Returns first element child or {@code null} if element doesn't have children
+     *
+     * @return first child element or {@code null} if this element doesn't have children
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element getFirstChild() {
         checkNotRemoved();
@@ -161,8 +200,11 @@ public final class Element {
     }
 
     /**
-     * Returns element children or empty list
-     * if element doesn't have children
+     * Returns element children or empty list when element doesn't have children
+     *
+     * @return list of element children
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public List<Element> getChildren() {
         checkNotRemoved();
@@ -170,11 +212,15 @@ public final class Element {
     }
 
     /**
-     * Return children mapped with given mapper or empty list
-     * if element doesn't have children
+     * Returns children mapped with given mapper or empty list when element doesn't have children
      *
      * @param mapper
      *         function which will be applied on each child element
+     * @param <R>
+     *         mapper result type
+     * @return list of element children which are mapped with given mapper
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public <R> List<R> getChildren(ElementMapper<? extends R> mapper) {
         checkNotRemoved();
@@ -184,8 +230,12 @@ public final class Element {
     /**
      * Returns element text content.
      * <p/>
-     * Only current element text will be returned,
-     * children text or "CDATA" section will be skipped.
+     * Note that only element text going to be fetched, no CDATA
+     * or children text content.
+     *
+     * @return element text content
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public String getText() {
         checkNotRemoved();
@@ -193,8 +243,13 @@ public final class Element {
     }
 
     /**
-     * Returns {@code true} if element has sibling with
-     * given name, otherwise returns {@code false}
+     * Returns {@code true} if element has at least one sibling with given name, otherwise returns {@code false}.
+     *
+     * @return {@code true} if element has at least one singling with given name, otherwise {@code false}.
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when name parameter is {@code null}
      */
     public boolean hasSibling(String name) {
         checkNotRemoved();
@@ -209,8 +264,11 @@ public final class Element {
     }
 
     /**
-     * Returns {@code true} if element has parent,
-     * otherwise returns {@code false}
+     * Returns {@code true} if this element instance is xml root element, otherwise returns {@code false}
+     *
+     * @return {@code true} if element has parent, otherwise {@code false}
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public boolean hasParent() {
         checkNotRemoved();
@@ -218,8 +276,11 @@ public final class Element {
     }
 
     /**
-     * Returns previous element sibling or {@code null}
-     * if element doesn't have previous sibling
+     * Returns previous element sibling or {@code null} when element doesn't have previous sibling
+     *
+     * @return previous element sibling or {@code null} when element doesn't have previous sibling
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element getPreviousSibling() {
         checkNotRemoved();
@@ -227,8 +288,11 @@ public final class Element {
     }
 
     /**
-     * Returns next element sibling or {@code null}
-     * if element doesn't have next sibling
+     * Returns next element sibling or {@code null} if element doesn't have next sibling
+     *
+     * @return next element sibling or {@code null} if element doesn't have next sibling
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element getNextSibling() {
         checkNotRemoved();
@@ -236,8 +300,14 @@ public final class Element {
     }
 
     /**
-     * Returns element attributes or empty list
-     * if element doesn't have attributes
+     * Returns element attributes or empty list if element doesn't have attributes.
+     * <p/>
+     * When element doesn't have attributes returns {@link java.util.Collections#emptyList()}
+     * which is unmodifiable, so clients should not use list 'update' methods.
+     *
+     * @return list of element attributes or empty list if element doesn't have attributes
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public List<Attribute> getAttributes() {
         checkNotRemoved();
@@ -254,8 +324,11 @@ public final class Element {
     }
 
     /**
-     * Returns list of element sibling or
-     * empty list if element doesn't have siblings
+     * Returns list of element sibling or empty list if element doesn't have siblings.
+     *
+     * @return list of element sibling
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public List<Element> getSiblings() {
         checkNotRemoved();
@@ -265,11 +338,16 @@ public final class Element {
     }
 
     /**
-     * Returns {@code true} if element has child with given name,
+     * Returns {@code true} if element has at least one child with given name,
      * otherwise returns {@code false}.
      *
      * @param name
      *         child name to check
+     * @return {@code true} if element has at least one child with given name, otherwise {@code false}
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when name parameter is {@code null}
      */
     public boolean hasChild(String name) {
         checkNotRemoved();
@@ -284,8 +362,11 @@ public final class Element {
     }
 
     /**
-     * Returns {@code true} if element has at least one child
-     * or {@code false} if doesn't
+     * Returns {@code true} if element has at least one child or {@code false} if doesn't
+     *
+     * @return {@code true} if element has at least one child or {@code false} if doesn't
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public boolean hasChildren() {
         checkNotRemoved();
@@ -303,6 +384,10 @@ public final class Element {
      *
      * @param newText
      *         new text content
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when newText parameter is {@code null}
      */
     public Element setText(String newText) {
         checkNotRemoved();
@@ -322,7 +407,7 @@ public final class Element {
      * @param childName
      *         child name to fetch text content
      * @return child text or {@code null} if child doesn't exist or
-     * element has more then only child with given {@param name}
+     * element has more then only child with given name
      */
     public String getChildText(String childName) {
         return getChildTextOrDefault(childName, null);
@@ -330,8 +415,7 @@ public final class Element {
 
     /**
      * Returns text content of child with given name or
-     * default value if child doesn't exist or it has
-     * sibling with same name
+     * default value if child doesn't exist or it has sibling with same name
      *
      * @param childName
      *         name of child
@@ -339,6 +423,10 @@ public final class Element {
      *         value which will be returned if child doesn't exist
      *         or it has sibling with same name
      * @return child text
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when childName parameter is {@code null}
      */
     public String getChildTextOrDefault(String childName, String defaultValue) {
         checkNotRemoved();
@@ -352,6 +440,11 @@ public final class Element {
      *
      * @param childName
      *         name of sibling
+     * @return {@code true} if element has only sibling with given name otherwise {@code false}
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when childName parameter is {@code null}
      */
     public boolean hasSingleChild(String childName) {
         checkNotRemoved();
@@ -370,6 +463,9 @@ public final class Element {
      *
      * @param name
      *         child name to removeElement
+     * @return this element instance
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element removeChild(String name) {
         checkNotRemoved();
@@ -381,11 +477,20 @@ public final class Element {
     }
 
     /**
-     * Removes current element
+     * Removes current element and related children from xml
+     *
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     *         or on root element instance
      */
     public void remove() {
         checkNotRemoved();
         notPermittedOnRootElement();
+        if (hasChildren()) {
+            for (Element element : getChildren()) {
+                element.remove();
+            }
+        }
         //let tree do dirty job
         xmlTree.removeElement(this);
         //remove self from document
@@ -400,6 +505,9 @@ public final class Element {
      *
      * @param name
      *         name to remove children
+     * @return this element instance
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element removeChildren(String name) {
         checkNotRemoved();
@@ -425,6 +533,9 @@ public final class Element {
      *         attribute name
      * @param value
      *         attribute value
+     * @return this element instance
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element setAttribute(String name, String value) {
         return setAttribute(new NewAttribute(name, value));
@@ -434,9 +545,16 @@ public final class Element {
      * Sets new attribute to element.
      * If element has attribute with {@code newAttribute#name}
      * then existing attribute value will be replaced with {@code newAttribute#value}.
+     *
+     * @param newAttribute
+     *         attribute that should be added to element
+     * @return this element instance
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public Element setAttribute(NewAttribute newAttribute) {
         checkNotRemoved();
+        checkNotNull(newAttribute, "new attribute");
         //if tree already contains element replace value
         if (hasAttribute(newAttribute.getName())) {
             final Attribute attr = getAttribute(newAttribute.getName());
@@ -458,6 +576,14 @@ public final class Element {
      * Removes attribute with given name.
      * If element doesn't have attribute with given name
      * nothing will be done.
+     *
+     * @param name
+     *         name of attribute which should be removed from element
+     * @return this element instance
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when name parameter is {@code null}
      */
     public Element removeAttribute(String name) {
         checkNotRemoved();
@@ -475,6 +601,9 @@ public final class Element {
      *
      * @param name
      *         name of attribute to check
+     * @return {@code true} if element has attribute with {@code name} otherwise {@code false}
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
      */
     public boolean hasAttribute(String name) {
         checkNotRemoved();
@@ -495,6 +624,11 @@ public final class Element {
      *
      * @param name
      *         name to search attribute
+     * @return attribute with {@code name} or {@code null} if nothing found
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when name parameter is {@code null}
      */
     public Attribute getAttribute(String name) {
         checkNotRemoved();
@@ -511,6 +645,11 @@ public final class Element {
      * @param newElement
      *         new element which is replacement for current element
      * @return newly created element
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     *         or this element is root element
+     * @throws IllegalArgumentException
+     *         when newElement parameter is {@code null}
      */
     public Element replaceWith(NewElement newElement) {
         checkNotRemoved();
@@ -526,8 +665,12 @@ public final class Element {
      * Appends new element to the end of children list
      *
      * @param newElement
-     *         element which will be inserted to the end
-     *         of children list
+     *         element which will be inserted to the end of children list
+     * @return this element instance
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when newElement parameter is {@code null}
      */
     public Element appendChild(NewElement newElement) {
         checkNotRemoved();
@@ -549,6 +692,11 @@ public final class Element {
      *
      * @param newElement
      *         element which will be inserted after current
+     * @return this element instance
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when newElement parameter is {@code null}
      */
     public Element insertAfter(NewElement newElement) {
         checkNotRemoved();
@@ -574,6 +722,11 @@ public final class Element {
      *
      * @param newElement
      *         element which will be inserted before current
+     * @return this element instance
+     * @throws XMLTreeException
+     *         when this element has been removed from xml tree
+     * @throws IllegalArgumentException
+     *         when newElement parameter is {@code null}
      */
     public Element insertBefore(NewElement newElement) {
         checkNotRemoved();
@@ -688,7 +841,7 @@ public final class Element {
 
     private void checkNotRemoved() {
         if (delegate == null) {
-            throw new XMLTreeException("Operation not permitted for element which was removed from XMLTree");
+            throw new XMLTreeException("Operation not permitted for element which has been removed from XMLTree");
         }
     }
 

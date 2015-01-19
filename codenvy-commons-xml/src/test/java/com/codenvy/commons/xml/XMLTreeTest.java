@@ -1486,6 +1486,19 @@ public class XMLTreeTest {
                                       "</project>");
     }
 
+    @Test(expectedExceptions = XMLTreeException.class,
+          expectedExceptionsMessageRegExp = "Operation not permitted for element which has been removed from XMLTree")
+    public void shouldNotBeAbleToUseElementWhenParentWasRemovedFromTree() {
+        final XMLTree tree = XMLTree.from(XML_CONTENT);
+
+        final Element firstDep = tree.getSingleElement("/project/dependencies/dependency[1]");
+        assertNotNull(firstDep.getText());
+
+        tree.removeElement("/project/dependencies");
+
+        firstDep.getText();
+    }
+
     @Test
     public void shouldBeAbleToWriteTreeBytesToPath() throws Exception {
         final XMLTree tree = XMLTree.from(XML_CONTENT);
