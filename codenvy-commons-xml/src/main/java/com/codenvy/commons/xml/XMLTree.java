@@ -566,7 +566,7 @@ public final class XMLTree {
                          insertHere,
                          '\n' + tabulate(newElement.asString(), level));
         //shift existing segments which are after parent start
-        shiftSegments(parent.start.right, xml.length - lengthBefore);
+        shiftSegments(insertHere, xml.length - lengthBefore);
         //create and set up start, end, text segments to created element
         applySegments(newElement, relatedToNew, insertHere - 1, level);
         //let tree know about added element
@@ -595,7 +595,7 @@ public final class XMLTree {
     /**
      * Inserts element before referenced one.
      * It is important to let all related to
-     * {@param refElement} comments on their places,
+     * {@code refElement} comments on their places,
      * so to avoid deformation we inserting new element after
      * previous sibling or after element parent
      * if element doesn't have previous sibling
@@ -823,24 +823,29 @@ public final class XMLTree {
                               Element relatedToNew,
                               int prevElementCloseRight,
                               int level) {
-        //text length before element
-        // child - element, '+' - text before element
-        //        ++++++
-        //<parent>\n    <child>...
+        // text length before element
+        // child - new element
+        // '+'   - text before element
+        //
+        // <parent>\n
+        // ++++<child>...
         final int levelTextLength = level * SPACES_IN_TAB;
 
-        //before element open tag pos
-        //             +
-        //<parent>\n    <child>...
+        // '*' - before element open tag pos
+        //
+        //       | prevElementCloseRight
+        //       v
+        //<parent>\n   *<child>...
+        // +1 because of '\n'
         final int beforeOpenLeft = 1 + prevElementCloseRight + levelTextLength;
 
         //we should add text segment which
-        //is before given element to parent
+        //is before new element to the parent text segments and start to track it
         final Element parent = relatedToNew.getParent();
         if (parent.text == null) {
             parent.text = new LinkedList<>();
         }
-        parent.text.add(new Segment(prevElementCloseRight, beforeOpenLeft));
+        parent.text.add(new Segment(prevElementCloseRight + 1, beforeOpenLeft));
 
         //pos of open tag right '>'
         final int openRight = beforeOpenLeft + openTagLength(newElement);
