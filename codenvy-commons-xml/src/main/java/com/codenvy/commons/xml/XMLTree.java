@@ -427,6 +427,9 @@ public final class XMLTree {
                     if (!stack.isEmpty()) {
                         node = deepNext(node, true);
                     }
+                    if (!(node instanceof org.w3c.dom.Element)) {
+                        break;
+                    }
                     //connect node with element
                     node.setUserData("element", newElement, null);
                     newElement.delegate = (org.w3c.dom.Element)node;
@@ -437,12 +440,18 @@ public final class XMLTree {
                     stack.push(newElement);
                     break;
                 case END_ELEMENT:
+                    if (stack.isEmpty()) {
+                        break;
+                    }
                     final Element element = stack.pop();
                     element.end = new Segment(beforeStart + 1, offset(reader));
                     elements.add(element);
                     beforeStart = offset(reader);
                     break;
                 case CHARACTERS:
+                    if (stack.isEmpty()) {
+                        break;
+                    }
                     final Element current = stack.peek();
                     if (current.text == null) {
                         current.text = new LinkedList<>();
