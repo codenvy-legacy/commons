@@ -469,7 +469,7 @@ public final class XMLTree {
 
                     current.text.add(new Segment(left, right));
                     beforeStart = right;
-                    node = lastTextSibling(nextNode);
+                    node = skipTextNodes(nextNode);
                     break;
                 case COMMENT:
                 case SPACE:
@@ -484,6 +484,9 @@ public final class XMLTree {
         }
     }
 
+    /**
+     * Returns length of cdata and text nodes chain.
+     */
     private int textLength(Node node) {
         int length = node.getTextContent().length();
         node = node.getNextSibling();
@@ -497,16 +500,38 @@ public final class XMLTree {
         return length;
     }
 
-    private Node lastTextSibling(Node node) {
+    /**
+     * Returns last text or cdata node in the chain of cdata and text nodes.
+     * <p/>
+     * i.e. node1 is text <i>node</i> and <i>node1</i> has next sibling <i>node2</i> as cdata node and
+     * <i>node2</i> has next sibling <i>node3</i> as text node and node3 has next sibling <i>node4</i> as element
+     * node, then <i>node3</i> will be returned as last text node in the chain. Consider following examples:
+     * <pre>
+     * 1.
+     * node3 - last text node
+     *
+     * text     cdata    text     element
+     * node1 -> node2 -> node3 -> node4
+     *
+     * 2.
+     * node2 - last text result
+     *
+     * text     cdata
+     * node1 -> node2 -> null
+     *
+     * </pre>
+     */
+    private Node skipTextNodes(Node node) {
         final Node next = node.getNextSibling();
         if (next != null && (next.getNodeType() == CDATA_SECTION_NODE || next.getNodeType() == TEXT_NODE)) {
-            return lastTextSibling(next);
+            return skipTextNodes(next);
         }
         return node;
     }
 
     /**
      * Searches for the element start right bound index.
+     * TODO respect element attributes text content while checking '<'
      */
     private int elementRight(int left, XMLStreamReader reader) {
         int rightIdx = lastIndexOf(xml, '>', reader.getLocation().getCharacterOffset());
