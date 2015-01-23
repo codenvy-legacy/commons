@@ -11,9 +11,13 @@
 package com.codenvy.commons.xml;
 
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -1572,6 +1576,46 @@ public class XMLTreeTest {
         final XMLTree tree = XMLTree.from(new ByteArrayInputStream(bytes));
 
         assertEquals(tree.getBytes(), bytes);
+    }
+
+    @Test
+    public void shouldBeAbleToCreateTreeFromXMLWhichContainsCDATAAndTextUnderSameParent() {
+        final XMLTree tree = XMLTree.from("<parent>\n" +
+                                          "TEXT" +
+                                          "<![CDATA[ CDATA CONTENT ]]>\n" +
+                                          "TEXT AGAIN" +
+                                          "<child></child>" +
+                                          "</parent>");
+
+        assertEquals(tree.getRoot().getText(), "\n" +
+                                               "TEXT\n" +
+                                               "TEXT AGAIN");
+        tree.updateText("/parent", "new text");
+        assertEquals(tree.toString(), "<parent>new text<child></child></parent>");
+    }
+
+    @Test(dataProvider = "custom-xml-files")
+    public void shouldBeAbleToCreateTreeFromCustomXML(File xml) throws IOException {
+        //should be able to parse file
+        XMLTree.from(xml);
+    }
+
+    @DataProvider(name = "custom-xml-files")
+    public Object[][] getCustomXMLFiles() throws Exception {
+        final URL url = Thread.currentThread().getContextClassLoader().getResource(".");
+        assertNotNull(url);
+        final File testFilesRoot = Paths.get(url.toURI()).resolve("test-xml-files").toFile();
+        final File[] files = testFilesRoot.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return !file.isDirectory() && file.getName().endsWith(".xml");
+            }
+        });
+        final Object[][] data = new Object[files.length][];
+        for (int i = 0; i < files.length; i++) {
+            data[i] = new Object[]{files[i]};
+        }
+        return data;
     }
 
     private Path targetDir() throws URISyntaxException {

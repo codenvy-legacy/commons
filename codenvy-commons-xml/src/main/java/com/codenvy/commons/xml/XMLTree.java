@@ -61,10 +61,12 @@ import static javax.xml.stream.XMLStreamConstants.COMMENT;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.PROCESSING_INSTRUCTION;
 import static javax.xml.stream.XMLStreamConstants.SPACE;
+import static javax.xml.stream.XMLStreamConstants.START_DOCUMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathConstants.STRING;
 import static org.w3c.dom.Node.CDATA_SECTION_NODE;
+import static org.w3c.dom.Node.TEXT_NODE;
 
 /**
  * XML tool which provides abilities to modify and search
@@ -418,20 +420,23 @@ public final class XMLTree {
         int beforeStart = rootStart() - 1;
         //used to associate each element with document node
         Node node = document.getDocumentElement();
+        //used to hold previous reader event
+        int prevEvent = START_DOCUMENT;
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case START_ELEMENT:
                     final Element newElement = new Element(this);
-                    newElement.start = new Segment(beforeStart + 1, offset(reader));
+                    newElement.start = new Segment(beforeStart + 1, elementRight(beforeStart + 1, reader));
                     //if new node is not xml root - set up relationships
                     if (!stack.isEmpty()) {
                         node = deepNext(node, true);
                     }
-                    if (!(node instanceof org.w3c.dom.Element)) {
-                        break;
-                    }
                     //connect node with element
                     node.setUserData("element", newElement, null);
+
+                    if (!(node instanceof org.w3c.dom.Element)) {
+                        throw new XMLTreeException("It is not possible to associate xml elements");
+                    }
                     newElement.delegate = (org.w3c.dom.Element)node;
                     //let next event know about its start
                     beforeStart = newElement.start.right;
@@ -440,48 +445,77 @@ public final class XMLTree {
                     stack.push(newElement);
                     break;
                 case END_ELEMENT:
-                    if (stack.isEmpty()) {
-                        break;
-                    }
                     final Element element = stack.pop();
-                    element.end = new Segment(beforeStart + 1, offset(reader));
+                    element.end = new Segment(beforeStart + 1, elementRight(beforeStart + 1, reader));
                     elements.add(element);
-                    beforeStart = offset(reader);
+                    beforeStart = element.end.right;
                     break;
                 case CHARACTERS:
-                    if (stack.isEmpty()) {
-                        break;
-                    }
-                    final Element current = stack.peek();
-                    if (current.text == null) {
-                        current.text = new LinkedList<>();
-                    }
                     //characters event may be invoked 2 or more times
                     //on the element text, but related node is single text node
                     //so only segment should be created for it
-                    final Node nextNode = deepNext(node, true);
-                    final int left = beforeStart + 1;
-                    final int right = nextNode.getNodeType() == CDATA_SECTION_NODE ?
-                                      offset(reader) :
-                                      charOffset(reader);
-                    //if element has more text which be available
-                    //with next event invocation - skip current invocation
-                    if (left <= right) {
-                        current.text.add(new Segment(left, right));
-                        beforeStart = right;
-                        node = nextNode;
+                    if (prevEvent == CHARACTERS) continue;
+
+                    final Element current = stack.peek();
+                    if (current.text == null) {
+                        //TODO replace with array list as we know current node 'text nodes' count
+                        current.text = new LinkedList<>();
                     }
+
+                    final Node nextNode = deepNext(node, true);
+
+                    final int left = beforeStart + 1;
+                    final int right = left + textLength(nextNode) - 1;
+
+                    current.text.add(new Segment(left, right));
+                    beforeStart = right;
+                    node = lastTextSibling(nextNode);
                     break;
                 case COMMENT:
                 case SPACE:
                 case PROCESSING_INSTRUCTION:
                     if (!stack.isEmpty()) {
                         node = deepNext(node, true);
-                        beforeStart = offset(reader);
+                        beforeStart = lastIndexOf(xml, '>', reader.getLocation().getCharacterOffset());
                     }
                     break;
             }
+            prevEvent = reader.getEventType();
         }
+    }
+
+    private int textLength(Node node) {
+        int length = node.getTextContent().length();
+        node = node.getNextSibling();
+        while (node != null && (node.getNodeType() == TEXT_NODE || node.getNodeType() == CDATA_SECTION_NODE)) {
+            length += node.getTextContent().length();
+            if (node.getNodeType() == CDATA_SECTION_NODE) {
+                length += 12; //<![CDATA[]]> - 12
+            }
+            node = node.getNextSibling();
+        }
+        return length;
+    }
+
+    private Node lastTextSibling(Node node) {
+        final Node next = node.getNextSibling();
+        if (next != null && (next.getNodeType() == CDATA_SECTION_NODE || next.getNodeType() == TEXT_NODE)) {
+            return lastTextSibling(next);
+        }
+        return node;
+    }
+
+    /**
+     * Searches for the element start right bound index.
+     */
+    private int elementRight(int left, XMLStreamReader reader) {
+        int rightIdx = lastIndexOf(xml, '>', reader.getLocation().getCharacterOffset());
+        int leftIdx = lastIndexOf(xml, '<', rightIdx);
+        while (leftIdx > left) {
+            rightIdx = lastIndexOf(xml, '>', rightIdx - 1);
+            leftIdx = lastIndexOf(xml, '<', rightIdx);
+        }
+        return rightIdx;
     }
 
     private Node deepNext(Node node, boolean deep) {
@@ -912,35 +946,6 @@ public final class XMLTree {
             pos = indexOf(xml, open, pos + 1);
         }
         return pos;
-    }
-
-    /**
-     * Calculates element offset
-     *
-     * @param reader
-     *         reader which is going to be used to detect offset
-     * @return the right position of current reader event
-     */
-    private int offset(XMLStreamReader reader) {
-        int offset = reader.getLocation().getCharacterOffset();
-        while (offset >= xml.length || xml[offset] != '>') {
-            offset--;
-        }
-        return offset;
-    }
-
-    /**
-     * Calculates characters offset
-     *
-     * @param reader
-     *         reader to get offset from
-     */
-    private int charOffset(XMLStreamReader reader) {
-        int offset = reader.getLocation().getCharacterOffset();
-        while (offset >= xml.length || xml[offset] != '<') {
-            offset--;
-        }
-        return offset - 1;
     }
 
     /**
