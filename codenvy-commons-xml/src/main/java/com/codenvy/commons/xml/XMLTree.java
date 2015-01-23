@@ -434,10 +434,7 @@ public final class XMLTree {
                     //connect node with element
                     node.setUserData("element", newElement, null);
 
-                    if (!(node instanceof org.w3c.dom.Element)) {
-                        throw new XMLTreeException("It is not possible to associate xml elements");
-                    }
-                    newElement.delegate = (org.w3c.dom.Element)node;
+                    newElement.delegate = safeCast(node);
                     //let next event know about its start
                     beforeStart = newElement.start.right;
                     //if element has declared namespaces register it
@@ -498,6 +495,17 @@ public final class XMLTree {
             node = node.getNextSibling();
         }
         return length;
+    }
+
+    /**
+     * Returns safe Element instance for node or throws exception
+     * if it is not possible to cast {@code node} to {@link org.w3c.dom.Element}.
+     */
+    private org.w3c.dom.Element safeCast(Node node) {
+        if (!(node instanceof org.w3c.dom.Element)) {
+            throw new XMLTreeException("It is not possible to associate xml elements");
+        }
+        return (org.w3c.dom.Element)node;
     }
 
     /**
