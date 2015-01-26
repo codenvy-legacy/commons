@@ -84,22 +84,6 @@ public final class XMLTreeUtil {
     }
 
     /**
-     * Check object reference is not null, if it is
-     * throw {@link IllegalArgumentException} with
-     * message "Expected not null {@param argument}"
-     *
-     * @param ref
-     *         reference to check
-     * @param argument
-     *         argument for exception message
-     */
-    public static void checkNotNull(Object ref, String argument) {
-        if (ref == null) {
-            throw new IllegalArgumentException("Expected not null " + argument);
-        }
-    }
-
-    /**
      * Check given list contains only element and return it.
      * If list size is not 1 {@link XMLTreeException} will be thrown.
      *

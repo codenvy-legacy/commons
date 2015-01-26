@@ -24,8 +24,8 @@ import java.util.List;
 
 import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
-import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE;
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
 import static org.w3c.dom.Node.DOCUMENT_NODE;
@@ -119,12 +119,12 @@ public final class Element {
      * @throws XMLTreeException
      *         when element has more than one sibling with given <i>name</i>
      *         or this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when name parameter is {@code null}
      */
     public Element getSingleSibling(String name) {
         checkNotRemoved();
-        checkNotNull(name, "sibling name");
+        requireNonNull(name, "Required not null sibling name");
         Element target = null;
         for (Element sibling : asElements(delegate.getParentNode().getChildNodes())) {
             if (this != sibling && sibling.getName().equals(name)) {
@@ -150,12 +150,12 @@ public final class Element {
      * @throws XMLTreeException
      *         when element has more than one child with given <i>name</i>
      *         or  this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when name parameter is {@code null}
      */
     public Element getSingleChild(String name) {
         checkNotRemoved();
-        checkNotNull(name, "child name");
+        requireNonNull(name, "Required not null child name");
         for (Element child : asElements(delegate.getChildNodes())) {
             if (name.equals(child.getName())) {
                 if (child.hasSibling(name)) {
@@ -248,12 +248,12 @@ public final class Element {
      * @return {@code true} if element has at least one singling with given name, otherwise {@code false}.
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when name parameter is {@code null}
      */
     public boolean hasSibling(String name) {
         checkNotRemoved();
-        checkNotNull(name, "sibling name");
+        requireNonNull(name, "Required not null sibling name");
         final NodeList nodes = delegate.getParentNode().getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
             if (nodes.item(i) != delegate && name.equals(nodes.item(i).getNodeName())) {
@@ -346,12 +346,12 @@ public final class Element {
      * @return {@code true} if element has at least one child with given name, otherwise {@code false}
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when name parameter is {@code null}
      */
     public boolean hasChild(String name) {
         checkNotRemoved();
-        checkNotNull(name, "child name");
+        requireNonNull(name, "Required not null child name");
         final NodeList nodes = delegate.getChildNodes();
         for (int i = 0; i < nodes.getLength(); i++) {
             if (name.equals(nodes.item(i).getNodeName())) {
@@ -386,12 +386,12 @@ public final class Element {
      *         new text content
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when newText parameter is {@code null}
      */
     public Element setText(String newText) {
         checkNotRemoved();
-        checkNotNull(newText, "new text");
+        requireNonNull(newText, "Required not null new text");
         if (!newText.equals(getText())) {
             removeTextNodes();
             delegate.appendChild(document().createTextNode(newText));
@@ -425,12 +425,12 @@ public final class Element {
      * @return child text
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when childName parameter is {@code null}
      */
     public String getChildTextOrDefault(String childName, String defaultValue) {
         checkNotRemoved();
-        checkNotNull(childName, "child name");
+        requireNonNull(childName, "Required not null child name");
         return hasSingleChild(childName) ? getSingleChild(childName).getText() : defaultValue;
     }
 
@@ -443,12 +443,12 @@ public final class Element {
      * @return {@code true} if element has only sibling with given name otherwise {@code false}
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when childName parameter is {@code null}
      */
     public boolean hasSingleChild(String childName) {
         checkNotRemoved();
-        checkNotNull(childName, "child name");
+        requireNonNull(childName, "Required not null child name");
         for (Element child : asElements(delegate.getChildNodes())) {
             if (childName.equals(child.getName())) {
                 return !child.hasSibling(childName);
@@ -481,7 +481,7 @@ public final class Element {
      *
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     *         or on root element instance
+     *         or this element is root element
      */
     public void remove() {
         checkNotRemoved();
@@ -554,7 +554,7 @@ public final class Element {
      */
     public Element setAttribute(NewAttribute newAttribute) {
         checkNotRemoved();
-        checkNotNull(newAttribute, "new attribute");
+        requireNonNull(newAttribute, "Required not null new attribute");
         //if tree already contains element replace value
         if (hasAttribute(newAttribute.getName())) {
             final Attribute attr = getAttribute(newAttribute.getName());
@@ -582,7 +582,7 @@ public final class Element {
      * @return this element instance
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when name parameter is {@code null}
      */
     public Element removeAttribute(String name) {
@@ -627,12 +627,12 @@ public final class Element {
      * @return attribute with {@code name} or {@code null} if nothing found
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when name parameter is {@code null}
      */
     public Attribute getAttribute(String name) {
         checkNotRemoved();
-        checkNotNull(name, "attribute name");
+        requireNonNull(name, "Required not null attribute name");
         if (delegate.hasAttributes()) {
             return asAttribute(getAttributeNode(name));
         }
@@ -648,13 +648,13 @@ public final class Element {
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
      *         or this element is root element
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when newElement parameter is {@code null}
      */
     public Element replaceWith(NewElement newElement) {
         checkNotRemoved();
         notPermittedOnRootElement();
-        checkNotNull(newElement, "new element");
+        requireNonNull(newElement, "Required not null new element");
         insertAfter(newElement);
         final Element inserted = getNextSibling();
         remove();
@@ -669,12 +669,12 @@ public final class Element {
      * @return this element instance
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     * @throws NullPointerException
      *         when newElement parameter is {@code null}
      */
     public Element appendChild(NewElement newElement) {
         checkNotRemoved();
-        checkNotNull(newElement, "new element");
+        requireNonNull(newElement, "Required not null new element");
         if (isVoid()) {
             throw new XMLTreeException("Append child is not permitted on void elements");
         }
@@ -695,13 +695,14 @@ public final class Element {
      * @return this element instance
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     *         or this element is root element
+     * @throws NullPointerException
      *         when newElement parameter is {@code null}
      */
     public Element insertAfter(NewElement newElement) {
         checkNotRemoved();
         notPermittedOnRootElement();
-        checkNotNull(newElement, "new element");
+        requireNonNull(newElement, "Required not null new element");
         final Node newNode = createNode(newElement);
         final Element element = createElement(newNode);
         //if element has next sibling append child to parent
@@ -725,13 +726,14 @@ public final class Element {
      * @return this element instance
      * @throws XMLTreeException
      *         when this element has been removed from xml tree
-     * @throws IllegalArgumentException
+     *         or this element is root element
+     * @throws NullPointerException
      *         when newElement parameter is {@code null}
      */
     public Element insertBefore(NewElement newElement) {
         checkNotRemoved();
         notPermittedOnRootElement();
-        checkNotNull(newElement, "new element");
+        requireNonNull(newElement, "Required not null new element");
         //if element has previous sibling insert new element after it
         //inserting before this element to let existing comments
         //or whatever over referenced element

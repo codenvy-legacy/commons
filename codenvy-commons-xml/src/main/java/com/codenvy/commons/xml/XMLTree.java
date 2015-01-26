@@ -36,12 +36,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.codenvy.commons.xml.XMLTreeUtil.SPACES_IN_TAB;
 import static com.codenvy.commons.xml.XMLTreeUtil.UTF_8;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElement;
 import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
-import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static com.codenvy.commons.xml.XMLTreeUtil.closeTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOfAttributeName;
@@ -55,6 +55,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.tabulate;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.file.Files.readAllBytes;
+import static java.util.Objects.requireNonNull;
 import static javax.xml.XMLConstants.XML_NS_URI;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.COMMENT;
@@ -148,7 +149,7 @@ public final class XMLTree {
      * Creates XMLTree from byte array
      */
     public static XMLTree from(byte[] xml) {
-        checkNotNull(xml, "xml bytes");
+        requireNonNull(xml, "Required not null bytes");
         return new XMLTree(Arrays.copyOf(xml, xml.length));
     }
 
@@ -450,7 +451,7 @@ public final class XMLTree {
                 case CHARACTERS:
                     //characters event may be invoked 2 or more times
                     //on the element text, but related node is single text node
-                    //so only segment should be created for it
+                    //so the only segment should be created for it
                     if (prevEvent == CHARACTERS) continue;
 
                     final Element current = stack.peek();

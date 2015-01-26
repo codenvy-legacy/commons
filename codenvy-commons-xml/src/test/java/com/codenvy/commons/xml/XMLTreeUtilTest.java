@@ -15,7 +15,6 @@ import org.testng.annotations.Test;
 
 
 import static com.codenvy.commons.xml.NewElement.createElement;
-import static com.codenvy.commons.xml.XMLTreeUtil.checkNotNull;
 import static com.codenvy.commons.xml.XMLTreeUtil.closeTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOfAttributeName;
@@ -53,16 +52,6 @@ public class XMLTreeUtilTest {
     @Test
     public void shouldReturnFirstElement() {
         assertEquals(single(asList("first")), "first");
-    }
-
-    @Test
-    public void shouldDoNothingIfObjectReferenceIsNotNull() {
-        checkNotNull(new Object(), "object");
-    }
-
-    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Expected not null object")
-    public void shouldThrowExceptionIfObjectReferenceIsNull() {
-        checkNotNull(null, "object");
     }
 
     @Test(expectedExceptions = XMLTreeException.class)
