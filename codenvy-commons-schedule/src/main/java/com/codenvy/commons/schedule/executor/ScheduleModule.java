@@ -8,11 +8,9 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  *******************************************************************************/
-package com.codenvy.commons.schedule;
+package com.codenvy.commons.schedule.executor;
 
-import com.codenvy.commons.schedule.executor.ThreadPullLauncher;
-import com.codenvy.inject.DynaModule;
-import com.codenvy.inject.lifecycle.ScheduleModule;
+import com.codenvy.commons.schedule.Launcher;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 
@@ -21,11 +19,11 @@ import com.google.inject.Module;
  *
  * @author Sergii Kabashniuk
  */
-@DynaModule
-public class InstallModule implements Module {
+
+public class ScheduleModule implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(Launcher.class).to(ThreadPullLauncher.class).asEagerSingleton();
-        binder.install(new ScheduleModule());
+        binder.install(new com.codenvy.inject.lifecycle.ScheduleModule());
     }
 }
