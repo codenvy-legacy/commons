@@ -10,6 +10,9 @@
  *******************************************************************************/
 package com.codenvy.inject;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;;
+
 /**
  * DynaModule
  * Marker annotation for dynamically created module
@@ -18,5 +21,6 @@ package com.codenvy.inject;
  *
  * @author gazarenkov
  */
+@Retention(RetentionPolicy.RUNTIME)
 public @interface DynaModule {
 }
