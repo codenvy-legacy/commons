@@ -28,6 +28,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -35,6 +36,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -132,6 +134,7 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
      * <i>CODENVY_LOCAL_CONF_DIR</i> Env variable.
      */
     static class ExtConfiguration extends AbstractConfigurationModule {
+    	
         @Override
         protected void configure() {
             // binds environment variables visible as prefixed with "env."
@@ -143,6 +146,15 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
                 bindConf(new File(extConfig));
             }
         }
+    }
+    
+    private static HashMap<String, String> defaultProperties = new HashMap<String, String>();
+    static {
+        // Default value for the case SERVER_PORT environment variable could not be defined
+        // (e.g. when Che is deployed as webapp, with no modifications to Tomcat)
+        // TODO: Get the port from Tomcat in runtime, then the SERVER_PORT envariable could become obsolete
+    	// http://stackoverflow.com/questions/7481432/i-need-to-know-the-http-and-https-port-my-java-webapp-is-running-on-webapp-start
+    	defaultProperties.put("SERVER_PORT", "8080");
     }
 
     private static final Pattern PATTERN = Pattern.compile("\\$\\{[^\\}^\\$\\{]+\\}");
@@ -217,6 +229,9 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
                             String actual = System.getProperty(name);
                             if (actual == null) {
                                 actual = System.getenv(name);
+                            }
+                            if (actual == null && defaultProperties.containsKey(name)) {
+                                actual = defaultProperties.get(name);
                             }
                             if (actual == null) {
                                 actual = template;
