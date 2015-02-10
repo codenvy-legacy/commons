@@ -150,9 +150,10 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
     
     private static HashMap<String, String> defaultProperties = new HashMap<String, String>();
     static {
-    	// Default value for the case SERVER_PORT environment variable could not be defined
-    	// (e.g. when Che is deployed as webapp, with no modifications to Tomcat)
-       	// TODO: Get the port from Tomcat in runtime, then the SERVER_PORT envariable could be obsolete
+        // Default value for the case SERVER_PORT environment variable could not be defined
+        // (e.g. when Che is deployed as webapp, with no modifications to Tomcat)
+        // TODO: Get the port from Tomcat in runtime, then the SERVER_PORT envariable could become obsolete
+    	// http://stackoverflow.com/questions/7481432/i-need-to-know-the-http-and-https-port-my-java-webapp-is-running-on-webapp-start
     	defaultProperties.put("SERVER_PORT", "8080");
     }
 
