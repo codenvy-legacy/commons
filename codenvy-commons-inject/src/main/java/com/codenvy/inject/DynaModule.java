@@ -10,13 +10,16 @@
  *******************************************************************************/
 package com.codenvy.inject;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
- * DynaModule
- * Marker annotation for dynamically created module
- * CodenvyBootstrap automatically finds and loads Guice modules (subclasses of com.google.inject.Module)
- * annotated with &#064DynaModule
+ * DynaModule Marker annotation for dynamically created module CodenvyBootstrap
+ * automatically finds and loads Guice modules (subclasses of
+ * com.google.inject.Module) annotated with &#064DynaModule
  *
  * @author gazarenkov
  */
+@Retention(RetentionPolicy.RUNTIME)
 public @interface DynaModule {
 }
