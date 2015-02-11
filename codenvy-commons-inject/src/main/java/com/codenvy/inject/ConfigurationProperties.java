@@ -13,7 +13,6 @@ package com.codenvy.inject;
 import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.name.Named;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -54,7 +53,7 @@ public class ConfigurationProperties {
             final Key<?> key = keyBindingEntry.getKey();
             final Annotation annotation = key.getAnnotation();
             if (annotation instanceof com.google.inject.name.Named && key.getTypeLiteral().getRawType() == String.class) {
-                final String name = ((Named)annotation).value();
+                final String name = ((com.google.inject.name.Named)annotation).value();
                 if (name != null && pattern.matcher(name).matches()) {
                     final String value = (String)keyBindingEntry.getValue().getProvider().get();
                     result.put(name, value);
