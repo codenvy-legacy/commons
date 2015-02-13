@@ -212,14 +212,14 @@ public class CodenvyBootstrap extends EverrestGuiceContextListener {
                             final int i = matcher.start();
                             final int j = matcher.end();
                             buf.append(pValue.substring(start, i));
-                            final String template = pValue.substring(i, j);
                             final String name = pValue.substring(i + 2, j - 1);
                             String actual = System.getProperty(name);
                             if (actual == null) {
                                 actual = System.getenv(name);
                             }
                             if (actual == null) {
-                                actual = template;
+                                throw new ConfigurationException(
+                                        "Property " + name + " is not found as system property or environment variable.");
                             }
                             buf.append(actual);
                             start = matcher.end();
