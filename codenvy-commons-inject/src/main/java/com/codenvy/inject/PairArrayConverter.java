@@ -11,17 +11,19 @@
 package com.codenvy.inject;
 
 import com.codenvy.commons.lang.Pair;
-import com.codenvy.commons.lang.Strings;
+import com.google.common.collect.FluentIterable;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeConverter;
+import com.google.common.base.Splitter;
 
 /** @author andrew00x */
 public class PairArrayConverter extends AbstractModule implements TypeConverter {
     @Override
     public Object convert(String value, TypeLiteral<?> toType) {
-        final String[] pairs = Strings.split(value, ',');
+        Iterable<String> strings = Splitter.on(",").split(value);
+        final String[] pairs = FluentIterable.from(strings).toArray(String.class);
         @SuppressWarnings("unchecked")
         final Pair<String, String>[] result = new Pair[pairs.length];
         for (int i = 0; i < pairs.length; i++) {

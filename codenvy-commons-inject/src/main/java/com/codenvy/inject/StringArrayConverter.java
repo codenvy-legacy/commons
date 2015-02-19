@@ -10,7 +10,8 @@
  *******************************************************************************/
 package com.codenvy.inject;
 
-import com.codenvy.commons.lang.Strings;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
@@ -20,7 +21,8 @@ import com.google.inject.spi.TypeConverter;
 public class StringArrayConverter extends AbstractModule implements TypeConverter {
     @Override
     public Object convert(String value, TypeLiteral<?> toType) {
-        return Strings.split(value, ',');
+        Iterable<String> strings = Splitter.on(",").split(value);
+        return FluentIterable.from(strings).toArray(String.class);
     }
 
     @Override
