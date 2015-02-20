@@ -24,9 +24,15 @@ import java.util.concurrent.TimeUnit;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ScheduleCron {
+
     /**
      * @return - cron expression.
      */
-    String cron();
+    String cron() default "";
+
+    /**
+     * @return name of guice parameter with cron expression.
+     */
+    String cronParameterName() default "";
 
 }

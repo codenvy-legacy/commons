@@ -14,6 +14,7 @@ import com.codenvy.commons.schedule.Launcher;
 import com.codenvy.commons.schedule.ScheduleCron;
 import com.codenvy.commons.schedule.ScheduleDelay;
 import com.codenvy.commons.schedule.ScheduleRate;
+import com.codenvy.commons.schedule.executor.LoggedRunnable;
 import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -90,8 +90,12 @@ public class ScheduleInjectionListener<T> extends LifecycleModule implements Inj
 
     private void launch(Object object, Method method, ScheduleCron annotation) {
         Launcher launcher = launcherProvider.get();
-        launcher.scheduleCron(getRunnable(object,
-                                          method), annotation.cron());
+        launcher.scheduleCron(new LoggedRunnable(object,
+                                                 method), annotation.cronParameterName().isEmpty() ? annotation.cron()
+                                                                                                   : getValue(String.class,
+                                                                                                              annotation
+                                                                                                                      .cronParameterName
+                                                                                                                              ()));
     }
 
     private void launch(Object object, Method method, ScheduleDelay annotation) {
@@ -102,8 +106,8 @@ public class ScheduleInjectionListener<T> extends LifecycleModule implements Inj
         Launcher launcher = launcherProvider.get();
 
 
-        launcher.scheduleWithFixedDelay(getRunnable(object,
-                                                    method),
+        launcher.scheduleWithFixedDelay(new LoggedRunnable(object,
+                                                           method),
                                         annotation.initialDelayParameterName().isEmpty() ? annotation.initialDelay()
                                                                                          : getValue(
                                                                                                  annotation
@@ -121,8 +125,8 @@ public class ScheduleInjectionListener<T> extends LifecycleModule implements Inj
         }
 
         Launcher launcher = launcherProvider.get();
-        launcher.scheduleAtFixedRate(getRunnable(object,
-                                                 method),
+        launcher.scheduleAtFixedRate(new LoggedRunnable(object,
+                                                        method),
                                      annotation.initialDelayParameterName().isEmpty() ? annotation.initialDelay()
                                                                                       : getValue(
                                                                                               annotation
@@ -153,23 +157,6 @@ public class ScheduleInjectionListener<T> extends LifecycleModule implements Inj
         }
     }
 
-    private Runnable getRunnable(final Object object, final Method method) {
-        if (object instanceof Runnable && method.getName().equals("run") && method.getParameterTypes().length == 0) {
-            return (Runnable)object;
-        } else {
-            return new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        method.invoke(object);
-                    } catch (InvocationTargetException | IllegalAccessException e) {
-                        LOG.error(e.getLocalizedMessage());
-                    }
-                }
-            };
-
-        }
-    }
 
     @Override
     public void afterInjection(T injectee) {
@@ -182,4 +169,5 @@ public class ScheduleInjectionListener<T> extends LifecycleModule implements Inj
     protected void configure() {
 
     }
+
 }

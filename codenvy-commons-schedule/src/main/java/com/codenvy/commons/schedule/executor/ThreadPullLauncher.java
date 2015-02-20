@@ -10,8 +10,9 @@
  *******************************************************************************/
 package com.codenvy.commons.schedule.executor;
 
-import com.codenvy.commons.lang.NamedThreadFactory;
 import com.codenvy.commons.schedule.Launcher;
+import com.codenvy.inject.ConfigurationException;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +34,12 @@ public class ThreadPullLauncher implements Launcher {
     private static final Logger LOG = LoggerFactory.getLogger(CronThreadPoolExecutor.class);
     private final CronThreadPoolExecutor service;
 
+
     @Inject
     public ThreadPullLauncher(@Named("schedule.initial_pool_size") Integer initialPoolSize) {
-        service = new CronThreadPoolExecutor(initialPoolSize, new NamedThreadFactory("Scheduler-", false));
+        this.service = new CronThreadPoolExecutor(initialPoolSize,
+                                                  new ThreadFactoryBuilder().setNameFormat("Annotated-scheduler-%d").setDaemon(false)
+                                                                            .build());
     }
 
 
@@ -62,27 +66,30 @@ public class ThreadPullLauncher implements Launcher {
 
     @Override
     public void scheduleCron(Runnable runnable, String cron) {
+        if (cron == null || cron.isEmpty()) {
+            throw new ConfigurationException("Cron parameter can't be null");
+        }
         CronExpression expression = new CronExpression(cron);
         service.schedule(runnable, expression);
-        LOG.info("Schedule method {} with cron  {} schedule", runnable, expression.getExpressionSummary());
+        LOG.debug("Schedule method {} with cron  {} schedule", runnable, cron);
     }
 
     @Override
     public void scheduleWithFixedDelay(Runnable runnable, long initialDelay, long delay, TimeUnit unit) {
         service.scheduleWithFixedDelay(runnable, initialDelay, delay, unit);
-        LOG.info("Schedule method {} with fixed initial delay {} delay {} unit {}",
-                 runnable,
-                 initialDelay,
-                 delay, unit);
+        LOG.debug("Schedule method {} with fixed initial delay {} delay {} unit {}",
+                  runnable,
+                  initialDelay,
+                  delay, unit);
     }
 
     @Override
     public void scheduleAtFixedRate(Runnable runnable, long initialDelay, long period, TimeUnit unit) {
         service.scheduleAtFixedRate(runnable, initialDelay, period, unit);
-        LOG.info("Schedule method {} with fixed rate. Initial delay {} period {} unit {}",
-                 runnable,
-                 initialDelay,
-                 period,
-                 unit);
+        LOG.debug("Schedule method {} with fixed rate. Initial delay {} period {} unit {}",
+                  runnable,
+                  initialDelay,
+                  period,
+                  unit);
     }
 }
