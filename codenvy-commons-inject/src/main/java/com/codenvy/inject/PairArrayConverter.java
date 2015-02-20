@@ -11,12 +11,12 @@
 package com.codenvy.inject;
 
 import com.codenvy.commons.lang.Pair;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeConverter;
-import com.google.common.base.Splitter;
 
 /** @author andrew00x */
 public class PairArrayConverter extends AbstractModule implements TypeConverter {
