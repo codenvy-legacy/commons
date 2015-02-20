@@ -17,11 +17,13 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeConverter;
 
+import java.util.regex.Pattern;
+
 /** @author andrew00x */
 public class StringArrayConverter extends AbstractModule implements TypeConverter {
     @Override
     public Object convert(String value, TypeLiteral<?> toType) {
-        return Iterables.toArray(Splitter.on(",").split(value), String.class);
+        return Iterables.toArray(Splitter.on(Pattern.compile(" *, *")).split(value), String.class);
     }
 
     @Override
