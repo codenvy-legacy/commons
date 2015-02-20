@@ -11,7 +11,7 @@
 package com.codenvy.inject;
 
 import com.codenvy.commons.lang.Pair;
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
@@ -22,8 +22,7 @@ import com.google.common.base.Splitter;
 public class PairArrayConverter extends AbstractModule implements TypeConverter {
     @Override
     public Object convert(String value, TypeLiteral<?> toType) {
-        Iterable<String> strings = Splitter.on(",").split(value);
-        final String[] pairs = FluentIterable.from(strings).toArray(String.class);
+        final String[] pairs = Iterables.toArray(Splitter.on(",").split(value), String.class);
         @SuppressWarnings("unchecked")
         final Pair<String, String>[] result = new Pair[pairs.length];
         for (int i = 0; i < pairs.length; i++) {
