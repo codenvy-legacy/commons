@@ -1594,6 +1594,26 @@ public class XMLTreeTest {
         assertEquals(tree.toString(), "<parent>new text<child></child></parent>");
     }
 
+    @Test
+    public void charactersWithCode13ShouldBeRemovedFromXMLSource() {
+        final XMLTree tree = XMLTree.from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                          "<project>\r\n" +
+                                          "    <name>test name</name>\r\n" +
+                                          "    <description>test description</description>\r\n" +
+                                          "</project>");
+
+        assertEquals(tree.getSingleText("/project/name"), "test name");
+        assertEquals(tree.getSingleText("/project/description"), "test description");
+
+        tree.updateText("/project/description", "new description");
+        tree.removeElement("/project/name");
+
+        assertEquals(tree.toString(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                      "<project>\n" +
+                                      "    <description>new description</description>\n" +
+                                      "</project>");
+    }
+
     @Test(dataProvider = "custom-xml-files")
     public void shouldBeAbleToCreateTreeFromCustomXML(File xml) throws IOException {
         //should be able to parse file

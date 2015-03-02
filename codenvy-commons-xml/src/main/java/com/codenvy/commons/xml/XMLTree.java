@@ -36,7 +36,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.codenvy.commons.xml.XMLTreeUtil.SPACES_IN_TAB;
 import static com.codenvy.commons.xml.XMLTreeUtil.UTF_8;
@@ -45,6 +44,7 @@ import static com.codenvy.commons.xml.XMLTreeUtil.asElements;
 import static com.codenvy.commons.xml.XMLTreeUtil.closeTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOfAttributeName;
+import static com.codenvy.commons.xml.XMLTreeUtil.removeAll;
 import static com.codenvy.commons.xml.XMLTreeUtil.single;
 import static com.codenvy.commons.xml.XMLTreeUtil.level;
 import static com.codenvy.commons.xml.XMLTreeUtil.insertBetween;
@@ -175,7 +175,8 @@ public final class XMLTree {
         if (xml.length == 0) {
             throw new XMLTreeException("Source content is empty");
         }
-        this.xml = xml;
+        //remove '\r' from xml source
+        this.xml = removeAll(xml, (byte)'\r');
         elements = new LinkedList<>();
         namespaces = newHashMapWithExpectedSize(EXPECTED_NAMESPACES_SIZE);
         document = parseQuietly(xml);

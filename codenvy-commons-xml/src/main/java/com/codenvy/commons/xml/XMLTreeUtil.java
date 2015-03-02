@@ -270,6 +270,35 @@ public final class XMLTreeUtil {
         return indexOfAttributeName(src, target, idx + 1);
     }
 
+    /**
+     * Removes all includes of {@code target} byte from {@code src} bytes or
+     * returns given source if it doesn't contain {@code target} byte
+     *
+     * @param src
+     *         source bytes
+     * @param target
+     *         byte which should be removed from source bytes
+     * @return byte array which doesn't contain {@code target} byte
+     */
+    public static byte[] removeAll(byte[] src, byte target) {
+        int targetCount = 0;
+        for (byte b : src) {
+            if (b == target) targetCount++;
+        }
+
+        if (targetCount == 0) {
+            return src;
+        }
+
+        final byte[] newSrc = new byte[src.length - targetCount];
+        for (int i = 0, j = 0; i < src.length; i++) {
+            if (src[i] != target) {
+                newSrc[j++] = src[i];
+            }
+        }
+        return newSrc;
+    }
+
     private XMLTreeUtil() {
     }
 }

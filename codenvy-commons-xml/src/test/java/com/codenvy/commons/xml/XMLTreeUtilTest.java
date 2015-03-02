@@ -18,6 +18,7 @@ import static com.codenvy.commons.xml.NewElement.createElement;
 import static com.codenvy.commons.xml.XMLTreeUtil.closeTagLength;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOf;
 import static com.codenvy.commons.xml.XMLTreeUtil.indexOfAttributeName;
+import static com.codenvy.commons.xml.XMLTreeUtil.removeAll;
 import static com.codenvy.commons.xml.XMLTreeUtil.single;
 import static com.codenvy.commons.xml.XMLTreeUtil.insertBetween;
 import static com.codenvy.commons.xml.XMLTreeUtil.insertInto;
@@ -139,5 +140,13 @@ public class XMLTreeUtilTest {
         final byte[] byteSrc = src.getBytes();
 
         assertEquals(indexOfAttributeName(byteSrc, "attribute1".getBytes(), 0), -1);
+    }
+
+    @Test
+    public void shouldBeAbleToRemoveAllBytesFromByteArray() {
+        final String src = "test 123";
+        final byte[] byteSrc = src.getBytes();
+
+        assertEquals(removeAll(byteSrc, (byte)'t'), "es 123".getBytes());
     }
 }
