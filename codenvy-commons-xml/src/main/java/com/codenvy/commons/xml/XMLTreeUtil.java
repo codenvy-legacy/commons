@@ -290,13 +290,13 @@ public final class XMLTreeUtil {
             return src;
         }
 
-        final byte[] newXML = new byte[src.length - targetCount];
+        final byte[] newSrc = new byte[src.length - targetCount];
         for (int i = 0, j = 0; i < src.length; i++) {
             if (src[i] != target) {
-                newXML[j++] = src[i];
+                newSrc[j++] = src[i];
             }
         }
-        return newXML;
+        return newSrc;
     }
 
     private XMLTreeUtil() {
