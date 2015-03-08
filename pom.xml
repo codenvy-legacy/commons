@@ -37,11 +37,4 @@
         <tag>HEAD</tag>
         <url>https://fisheye.codenvycorp.com/browse/commons</url>
     </scm>
-    <repositories>
-        <repository>
-            <id>codenvy-public-repo</id>
-            <name>codenvy public</name>
-            <url>https://maven.codenvycorp.com/content/groups/public/</url>
-        </repository>
-    </repositories>
 </project>
