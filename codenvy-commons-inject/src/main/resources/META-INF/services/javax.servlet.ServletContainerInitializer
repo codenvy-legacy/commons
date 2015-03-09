@@ -1,1 +1,1 @@
-com.codenvy.inject.ModuleScanner
+org.eclipse.che.inject.ModuleScanner
