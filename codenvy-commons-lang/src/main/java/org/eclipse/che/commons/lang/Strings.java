@@ -122,4 +122,27 @@ public class Strings {
         return prefix;
     }
 
+    public static boolean startsWithChar(CharSequence s, char prefix) {
+        return s != null && s.length() != 0 && s.charAt(0) == prefix;
+    }
+
+    public static boolean startsWithConcatenation(String string, String... prefixes) {
+        int offset = 0;
+        for (String prefix : prefixes) {
+            int prefixLen = prefix.length();
+            if (!string.regionMatches(offset, prefix, 0, prefixLen)) {
+                return false;
+            }
+            offset += prefixLen;
+        }
+        return true;
+    }
+
+    public static String trimEnd(String s, String suffix) {
+        if (s.endsWith(suffix)) {
+            return s.substring(0, s.length() - suffix.length());
+        }
+        return s;
+    }
+
 }
