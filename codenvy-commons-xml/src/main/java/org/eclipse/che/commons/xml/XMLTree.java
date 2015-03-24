@@ -451,7 +451,19 @@ public final class XMLTree {
                     //characters event may be invoked 2 or more times
                     //on the element text, but related node is single text node
                     //so the only segment should be created for it
-                    if (prevEvent == CHARACTERS) continue;
+
+                    //counting matches of \r and including it into node offset as
+                    //standard Node#getText() doesn't contain carriage return character
+                    int matches = countMatches(reader.getText(), '\r');
+
+                    if (prevEvent == CHARACTERS) {
+                        if (matches != 0) {
+                            final List<Segment> text = stack.peek().text;
+                            final Segment last = text.get(text.size() - 1);
+                            last.right += matches;
+                        }
+                        continue;
+                    }
 
                     final Element current = stack.peek();
                     if (current.text == null) {
@@ -479,6 +491,22 @@ public final class XMLTree {
             }
             prevEvent = reader.getEventType();
         }
+    }
+
+    private int countMatches(String source, char target) {
+        int index = source.indexOf(target);
+        if (index == -1) {
+            return 0;
+        }
+
+        int count = 1;
+        final char[] chars = source.toCharArray();
+        for (int i = index + 1; i < chars.length; i++) {
+            if (chars[0] == index) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**

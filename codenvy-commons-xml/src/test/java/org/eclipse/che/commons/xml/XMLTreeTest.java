@@ -25,18 +25,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static org.eclipse.che.commons.xml.NewElement.createElement;
-import static org.eclipse.che.commons.xml.XMLTreeLocation.after;
-import static org.eclipse.che.commons.xml.XMLTreeLocation.before;
-import static org.eclipse.che.commons.xml.XMLTreeLocation.inTheEnd;
-import static org.eclipse.che.commons.xml.XMLTreeLocation.inTheBegin;
 import static com.google.common.io.Files.toByteArray;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.exists;
-import static java.nio.file.Files.write;
-import static java.nio.file.Files.readAllBytes;
 import static java.nio.file.Files.newOutputStream;
+import static java.nio.file.Files.readAllBytes;
+import static java.nio.file.Files.write;
 import static java.util.Arrays.asList;
+import static org.eclipse.che.commons.xml.XMLTreeLocation.after;
+import static org.eclipse.che.commons.xml.XMLTreeLocation.before;
+import static org.eclipse.che.commons.xml.XMLTreeLocation.inTheBegin;
+import static org.eclipse.che.commons.xml.XMLTreeLocation.inTheEnd;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -1596,6 +1595,38 @@ public class XMLTreeTest {
                                                "TEXT AGAIN");
         tree.updateText("/parent", "new text");
         assertEquals(tree.toString(), "<parent>new text<child></child></parent>");
+    }
+
+    @Test
+    public void shouldIncludeCarriageReturnCharacterOffsetWhileParsingXMLContent() {
+        final XMLTree tree = XMLTree.from("<parent>\n" +
+                                          "    <child1>\rchild1 text\r</child1>\n" +
+                                          "\r\r<child2>child 2 text</child2>\n" +
+                                          "</parent>");
+
+        tree.updateText("/parent/child1", "new text");
+        tree.updateText("/parent/child2", "new text");
+
+        assertEquals(tree.toString(), "<parent>\n" +
+                                      "    <child1>new text</child1>\n" +
+                                      "\r\r<child2>new text</child2>\n" +
+                                      "</parent>");
+    }
+
+
+    @Test
+    public void shouldIncludeCarriageReturnCharacterOffsetWhileParsingXMLContent2() {
+        final XMLTree tree = XMLTree.from("<parent>\n" +
+                                          "    <child1>\rchild1 text\r</child1>\n" +
+                                          "\r\r<child2>child 2 text</child2>\n" +
+                                          "</parent>");
+
+        tree.insertAfter("/parent/child1", NewElement.createElement("newTag"));
+        assertEquals(tree.toString(), "<parent>\n" +
+                                      "    <child1>\rchild1 text\r</child1>\n" +
+                                      "    <newTag/>\n"                   +
+                                      "\r\r<child2>child 2 text</child2>\n" +
+                                      "</parent>");
     }
 
     @Test(dataProvider = "custom-xml-files")
