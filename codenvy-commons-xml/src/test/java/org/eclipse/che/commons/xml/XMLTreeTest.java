@@ -590,10 +590,8 @@ public class XMLTreeTest {
         //second tree
         final NewElement dependency = NewElement
                 .createElement("dependency").appendChild(NewElement.createElement("artifactId", "test-artifact"))
-                                                                 .appendChild(NewElement.createElement("groupId",
-                                                                                                       "test-group"))
-                                                                 .appendChild(NewElement.createElement("version",
-                                                                                                       "test-version"));
+                                                                 .appendChild(NewElement.createElement("groupId", "test-group"))
+                                                                 .appendChild(NewElement.createElement("version", "test-version"));
         tree2.getSingleElement("//dependencies")
              .appendChild(dependency);
 
