@@ -502,7 +502,7 @@ public final class XMLTree {
         int count = 1;
         final char[] chars = source.toCharArray();
         for (int i = index + 1; i < chars.length; i++) {
-            if (chars[0] == index) {
+            if (chars[i] == index) {
                 count++;
             }
         }
