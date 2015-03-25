@@ -162,7 +162,8 @@ public final class XMLTree {
     private static final XMLInputFactory        XML_INPUT_FACTORY        = XMLInputFactory.newFactory();
     private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
     private static final XPathFactory           XPATH_FACTORY            = XPathFactory.newInstance();
-    private static final String                 ROOT_TEMPLATE            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<%s>\n</%s>";
+    private static final String                 ROOT_TEMPLATE            = "<?xml version=\"1.0\" " +
+                                                                           "encoding=\"UTF-8\"?>\n<%s>\n</%s>";
     private static final int                    EXPECTED_NAMESPACES_SIZE = 2;
 
     private Document            document;
@@ -186,8 +187,7 @@ public final class XMLTree {
      * If there are more then only element were found
      * {@link XMLTreeException} will be thrown
      *
-     * @param expression
-     *         xpath expression to search element
+     * @param expression xpath expression to search element
      * @return requested element text
      * @see Element#getText()
      */
@@ -205,8 +205,7 @@ public final class XMLTree {
      * attributes values or whatever text information
      * which is able to be selected with xpath
      *
-     * @param expression
-     *         xpath expression to search elements
+     * @param expression xpath expression to search elements
      * @return list of elements text or empty list if nothing found
      */
     public List<String> getText(String expression) {
@@ -216,8 +215,7 @@ public final class XMLTree {
     /**
      * Searches for requested elements.
      *
-     * @param expression
-     *         xpath expression to search elements
+     * @param expression xpath expression to search elements
      * @return list of found elements or empty list if elements were not found
      */
     public List<Element> getElements(String expression) {
@@ -241,8 +239,7 @@ public final class XMLTree {
      * If there are more then only element
      * or nothing were found {@link XMLTreeException} will be thrown
      *
-     * @param expression
-     *         xpath expression to search element
+     * @param expression xpath expression to search element
      * @return found element
      */
     public Element getSingleElement(String expression) {
@@ -257,10 +254,8 @@ public final class XMLTree {
      * If there are more then only element were found
      * {@link XMLTreeException} will be thrown
      *
-     * @param expression
-     *         xpath expression to search element
-     * @param newContent
-     *         new element text content
+     * @param expression xpath expression to search element
+     * @param newContent new element text content
      * @see Element#setText(String)
      */
     public void updateText(String expression, String newContent) {
@@ -274,11 +269,9 @@ public final class XMLTree {
      * If there are more then only parent element
      * were found {@link XMLTreeException} will be thrown
      *
-     * @param expression
-     *         xpath expression to search parent
-     * @param newElement
-     *         new element which will be inserted.
-     *         It should be created with same tree instance
+     * @param expression xpath expression to search parent
+     * @param newElement new element which will be inserted.
+     *                   It should be created with same tree instance
      */
     public void appendChild(String expression, NewElement newElement) {
         single(getElements(expression)).appendChild(newElement);
@@ -292,11 +285,9 @@ public final class XMLTree {
      * If there are more then only referenced element
      * were found {@link XMLTreeException} will be thrown
      *
-     * @param expression
-     *         xpath expression to search referenced element
-     * @param newElement
-     *         new element which will be inserted.
-     *         It should be created with same tree instance
+     * @param expression xpath expression to search referenced element
+     * @param newElement new element which will be inserted.
+     *                   It should be created with same tree instance
      */
     public void insertBefore(String expression, NewElement newElement) {
         single(getElements(expression)).insertBefore(newElement);
@@ -308,11 +299,9 @@ public final class XMLTree {
      * If there are more then only referenced elements
      * were found {@link XMLTreeException} will be thrown
      *
-     * @param expression
-     *         xpath expression to search referenced element
-     * @param newElement
-     *         new element which will be inserted.
-     *         It should be created with same tree instance
+     * @param expression xpath expression to search referenced element
+     * @param newElement new element which will be inserted.
+     *                   It should be created with same tree instance
      */
     public void insertAfter(String expression, NewElement newElement) {
         single(getElements(expression)).insertAfter(newElement);
@@ -330,8 +319,7 @@ public final class XMLTree {
      * If there are more then only referenced element
      * were found {@link XMLTreeException} will be thrown
      *
-     * @param expression
-     *         xpath expression to remove element
+     * @param expression xpath expression to remove element
      */
     public void removeElement(String expression) {
         single(getElements(expression)).remove();
@@ -374,7 +362,7 @@ public final class XMLTree {
     private <T> T evaluateXPath(String expression, QName returnType) {
         final XPath xpath = XPATH_FACTORY.newXPath();
         try {
-            return (T)xpath.evaluate(expression, document, returnType);
+            return (T) xpath.evaluate(expression, document, returnType);
         } catch (XPathExpressionException xpathEx) {
             throw XMLTreeException.wrap(xpathEx);
         }
@@ -502,7 +490,7 @@ public final class XMLTree {
         int count = 1;
         final char[] chars = source.toCharArray();
         for (int i = index + 1; i < chars.length; i++) {
-            if (chars[i] == index) {
+            if (chars[i] == target) {
                 count++;
             }
         }
@@ -533,7 +521,7 @@ public final class XMLTree {
         if (!(node instanceof org.w3c.dom.Element)) {
             throw new XMLTreeException("It is not possible to associate xml elements");
         }
-        return (org.w3c.dom.Element)node;
+        return (org.w3c.dom.Element) node;
     }
 
     /**
@@ -805,12 +793,9 @@ public final class XMLTree {
     /**
      * Shift given segment on offset if it is righter then idx
      *
-     * @param segment
-     *         segment to shift
-     * @param leftBound
-     *         left bound
-     * @param offset
-     *         offset to shift on, it can be negative
+     * @param segment   segment to shift
+     * @param leftBound left bound
+     * @param offset    offset to shift on, it can be negative
      */
     private void shiftSegment(Segment segment, int leftBound, int offset) {
         if (segment.left > leftBound) {
@@ -1030,7 +1015,7 @@ public final class XMLTree {
             if (!(obj instanceof Segment)) {
                 return false;
             }
-            final Segment other = (Segment)obj;
+            final Segment other = (Segment) obj;
             return other.left == left && other.right == right;
         }
 

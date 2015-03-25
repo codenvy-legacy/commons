@@ -1600,7 +1600,7 @@ public class XMLTreeTest {
     @Test
     public void shouldIncludeCarriageReturnCharacterOffsetWhileParsingXMLContent() {
         final XMLTree tree = XMLTree.from("<parent>\n" +
-                                          "    <child1>\rchild1 text\r</child1>\n" +
+                                          "    <child1>\r\r\r\r\rchild1 text\r</child1>\n" +
                                           "\r\r<child2>child 2 text</child2>\n" +
                                           "</parent>");
 
@@ -1612,7 +1612,6 @@ public class XMLTreeTest {
                                       "\r\r<child2>new text</child2>\n" +
                                       "</parent>");
     }
-
 
     @Test
     public void shouldIncludeCarriageReturnCharacterOffsetWhileParsingXMLContent2() {
@@ -1628,6 +1627,8 @@ public class XMLTreeTest {
                                       "\r\r<child2>child 2 text</child2>\n" +
                                       "</parent>");
     }
+
+
 
     @Test(dataProvider = "custom-xml-files")
     public void shouldBeAbleToCreateTreeFromCustomXML(File xml) throws IOException {
