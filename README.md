@@ -1,4 +1,4 @@
 Codenvy commons classes
+=========================
 
-[![Build Status](http://ci.codenvy-dev.com/jenkins/buildStatus/icon?job=commons-master-ci)](http://ci.codenvy-dev.com/jenkins/job/commons-master-ci/)
-
+This repository is deprecated. Visit https://github.com/codenvy/che-core
